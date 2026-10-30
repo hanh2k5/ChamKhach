@@ -18,19 +18,24 @@
 
 | Thành phần            | Phiên bản đã chọn     | Nguồn tra (ngày 30/10/2026)            |
 |-----------------------|-----------------------|----------------------------------------|
-| Android Studio        | Narwhal 2025.1.1      | android.com — bản stable mới nhất 2025 |
+| Android Studio        | Narwhal 2025.1.1      | android.com — bản stable trên Windows  |
 | JDK                   | 17                    | Yêu cầu tối thiểu của AGP 8.x         |
-| Kotlin                | 2.4.21                | kotlinlang.org — stable tháng 10/2026  |
-| Android Gradle Plugin | 8.13.2                | android.com                            |
-| Gradle                | 8.13                  | android.com (ghép với AGP 8.13)        |
-| Jetpack Compose BOM   | 2026.08.00            | googleblog.com — stable tháng 8/2026   |
-| compileSdk / targetSdk| API 36 (Android 16)   | AGP 8.13 hỗ trợ tối đa API 36         |
+| Kotlin                | 2.0.21                | kotlinlang.org — stable                |
+| Android Gradle Plugin | 8.7.3                 | dl.google.com — stable                 |
+| Gradle                | 8.10.2                | services.gradle.org (ghép với AGP 8.7) |
+| Jetpack Compose BOM   | 2024.10.01            | dl.google.com — stable                 |
+| compileSdk / targetSdk| API 35 (Android 15)   | android-35 SDK platform                |
 | minSdk                | 26 (Android 8.0)      | SPEC mục 2.1                           |
-| KSP                   | 2.4.21-1.0.x          | Tiền tố Kotlin phải khớp (tra lại khi tạo project A0) |
+| KSP                   | 2.0.21-1.0.28         | maven.org — khớp 1:1 với Kotlin 2.0.21 |
+| Room                  | 2.6.1                 | dl.google.com                          |
+| DataStore             | 1.1.1                 | dl.google.com                          |
+| Retrofit              | 2.11.0                | squareup                               |
+| OkHttp                | 4.12.0                | squareup                               |
+| kotlinx.serialization | 1.7.3                 | kotlinlang.org                         |
 
 ## Phiên bản thực tế trên máy sau cài đặt
 
-> Điền vào sau khi hoàn tất cài đặt môi trường (cuối phiên T0, cập nhật phiên T1).
+> Điền vào sau khi hoàn tất cài đặt môi trường (cuối phiên T0, cập nhật phiên T1 & A0).
 
 | Công cụ           | Phiên bản cài được | Ngày cài   | Ghi chú                                   |
 |-------------------|--------------------|------------|-------------------------------------------|
@@ -40,4 +45,7 @@
 | MySQL             | 8.0.46             | 30/10/2026 | Service active, DB `telesales` & `telesales_test` đã tạo |
 | JDK               | OpenJDK 17.0.20.1  | 30/10/2026 | Đã có java, javac, jar                    |
 | php-mysql         | pdo_mysql & mysqli | 30/10/2026 | Kết nối PDO MySQL kiểm tra thành công     |
-| Android Studio    | (cài trên Windows) | —          | Cần cài trên Windows trước task A0        |
+| Android cmdline-tools | 12.0 (11076708) | 30/10/2026 | Cài trong `/home/acer/android-sdk`        |
+| Android Platform  | android-35 (API 35)| 30/10/2026 | Cài qua `sdkmanager`                      |
+| Android Build-Tools| 35.0.0            | 30/10/2026 | Cài qua `sdkmanager`                      |
+| Android Studio    | (cài trên Windows) | —          | Dùng chạy thử GUI trên Windows            |

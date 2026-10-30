@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** Hoàn thành Giai đoạn 1: Backend T0-T6 (Sẵn sàng cho Giai đoạn 2: Android A0)
+- **Task hiện tại:** Hoàn thành A0 (sẵn sàng cho A1)
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -55,6 +55,14 @@
     - Thực thi curl thực tế bao phủ đầy đủ tất cả endpoint (Ping, Customers, Interactions, Follow-ups, Dashboard, Error handling)
     - Xuất toàn bộ ví dụ request/response và bảng đối chiếu 1:1 với SRS mục 7 vào `docs/API_EXAMPLES.md`
     - Khẳng định 100% khớp đặc tả SRS mục 7, sẵn sàng làm cơ sở phát triển DTO và Repository cho client Android
+  - [x] A0: Dựng dự án Android Compose (30/10/2026)
+    - Cài đặt Android SDK cmdline-tools 12.0, platform-tools, platforms;android-35, build-tools;35.0.0 vào `/home/acer/android-sdk` trong WSL2
+    - Thiết lập cơ chế tự động tránh xung đột `local.properties` giữa WSL2 Linux và Windows Android Studio trong `settings.gradle.kts`
+    - Cấu hình Gradle Wrapper 8.10.2, AGP 8.7.3, Kotlin 2.0.21, KSP 2.0.21-1.0.28, Compose BOM 2024.10.01 (Material 3)
+    - Cấu hình dependencies: Room 2.6.1, DataStore 1.1.1, Retrofit 2.11.0, OkHttp 4.12.0, kotlinx.serialization 1.7.3
+    - Cấu hình `networkSecurityConfig` debug cho phép HTTP cleartext 10.0.2.2/localhost, `allowBackup=false`, Proguard keep rules cho DTO
+    - Xây dựng cấu trúc `AppContainer` (Manual DI) và `MainActivity` Compose
+    - Build thực tế thành công: `./gradlew assembleDebug` (ra file `app-debug.apk` 11MB) và `./gradlew testDebugUnitTest` xanh 100%
 
 ## Cách chạy lại
 
@@ -63,8 +71,8 @@
 - **Chạy migrations dev:** `cd backend && php artisan migrate`
 - **Test backend:** `cd backend && php artisan test`
 - **Test T5 only:** `cd backend && php artisan test tests/Unit/BusinessTimeTest.php tests/Feature/FollowUpTest.php tests/Feature/DashboardTest.php`
-- **Android build (sau A0):** `cd android && ./gradlew assembleDebug`
-- **Android test (sau A0):** `cd android && ./gradlew test`
+- **Android build:** `cd android && ./gradlew assembleDebug`
+- **Android test:** `cd android && ./gradlew testDebugUnitTest`
 
 ## Kết quả kiểm tra môi trường thực tế (sau T0)
 
@@ -91,5 +99,4 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 
 ## Việc tiếp theo
 
-1. Chờ người dùng duyệt đóng băng API contract.
-2. Bắt đầu Giai đoạn 2 — Android (Task A0: Dựng dự án Android Compose).
+1. Bắt đầu task A1 (Tầng mạng + Cài đặt: SettingsStore, ApiService, DTO, màn hình Cài đặt).

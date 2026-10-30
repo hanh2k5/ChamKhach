@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** Hoàn thành T2 (sẵn sàng cho T3)
+- **Task hiện tại:** Hoàn thành T3 (sẵn sàng cho T4)
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -22,6 +22,15 @@
     - Tạo route group `/api/v1` với middleware `auth:sanctum` và route `GET /api/v1/ping`
     - Test suite Feature: 15 tests, 60 assertions xanh 100% (AuthTest: 5 tests)
     - Đã kiểm tra thực tế bằng `curl` đến `/api/v1/ping` (401 khi thiếu/sai token, 200 khi có token)
+  - [x] T3: PhoneNormalizer + Customers API (30/10/2026)
+    - Tạo `PhoneNormalizer` theo SRS 5.2 (loại bỏ ký tự đặc biệt, chuẩn hóa +84/84/0, kiểm tra độ dài 10-11 số)
+    - Tạo `DuplicatePhoneException` trả lỗi chuẩn HTTP 409 (`DUPLICATE_PHONE`, `existing_customer_id`)
+    - Tạo `StoreCustomerRequest`, `UpdateCustomerRequest` validate theo FormRequest
+    - Tạo `CustomerListResource`, `CustomerResource` format JSON chuẩn SRS 7.1
+    - Tạo `CustomerService`: truy vấn danh sách phân trang tối ưu (tính `interaction_count`, `last_contacted_at`, `last_result` qua subqueries, chống N+1), tìm kiếm `q`, lọc theo status/potential, sắp xếp `last_contacted_at DESC NULLS LAST, id DESC`, transaction hủy pending follow-up khi lưu trữ
+    - Tạo `CustomerController` và đăng ký routes trong `routes/api.php`
+    - Test suite: 54 tests, 184 assertions xanh 100% (PhoneNormalizerTest: 25 tests, CustomerTest: 14 tests)
+    - Thử nghiệm curl thật thành công: 201 tạo mới, 409 trùng số, 200 danh sách và chi tiết
 
 ## Cách chạy lại
 
@@ -57,5 +66,5 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 
 ## Việc tiếp theo
 
-1. Nhận xác nhận hoàn thành T2 từ người dùng.
-2. Bắt đầu task T3 (PhoneNormalizer + Customers API).
+1. Nhận xác nhận hoàn thành T3 từ người dùng.
+2. Bắt đầu task T4 (Interactions API).

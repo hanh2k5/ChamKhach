@@ -14,4 +14,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
             ],
         ]);
     });
+
+    Route::apiResource('customers', \App\Http\Controllers\Api\CustomerController::class)
+        ->only(['index', 'store', 'show', 'update']);
 });

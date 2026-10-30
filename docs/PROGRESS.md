@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** Hoàn thành T5 (sẵn sàng cho T6)
+- **Task hiện tại:** Hoàn thành Giai đoạn 1: Backend T0-T6 (Sẵn sàng cho Giai đoạn 2: Android A0)
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -50,6 +50,11 @@
     - Test suite: BusinessTimeTest (7 tests), FollowUpTest (19 tests), DashboardTest (6 tests) xanh 100%
     - Toàn bộ backend test suite: 101 tests, 296 assertions xanh 100%
     - Thử nghiệm curl thật: GET follow-ups phân nhóm, GET dashboard, PATCH reschedule, complete, và 409 FOLLOW_UP_NOT_PENDING khi thao tác lịch đã xong
+  - [x] T6: Đóng băng API contract (30/10/2026)
+    - Chạy toàn bộ test suite backend: 101 tests, 296 assertions xanh 100%
+    - Thực thi curl thực tế bao phủ đầy đủ tất cả endpoint (Ping, Customers, Interactions, Follow-ups, Dashboard, Error handling)
+    - Xuất toàn bộ ví dụ request/response và bảng đối chiếu 1:1 với SRS mục 7 vào `docs/API_EXAMPLES.md`
+    - Khẳng định 100% khớp đặc tả SRS mục 7, sẵn sàng làm cơ sở phát triển DTO và Repository cho client Android
 
 ## Cách chạy lại
 
@@ -86,4 +91,5 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 
 ## Việc tiếp theo
 
-1. Bắt đầu task T6 (Đóng băng API contract: chạy toàn bộ test, xuất ví dụ request/response curl vào docs/API_EXAMPLES.md).
+1. Chờ người dùng duyệt đóng băng API contract.
+2. Bắt đầu Giai đoạn 2 — Android (Task A0: Dựng dự án Android Compose).

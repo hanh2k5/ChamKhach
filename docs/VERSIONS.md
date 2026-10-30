@@ -9,7 +9,7 @@
 |-------------------|-------------------|------------------------------------------------------|
 | PHP               | 8.3.6             | `php -v` trên máy                                    |
 | Composer          | 2.7.1             | `composer -V` trên máy                               |
-| Laravel           | 13.x (≥13.0.0)    | laravel.com — stable từ 17/03/2026, yêu cầu PHP ≥8.3 |
+| Laravel Framework | 13.39.0           | `php artisan --version` (laravel/framework)          |
 | Laravel Sanctum   | đi kèm Laravel 13 | Cài qua `composer create-project` mặc định           |
 | MySQL             | 8.4.7 LTS         | mysql.com — bản LTS, release 21/10/2025              |
 | Test framework    | Pest (mặc định Laravel 13) | Chọn một, không trộn PHPUnit thuần       |
@@ -30,11 +30,14 @@
 
 ## Phiên bản thực tế trên máy sau cài đặt
 
-> Điền vào sau khi hoàn tất cài đặt môi trường (cuối phiên T0).
+> Điền vào sau khi hoàn tất cài đặt môi trường (cuối phiên T0, cập nhật phiên T1).
 
-| Công cụ        | Phiên bản cài được | Ngày cài   | Ghi chú                                   |
-|----------------|--------------------|------------|-------------------------------------------|
-| MySQL          | 8.0.46             | 30/10/2026 | Service active, DB `telesales` & `telesales_test` đã tạo |
-| JDK            | OpenJDK 17.0.20.1  | 30/10/2026 | Đã có java, javac, jar                    |
-| php-mysql      | pdo_mysql & mysqli | 30/10/2026 | Kết nối PDO MySQL kiểm tra thành công     |
-| Android Studio | (cài trên Windows) | —          | Cần cài trên Windows trước task A0        |
+| Công cụ           | Phiên bản cài được | Ngày cài   | Ghi chú                                   |
+|-------------------|--------------------|------------|-------------------------------------------|
+| PHP               | 8.3.6              | 30/10/2026 | `php -v`                                  |
+| Composer          | 2.7.1              | 30/10/2026 | `composer -V`                             |
+| Laravel Framework | 13.39.0            | 30/10/2026 | `php artisan --version` (project backend) |
+| MySQL             | 8.0.46             | 30/10/2026 | Service active, DB `telesales` & `telesales_test` đã tạo |
+| JDK               | OpenJDK 17.0.20.1  | 30/10/2026 | Đã có java, javac, jar                    |
+| php-mysql         | pdo_mysql & mysqli | 30/10/2026 | Kết nối PDO MySQL kiểm tra thành công     |
+| Android Studio    | (cài trên Windows) | —          | Cần cài trên Windows trước task A0        |

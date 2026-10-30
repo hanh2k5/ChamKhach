@@ -2,22 +2,23 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** Hoàn thành T0 (sẵn sàng cho T1)
+- **Task hiện tại:** Hoàn thành T1 (sẵn sàng cho T2)
 - **Đã xong:**
-  - [x] Tạo cấu trúc thư mục `backend/`, `android/`, `docs/` (30/10/2026)
-  - [x] Tạo `.gitignore` (Laravel + Android)
-  - [x] Tạo `docs/VERSIONS.md` (phiên bản đã tra & cập nhật phiên bản thực tế)
-  - [x] Tạo `docs/DECISIONS.md`
-  - [x] Tạo `docs/PROGRESS.md`
-  - [x] Cài đặt MySQL 8.0.46, OpenJDK 17.0.20.1, php8.3-mysql
-  - [x] Tạo database `telesales`, `telesales_test` & user `telesales` (password: `secret`)
-  - [x] Test kết nối PDO MySQL thành công từ PHP CLI
-  - [x] Commit đầu tiên `b96aa78`
+  - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
+  - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
+    - Cài đặt Laravel 13.39.0 trong `backend/`
+    - Cấu hình `.env` (MySQL DB `telesales`), `phpunit.xml` (DB `telesales_test`)
+    - Tạo `backend/config/telesales.php` (business_timezone: Asia/Ho_Chi_Minh)
+    - Tạo 5 Enums: CallResult, NeedType, PotentialLevel, CustomerStatus, FollowUpStatus
+    - Tạo 4 migrations: customers, interactions, interaction_needs, follow_ups
+    - Tạo 4 Eloquent models với fillable tường minh & enum casts
+    - Test suite: 10 tests, 44 assertions xanh 100%
 
 ## Cách chạy lại
 
-- **Backend (sau T1):** `cd backend && php artisan serve`
-- **Test backend (sau T1):** `cd backend && php artisan test`
+- **Backend:** `cd backend && php artisan serve`
+- **Chạy migrations dev:** `cd backend && php artisan migrate`
+- **Test backend:** `cd backend && php artisan test`
 - **Android build (sau A0):** `cd android && ./gradlew assembleDebug`
 - **Android test (sau A0):** `cd android && ./gradlew test`
 
@@ -46,5 +47,5 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 
 ## Việc tiếp theo
 
-1. Nhận xác nhận hoàn thành T0 từ người dùng.
-2. Bắt đầu task T1 (Dựng Laravel + MySQL + migrations + models).
+1. Nhận xác nhận hoàn thành T1 từ người dùng.
+2. Bắt đầu task T2 (Auth token Sanctum + hạ tầng API).

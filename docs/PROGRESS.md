@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** Hoàn thành T3 (sẵn sàng cho T4)
+- **Task hiện tại:** Hoàn thành T4 (sẵn sàng cho T5)
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -31,6 +31,13 @@
     - Tạo `CustomerController` và đăng ký routes trong `routes/api.php`
     - Test suite: 54 tests, 184 assertions xanh 100% (PhoneNormalizerTest: 25 tests, CustomerTest: 14 tests)
     - Thử nghiệm curl thật thành công: 201 tạo mới, 409 trùng số, 200 danh sách và chi tiết
+  - [x] T4: Interactions API (30/10/2026)
+    - Tạo `StoreInteractionRequest` validate result/needs enum, needs min:1, follow_up.remind_at sau now
+    - Tạo `InteractionService::record` (DB transaction + lockForUpdate + D6): tạo interaction + needs, hoàn thành follow-up pending cũ, tạo follow-up mới nếu có remind_at
+    - Tạo `InteractionResource` format GET list item
+    - Tạo `InteractionController` (index + store), đăng ký route GET/POST /api/v1/customers/{id}/interactions
+    - Test suite: 15 tests, 41 assertions xanh 100% (InteractionTest); toàn suite 69 tests, 225 assertions xanh
+    - Thử nghiệm curl: POST không lịch (201), POST có lịch + D6 (201), GET list (200, mới nhất trước), needs rỗng (422), archived customer (422 CUSTOMER_ARCHIVED)
 
 ## Cách chạy lại
 
@@ -38,6 +45,7 @@
 - **Cấp token telesales:** `cd backend && php artisan telesales:issue-token`
 - **Chạy migrations dev:** `cd backend && php artisan migrate`
 - **Test backend:** `cd backend && php artisan test`
+- **Test T4 only:** `cd backend && php artisan test tests/Feature/InteractionTest.php`
 - **Android build (sau A0):** `cd android && ./gradlew assembleDebug`
 - **Android test (sau A0):** `cd android && ./gradlew test`
 
@@ -66,5 +74,4 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 
 ## Việc tiếp theo
 
-1. Nhận xác nhận hoàn thành T3 từ người dùng.
-2. Bắt đầu task T4 (Interactions API).
+1. Bắt đầu task T5 (Follow-ups + Dashboard API).

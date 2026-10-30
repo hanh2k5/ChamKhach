@@ -17,4 +17,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('customers', \App\Http\Controllers\Api\CustomerController::class)
         ->only(['index', 'store', 'show', 'update']);
+
+    Route::get('customers/{customer}/interactions', [\App\Http\Controllers\Api\InteractionController::class, 'index']);
+    Route::post('customers/{customer}/interactions', [\App\Http\Controllers\Api\InteractionController::class, 'store']);
 });

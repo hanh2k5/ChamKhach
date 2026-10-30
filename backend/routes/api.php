@@ -20,4 +20,9 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     Route::get('customers/{customer}/interactions', [\App\Http\Controllers\Api\InteractionController::class, 'index']);
     Route::post('customers/{customer}/interactions', [\App\Http\Controllers\Api\InteractionController::class, 'store']);
+
+    Route::get('follow-ups', [\App\Http\Controllers\Api\FollowUpController::class, 'index']);
+    Route::patch('follow-ups/{id}', [\App\Http\Controllers\Api\FollowUpController::class, 'update']);
+
+    Route::get('dashboard', [\App\Http\Controllers\Api\DashboardController::class, 'index']);
 });

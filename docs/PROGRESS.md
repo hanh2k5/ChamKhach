@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** Hoàn thành T4 (sẵn sàng cho T5)
+- **Task hiện tại:** Hoàn thành T5 (sẵn sàng cho T6)
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -38,6 +38,18 @@
     - Tạo `InteractionController` (index + store), đăng ký route GET/POST /api/v1/customers/{id}/interactions
     - Test suite: 15 tests, 41 assertions xanh 100% (InteractionTest); toàn suite 69 tests, 225 assertions xanh
     - Thử nghiệm curl: POST không lịch (201), POST có lịch + D6 (201), GET list (200, mới nhất trước), needs rỗng (422), archived customer (422 CUSTOMER_ARCHIVED)
+  - [x] T5: Follow-ups + Dashboard API (30/10/2026)
+    - Tạo `BusinessTime` chuẩn hóa múi giờ Asia/Ho_Chi_Minh (UTC+7) -> UTC, tính ranh giới 00:00 và 23:59:59.999
+    - Tạo `FollowUpNotPendingException` trả lỗi HTTP 409 chuẩn SRS khi thao tác lên follow-up không pending
+    - Tạo `PatchFollowUpRequest` validate action (complete, cancel, reschedule) và remind_at tương lai
+    - Tạo `FollowUpResource` format chuẩn SRS 7.3 (group, customer, note từ interaction tạo lịch)
+    - Tạo `FollowUpService`: máy trạng thái apply() (complete/cancel/reschedule với lockForUpdate), list() lọc theo status và group (overdue, today, upcoming, all)
+    - Tạo `FollowUpController`, đăng ký routes GET /api/v1/follow-ups và PATCH /api/v1/follow-ups/{id}
+    - Tạo `DashboardService`: đếm overdue_count, today_count, potential_count (khách active có potential high/medium), lấy 20 items pending sắp xếp overdue trước rồi remind_at asc
+    - Tạo `DashboardController`, đăng ký route GET /api/v1/dashboard
+    - Test suite: BusinessTimeTest (7 tests), FollowUpTest (19 tests), DashboardTest (6 tests) xanh 100%
+    - Toàn bộ backend test suite: 101 tests, 296 assertions xanh 100%
+    - Thử nghiệm curl thật: GET follow-ups phân nhóm, GET dashboard, PATCH reschedule, complete, và 409 FOLLOW_UP_NOT_PENDING khi thao tác lịch đã xong
 
 ## Cách chạy lại
 
@@ -45,7 +57,7 @@
 - **Cấp token telesales:** `cd backend && php artisan telesales:issue-token`
 - **Chạy migrations dev:** `cd backend && php artisan migrate`
 - **Test backend:** `cd backend && php artisan test`
-- **Test T4 only:** `cd backend && php artisan test tests/Feature/InteractionTest.php`
+- **Test T5 only:** `cd backend && php artisan test tests/Unit/BusinessTimeTest.php tests/Feature/FollowUpTest.php tests/Feature/DashboardTest.php`
 - **Android build (sau A0):** `cd android && ./gradlew assembleDebug`
 - **Android test (sau A0):** `cd android && ./gradlew test`
 
@@ -74,4 +86,4 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 
 ## Việc tiếp theo
 
-1. Bắt đầu task T5 (Follow-ups + Dashboard API).
+1. Bắt đầu task T6 (Đóng băng API contract: chạy toàn bộ test, xuất ví dụ request/response curl vào docs/API_EXAMPLES.md).

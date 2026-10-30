@@ -2,7 +2,7 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** Hoàn thành T1 (sẵn sàng cho T2)
+- **Task hiện tại:** Hoàn thành T2 (sẵn sàng cho T3)
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -13,10 +13,20 @@
     - Tạo 4 migrations: customers, interactions, interaction_needs, follow_ups
     - Tạo 4 Eloquent models với fillable tường minh & enum casts
     - Test suite: 10 tests, 44 assertions xanh 100%
+  - [x] T2: Auth token Sanctum + hạ tầng API (30/10/2026)
+    - Cài đặt Sanctum v4.3.3, migration `personal_access_tokens`
+    - Thêm trait `HasApiTokens` vào model `User`
+    - Cấu hình JSON exception handler & guest redirection trong `bootstrap/app.php` chuẩn SRS mục 7
+    - Tạo `UserSeeder` khởi tạo tài khoản telesales từ env
+    - Tạo Artisan command `telesales:issue-token` cấp Bearer token qua CLI
+    - Tạo route group `/api/v1` với middleware `auth:sanctum` và route `GET /api/v1/ping`
+    - Test suite Feature: 15 tests, 60 assertions xanh 100% (AuthTest: 5 tests)
+    - Đã kiểm tra thực tế bằng `curl` đến `/api/v1/ping` (401 khi thiếu/sai token, 200 khi có token)
 
 ## Cách chạy lại
 
 - **Backend:** `cd backend && php artisan serve`
+- **Cấp token telesales:** `cd backend && php artisan telesales:issue-token`
 - **Chạy migrations dev:** `cd backend && php artisan migrate`
 - **Test backend:** `cd backend && php artisan test`
 - **Android build (sau A0):** `cd android && ./gradlew assembleDebug`
@@ -47,5 +57,5 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 
 ## Việc tiếp theo
 
-1. Nhận xác nhận hoàn thành T1 từ người dùng.
-2. Bắt đầu task T2 (Auth token Sanctum + hạ tầng API).
+1. Nhận xác nhận hoàn thành T2 từ người dùng.
+2. Bắt đầu task T3 (PhoneNormalizer + Customers API).

@@ -11,6 +11,11 @@ interface ReminderCopy {
     fun notificationTitle(customerName: String): String
     fun notificationBody(remindAt: java.time.Instant, note: String?, zoneId: ZoneId): String
     fun debugReminder(atEpochMs: Long): ReminderEntity
+    fun missedBody(body: String): String
+}
+
+fun interface ReminderNotifier {
+    fun show(reminder: ReminderEntity)
 }
 
 class ReminderCoordinator(
@@ -19,6 +24,7 @@ class ReminderCoordinator(
     private val clock: Clock,
     private val businessZone: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh"),
     private val copy: ReminderCopy,
+    private val notifier: ReminderNotifier,
 ) {
     suspend fun apply(actions: List<ReminderAction>) {
         actions.forEach { action ->
@@ -36,6 +42,7 @@ class ReminderCoordinator(
     }
 
     suspend fun sync(repository: FollowUpRepository) {
+        recoverAfterBoot()
         val pending = mutableListOf<FollowUp>()
         var page = 1
         while (true) {
@@ -47,6 +54,19 @@ class ReminderCoordinator(
         }
         val reminders = pending.map(::toReminder)
         apply(ReminderPlanner.synchronize(store.getAll(), reminders, clock))
+    }
+
+    suspend fun recoverAfterBoot() {
+        ReminderRecoveryPlanner.plan(store.getAll(), clock).forEach { action ->
+            when (action) {
+                is ReminderRecoveryAction.Schedule -> scheduler.schedule(action.reminder)
+                is ReminderRecoveryAction.NotifyMissed -> {
+                    if (store.claimNotification(action.reminder.followUpId)) {
+                        notifier.show(action.reminder.copy(body = copy.missedBody(action.reminder.body)))
+                    }
+                }
+            }
+        }
     }
 
     fun toReminder(followUp: FollowUp): ReminderEntity {

@@ -7,7 +7,7 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** A8 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 67 unit tests xanh (02/11/2026). Kiểm thử emulator A2–A8 còn nợ. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
+- **Task hiện tại:** A9 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 72 unit tests xanh trong 18 suites (02/11/2026). Kiểm thử emulator A2–A9 còn nợ. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -179,7 +179,7 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 
 ## Việc tiếp theo
 
-1. Thử thủ công A2–A8 trên emulator theo checklist bên dưới.
+1. Thử thủ công A2–A9 trên emulator theo checklist bên dưới.
 
 ## A8 — Báo thức và thông báo (hoàn thành code và unit test)
 
@@ -189,4 +189,12 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 - Nối lưu interaction (lịch mới và ID completed), complete/cancel/reschedule, archive; Dashboard và Lịch đồng bộ tất cả trang pending với Room, hủy lịch stale và không đặt lịch quá khứ. ReminderPlanner giữ quyết định thuần, có Clock/ZoneId tiêm được.
 - Android 13+ xin quyền thông báo khi vào app; Cài đặt hiển thị trạng thái quyền, cảnh báo, lối tới cài đặt quyền. Bản debug có nút thông báo thử sau 30 giây. WorkManager không dùng vì không bảo đảm đúng phút; quyết định D-ARCH-01.
 - Xác minh: `cd android && ./gradlew clean testDebugUnitTest assembleDebug` — `BUILD SUCCESSFUL`; 67 tests, 17 suites, 0 skipped, 0 failures, 0 errors. XML test results ở `android/app/build/test-results/testDebugUnitTest/`.
-- **Còn nợ — thử tay trên emulator/điện thoại (chưa thực hiện):** xin quyền thông báo; thông báo debug sau 30 giây kể cả khóa màn hình; đặt lịch thật sau 2 phút và xác nhận giờ bắn; nhấn thông báo mở đúng khách; dời lịch để xác nhận alarm cũ không bắn; hoàn thành/lưu trữ để xác nhận không bắn; tắt thông báo xác nhận app không crash và có giải thích; Android 14+ chưa cấp exact alarm để xác nhận cảnh báo/fallback. A9 (khởi động lại máy/lịch lỡ) chưa làm.
+- **Còn nợ — thử tay trên emulator/điện thoại (chưa thực hiện):** xin quyền thông báo; thông báo debug sau 30 giây kể cả khóa màn hình; đặt lịch thật sau 2 phút và xác nhận giờ bắn; nhấn thông báo mở đúng khách; dời lịch để xác nhận alarm cũ không bắn; hoàn thành/lưu trữ để xác nhận không bắn; tắt thông báo xác nhận app không crash và có giải thích; Android 14+ chưa cấp exact alarm để xác nhận cảnh báo/fallback.
+
+## A9 — Khởi động lại máy và lịch lỡ (hoàn thành code và unit test)
+
+- Thêm `RECEIVE_BOOT_COMPLETED` và `BootReceiver` exported, chỉ nhận `ACTION_BOOT_COMPLETED`. Receiver dùng `goAsync()` với coroutine IO, đọc Room qua `ReminderCoordinator.recoverAfterBoot()`.
+- Lịch tương lai chưa báo được schedule lại bằng `ReminderScheduler`; lịch quá hạn chưa báo hiện một notification với chuỗi “Lịch bị lỡ” rồi được đánh dấu notified nguyên tử. Bản ghi rỗng hoặc đã báo không tạo hành động.
+- Khi mở app, xử lý Room overdue trước khi gọi đồng bộ API; giữ logic thời gian qua Clock/ZoneId tiêm được. Không dùng WorkManager; không đăng ký `LOCKED_BOOT_COMPLETED`; chưa làm A10.
+- Xác minh: `cd android && ./gradlew clean testDebugUnitTest assembleDebug` — `BUILD SUCCESSFUL`; **72 tests, 18 suites**. Lệnh `grep -L 'failures="0" errors="0"' ...` không in file nào. Lệnh đếm test theo yêu cầu dùng `bc` không chạy vì môi trường thiếu `bc`; phép cộng tương đương bằng `awk` trên cùng output `grep` cho kết quả 72.
+- **Còn nợ — thử tay (chưa thực hiện):** khởi động lại máy thật/emulator và kiểm tra báo thức tương lai; tắt máy qua giờ hẹn rồi bật lại, kiểm tra thông báo “Lịch bị lỡ”; reboot lần nữa sau khi lịch đã báo để xác nhận không bắn lặp.

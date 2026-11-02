@@ -18,9 +18,8 @@ class ReminderReceiver : BroadcastReceiver() {
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
                 val reminder = app.container.reminderStore.get(id)
-                if (reminder != null && !reminder.notified) {
+                if (reminder != null && !reminder.notified && app.container.reminderStore.claimNotification(id)) {
                     NotificationHelper(app).show(reminder)
-                    app.container.reminderStore.markNotified(id)
                 }
             } finally {
                 pendingResult.finish()

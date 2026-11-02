@@ -18,6 +18,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import android.os.Build
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -42,9 +44,10 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 reminderNavController = navController
                 val initialCustomerId = intent.getLongExtra(com.telesales.assistant.reminder.NotificationHelper.EXTRA_CUSTOMER_ID, 0L)
-                if (initialCustomerId > 0) {
-                    LaunchedEffect(initialCustomerId) {
-                        container.reminderCoordinator.sync(container.followUpRepository)
+                LaunchedEffect(initialCustomerId) {
+                    withContext(Dispatchers.IO) { container.reminderCoordinator.recoverAfterBoot() }
+                    if (initialCustomerId > 0) {
+                        withContext(Dispatchers.IO) { container.reminderCoordinator.sync(container.followUpRepository) }
                     }
                 }
                 NavHost(navController = navController, startDestination = if (initialCustomerId > 0) "customerDetail/$initialCustomerId" else "dashboard") {

@@ -6,6 +6,7 @@
     <string name="reminder_note_format">%1$s · %2$s</string>
     <string name="reminder_debug_title">Gọi lại: thông báo thử</string>
     <string name="reminder_debug_body">Thông báo thử sau 30 giây</string>
+    <string name="reminder_missed_format">Lịch bị lỡ. %1$s</string>
     <string name="reminder_settings_title">Nhắc lịch</string>
     <string name="reminder_notifications_enabled">Quyền thông báo: Đã cấp</string>
     <string name="reminder_notifications_disabled">Quyền thông báo: Chưa cấp</string>

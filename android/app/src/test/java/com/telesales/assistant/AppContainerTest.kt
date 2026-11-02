@@ -42,6 +42,7 @@ class AppContainerTest {
                 override suspend fun upsert(reminder: ReminderEntity) = Unit
                 override suspend fun delete(id: Long) = Unit
                 override suspend fun markNotified(id: Long) = Unit
+                override suspend fun claimNotification(id: Long) = true
             }
             override val reminderScheduler: ReminderScheduler = object : ReminderScheduler {
                 override fun schedule(reminder: ReminderEntity) = Unit
@@ -51,7 +52,8 @@ class AppContainerTest {
                 override fun notificationTitle(customerName: String) = customerName
                 override fun notificationBody(remindAt: java.time.Instant, note: String?, zoneId: java.time.ZoneId) = note.orEmpty()
                 override fun debugReminder(atEpochMs: Long) = ReminderEntity(0, 0, "debug", "debug", atEpochMs)
-            })
+                override fun missedBody(body: String) = "missed: $body"
+            }, notifier = com.telesales.assistant.reminder.ReminderNotifier { })
         }
 
         assertNotNull(container.settingsStore)

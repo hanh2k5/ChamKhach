@@ -24,4 +24,6 @@ class ResourceReminderCopy(context: Context) : ReminderCopy {
         body = resources.getString(R.string.reminder_debug_body),
         remindAtEpochMs = atEpochMs,
     )
+
+    override fun missedBody(body: String): String = resources.getString(R.string.reminder_missed_format, body)
 }

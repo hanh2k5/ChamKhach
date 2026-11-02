@@ -137,5 +137,11 @@ class ReminderPlannerTest {
         override suspend fun upsert(reminder: ReminderEntity) { items[reminder.followUpId] = reminder }
         override suspend fun delete(id: Long) { items.remove(id) }
         override suspend fun markNotified(id: Long) { items[id]?.let { items[id] = it.copy(notified = true) } }
+        override suspend fun claimNotification(id: Long): Int {
+            val item = items[id] ?: return 0
+            if (item.notified) return 0
+            items[id] = item.copy(notified = true)
+            return 1
+        }
     }
 }

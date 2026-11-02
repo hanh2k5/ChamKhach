@@ -23,6 +23,7 @@ import com.telesales.assistant.reminder.ReminderDaoStore
 import com.telesales.assistant.reminder.ReminderScheduler
 import com.telesales.assistant.reminder.ReminderStore
 import com.telesales.assistant.reminder.ResourceReminderCopy
+import com.telesales.assistant.reminder.NotificationHelper
 import java.time.Clock
 
 /**
@@ -60,6 +61,12 @@ class DefaultAppContainer(context: Context) : AppContainer {
     override val reminderScheduler: ReminderScheduler = AndroidReminderScheduler(
         context, alarmManager, AndroidExactAlarmPermission(alarmManager),
     )
-    override val reminderCoordinator = ReminderCoordinator(reminderStore, reminderScheduler, Clock.systemUTC(), copy = ResourceReminderCopy(context))
+    override val reminderCoordinator = ReminderCoordinator(
+        reminderStore,
+        reminderScheduler,
+        Clock.systemUTC(),
+        copy = ResourceReminderCopy(context),
+        notifier = NotificationHelper(context),
+    )
 }
 

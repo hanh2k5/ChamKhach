@@ -17,6 +17,7 @@ interface ReminderStore {
     suspend fun upsert(reminder: ReminderEntity)
     suspend fun delete(id: Long)
     suspend fun markNotified(id: Long)
+    suspend fun claimNotification(id: Long): Boolean
 }
 
 class ReminderDaoStore(private val dao: com.telesales.assistant.data.local.ReminderDao) : ReminderStore {
@@ -25,4 +26,5 @@ class ReminderDaoStore(private val dao: com.telesales.assistant.data.local.Remin
     override suspend fun upsert(reminder: ReminderEntity) = dao.upsert(reminder)
     override suspend fun delete(id: Long) = dao.delete(id)
     override suspend fun markNotified(id: Long) = dao.markNotified(id)
+    override suspend fun claimNotification(id: Long) = dao.claimNotification(id) > 0
 }

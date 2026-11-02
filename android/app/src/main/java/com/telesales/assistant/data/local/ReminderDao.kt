@@ -21,4 +21,7 @@ interface ReminderDao {
 
     @Query("UPDATE reminders SET notified = 1 WHERE followUpId = :id")
     suspend fun markNotified(id: Long)
+
+    @Query("UPDATE reminders SET notified = 1 WHERE followUpId = :id AND notified = 0")
+    suspend fun claimNotification(id: Long): Int
 }

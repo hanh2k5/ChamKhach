@@ -15,7 +15,7 @@ import com.telesales.assistant.MainActivity
 import com.telesales.assistant.R
 import com.telesales.assistant.data.local.ReminderEntity
 
-class NotificationHelper(private val context: Context) {
+class NotificationHelper(private val context: Context) : ReminderNotifier {
     fun createChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = context.getSystemService(NotificationManager::class.java)
@@ -25,7 +25,7 @@ class NotificationHelper(private val context: Context) {
         }
     }
 
-    fun show(reminder: ReminderEntity) {
+    override fun show(reminder: ReminderEntity) {
         if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
         val openIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP

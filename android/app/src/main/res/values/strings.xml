@@ -1,5 +1,20 @@
 <resources>
     <string name="app_name">Telesales Assistant</string>
-    <string name="welcome_message">Chào mừng đến với Telesales Assistant</string>
+    <string name="settings_title">Cài đặt kết nối</string>
+    <string name="settings_base_url">Base URL</string>
+    <string name="settings_base_url_hint">http://10.0.2.2:8000/api/v1/</string>
+    <string name="settings_base_url_error">URL không hợp lệ. Dùng http:// hoặc https:// và kiểm tra địa chỉ máy chủ.</string>
+    <string name="settings_token">Token</string>
+    <string name="settings_save">Lưu</string>
+    <string name="settings_check_connection">Kiểm tra kết nối</string>
+    <string name="settings_saved">Đã lưu cài đặt.</string>
+    <string name="settings_checking">Đang kiểm tra kết nối…</string>
+    <string name="settings_connected">Kết nối thành công.</string>
+    <string name="settings_token_required">Vui lòng nhập token.</string>
+    <string name="settings_invalid_token">Token không hợp lệ. Hãy kiểm tra lại trong Cài đặt.</string>
+    <string name="settings_endpoint_not_found">Không tìm thấy API. Kiểm tra Base URL có đường dẫn /api/v1/.</string>
+    <string name="settings_network_error">Không kết nối được máy chủ. Kiểm tra mạng và Base URL.</string>
+    <string name="settings_server_error">Máy chủ trả lỗi. Vui lòng thử lại.</string>
+    <string name="settings_storage_error">Không lưu được cài đặt trên thiết bị.</string>
 </resources>
 

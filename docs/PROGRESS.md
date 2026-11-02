@@ -1,8 +1,13 @@
 # PROGRESS
 
+## Nguồn đặc tả
+
+- `docs/TELESALES_SPEC.md` là nguồn đặc tả chính; `docs/SRS.md` là tài liệu SRS gốc để tham chiếu (D-REPO-01).
+- Đã thêm spec đầy đủ (604 dòng) trong commit `8447ecd` (`docs: add detailed spec`).
+
 ## Trạng thái
 
-- **Task hiện tại:** Hoàn thành A0 (sẵn sàng cho A1)
+- **Task hiện tại:** Hoàn thành A1; build/test và kiểm thử emulator đã được xác minh bởi người dùng.
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -74,6 +79,15 @@
 - **Android build:** `cd android && ./gradlew assembleDebug`
 - **Android test:** `cd android && ./gradlew testDebugUnitTest`
 
+## A1 — Tầng mạng + Cài đặt (hoàn thành)
+
+- Đã thêm Preferences DataStore cho Base URL/token; Base URL được trim, chỉ nhận `http://`/`https://`, tự thêm dấu `/` cuối và từ chối URL sai trước khi gọi mạng.
+- Đã thêm Retrofit `ApiService`/`PingDto`, OkHttp `AuthInterceptor` gắn Bearer + `Accept: application/json`, và cấu hình JSON bỏ qua field response chưa biết. Không dùng logging interceptor, không log token.
+- Đã thêm màn Cài đặt tiếng Việt: Base URL, Token ẩn ký tự, Lưu, Kiểm tra kết nối và trạng thái rõ ràng (thành công, token sai, URL/endpoint sai, mạng/máy chủ/lưu lỗi).
+- Người dùng xác minh thành công: `cd android && ./gradlew clean testDebugUnitTest assembleDebug`; 12 tests thuộc 5 test classes, không lỗi.
+- Người dùng kiểm thử thủ công trên emulator: kết nối thành công; token sai báo lỗi; backend tắt báo lỗi mạng; cấu hình còn sau khi mở lại app.
+- Lệnh chạy lại riêng: `cd android && ./gradlew testDebugUnitTest` và `cd android && ./gradlew assembleDebug`.
+
 ## Kết quả kiểm tra môi trường thực tế (sau T0)
 
 ```
@@ -89,14 +103,16 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 ## Quyết định mới (xem thêm DECISIONS.md)
 
 - AlarmManager thay WorkManager (D-ARCH-01)
-- docs/SRS.md = nguồn đặc tả chính (D-REPO-01)
+- docs/TELESALES_SPEC.md = nguồn đặc tả chính; docs/SRS.md = tài liệu SRS tham chiếu (D-REPO-01)
 - Android Studio cài trên Windows (D-ENV-01)
 - DB dev: `telesales`, DB test: `telesales_test`, user: `telesales` / `secret`
 
 ## Việc phát hiện thêm (ngoài phạm vi, chưa làm)
 
 - Android Studio Narwhal 2025.1.1 cần được cài đặt trên Windows trước khi tiến hành Giai đoạn 2 (A0).
+- `docs/API_EXAMPLES.md` vẫn ghi `docs/SRS.md` là nguồn đặc tả; cần cập nhật chú thích sang `docs/TELESALES_SPEC.md`.
+- Cảnh báo lint `Check for instance is always true` tại `android/app/src/test/java/com/telesales/assistant/AppContainerTest.kt:25`.
 
 ## Việc tiếp theo
 
-1. Bắt đầu task A1 (Tầng mạng + Cài đặt: SettingsStore, ApiService, DTO, màn hình Cài đặt).
+1. Task kế tiếp theo kế hoạch là A2; chưa bắt đầu trong phiên này.

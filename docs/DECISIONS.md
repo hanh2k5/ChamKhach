@@ -1,6 +1,6 @@
 # DECISIONS — Quyết định thay đổi / bổ sung so với SPEC gốc
 
-> Ghi mọi quyết định chệch khỏi `docs/SRS.md` hoặc quyết định mặc định trong SPEC.
+> Ghi mọi quyết định chệch khỏi `docs/TELESALES_SPEC.md` (nguồn chính) hoặc quyết định mặc định trong SPEC.
 > Không sửa file này nếu không có lý do rõ ràng và chưa được người dùng duyệt.
 
 ---
@@ -14,11 +14,12 @@
 
 ---
 
-## D-REPO-01: File docs/TELESALES_SPEC.md không tồn tại
+## D-REPO-01: Nguồn đặc tả chính
 
-- **Tình huống:** AGENTS.md tham chiếu đến `docs/TELESALES_SPEC.md` nhưng file này không có trong repo. Nội dung đặc tả thực tế nằm trong `docs/SRS.md`.
-- **Quyết định:** Mọi phiên làm việc đọc `docs/SRS.md` thay thế. Khi có file `TELESALES_SPEC.md` thực sự sẽ cập nhật lại.
-- **Ghi bởi:** Agent · T0 · 30/10/2026
+- **Tình huống ban đầu:** `docs/TELESALES_SPEC.md` chưa có trong repo, nên các task trước dùng `docs/SRS.md` thay thế.
+- **Quyết định hiện tại:** `docs/TELESALES_SPEC.md` là nguồn đặc tả chính; `docs/SRS.md` là tài liệu SRS gốc để tham chiếu.
+- **Cập nhật:** Đã thêm `docs/TELESALES_SPEC.md` trong commit `8447ecd`.
+- **Ghi bởi:** Agent · T0 · 30/10/2026; cập nhật 02/11/2026
 
 ---
 

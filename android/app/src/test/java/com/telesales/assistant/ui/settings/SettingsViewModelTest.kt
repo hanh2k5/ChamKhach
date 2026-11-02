@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModelStore
 import com.telesales.assistant.data.network.ApiService
 import com.telesales.assistant.data.network.ApiServiceProvider
 import com.telesales.assistant.data.network.PingDto
+import com.telesales.assistant.data.network.CustomerPageDto
 import com.telesales.assistant.data.settings.InMemoryPreferencesDataStore
 import com.telesales.assistant.data.settings.SettingsStore
 import kotlinx.coroutines.Dispatchers
@@ -131,6 +132,7 @@ class SettingsViewModelTest {
             lastToken = token
             return object : ApiService {
                 override suspend fun ping(): PingDto = pingAction()
+                override suspend fun customers(query: String?, status: String, potential: String?, lastResult: String?, page: Int, perPage: Int) = CustomerPageDto()
             }
         }
     }

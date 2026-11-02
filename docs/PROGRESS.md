@@ -7,7 +7,7 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** Hoàn thành A1; build/test và kiểm thử emulator đã được xác minh bởi người dùng.
+- **Task hiện tại:** A2 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 19 unit tests xanh (02/11/2026). A2 chưa được thử thủ công trên emulator. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -88,6 +88,18 @@
 - Người dùng kiểm thử thủ công trên emulator: kết nối thành công; token sai báo lỗi; backend tắt báo lỗi mạng; cấu hình còn sau khi mở lại app.
 - Lệnh chạy lại riêng: `cd android && ./gradlew testDebugUnitTest` và `cd android && ./gradlew assembleDebug`.
 
+## A2 — Danh sách khách + tìm kiếm/lọc (hoàn thành)
+
+- Đã thêm DTO/pagination, mapper DTO ↔ domain `Customer`, `ApiCustomerRepository`, và màn danh sách khách làm màn chính với điều hướng Cài đặt.
+- ViewModel giữ query, filter và rows; debounce 300 ms, hủy request cũ, reset trang/danh sách khi đổi query/filter, chống gọi tải thêm trùng và ngừng tải khi hết trang.
+- Lọc status (mặc định active, archived/all), potential_level và last_result; lấy 20 khách/trang. Thiếu Base URL/token thì không tạo API request và hiện hướng dẫn mở Cài đặt.
+- Có component trạng thái loading/empty/error/retry, thông báo 401/mạng/5xx, nhãn tiếng Việt cho kết quả gần nhất, giờ hiển thị theo Asia/Ho_Chi_Minh qua Clock/ZoneId. Có nút làm mới; bấm khách chưa mở chi tiết (A4).
+- Thêm unit tests cho ViewModel (loading/content/empty/error/retry, debounce và kết quả mới nhất, tải thêm chống lặp, reset filter), mapper/múi giờ, và không gọi API khi thiếu cấu hình. Đã xác minh: 19 tests, 0 failures/errors.
+- Lệnh xác minh: `cd android && ./gradlew clean testDebugUnitTest assembleDebug` — `BUILD SUCCESSFUL`.
+- API contract và dependency không đổi; navigation-compose đã có từ A0.
+- **Còn nợ — thử thủ công A2 trên emulator:** danh sách; tìm kiếm; bộ lọc; lỗi mạng và thử lại; chưa cấu hình Base URL/token; xoay màn hình; tải trang 2.
+- Lệnh chạy lại: `cd android && ./gradlew clean testDebugUnitTest assembleDebug`.
+
 ## Kết quả kiểm tra môi trường thực tế (sau T0)
 
 ```
@@ -115,4 +127,4 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 
 ## Việc tiếp theo
 
-1. Task kế tiếp theo kế hoạch là A2; chưa bắt đầu trong phiên này.
+1. Thử thủ công các mục A2 còn nợ trên emulator; chưa bắt đầu A3.

@@ -23,7 +23,7 @@ import com.telesales.assistant.data.network.ApiServiceProvider
 import com.telesales.assistant.data.settings.SettingsStore
 
 @Composable
-fun SettingsRoute(settingsStore: SettingsStore, apiServiceFactory: ApiServiceProvider) {
+fun SettingsRoute(settingsStore: SettingsStore, apiServiceFactory: ApiServiceProvider, onBack: (() -> Unit)? = null) {
     val settingsViewModel: SettingsViewModel = viewModel(
         factory = SettingsViewModelFactory(settingsStore, apiServiceFactory),
     )
@@ -34,6 +34,7 @@ fun SettingsRoute(settingsStore: SettingsStore, apiServiceFactory: ApiServicePro
         onTokenChanged = settingsViewModel::onTokenChanged,
         onSave = settingsViewModel::save,
         onCheckConnection = settingsViewModel::checkConnection,
+        onBack = onBack,
     )
 }
 
@@ -44,6 +45,7 @@ private fun SettingsScreen(
     onTokenChanged: (String) -> Unit,
     onSave: () -> Unit,
     onCheckConnection: () -> Unit,
+    onBack: (() -> Unit)?,
 ) {
     Scaffold { padding ->
         Column(
@@ -53,6 +55,11 @@ private fun SettingsScreen(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            if (onBack != null) {
+                androidx.compose.material3.TextButton(onClick = onBack) {
+                    Text(stringResource(R.string.settings_back))
+                }
+            }
             Text(text = stringResource(R.string.settings_title))
             OutlinedTextField(
                 value = state.baseUrl,

@@ -18,6 +18,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import com.telesales.assistant.ui.customerdetail.CustomerDetailRoute
+import com.telesales.assistant.ui.calllog.CallLogRoute
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,9 +81,22 @@ class MainActivity : ComponentActivity() {
                             onEdit = { navController.navigate("customerForm/$customerId") },
                             onSettings = { navController.navigate("settings") },
                             onCall = { phone -> startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${Uri.encode(phone)}"))) },
+                            onCallLog = { id -> navController.navigate("callLog/$id") },
                             onArchived = {
                                 Toast.makeText(this@MainActivity, getString(com.telesales.assistant.R.string.detail_archived_notice), Toast.LENGTH_SHORT).show()
                                 navController.previousBackStackEntry?.savedStateHandle?.set("refreshCustomers", true)
+                                navController.popBackStack()
+                            },
+                        )
+                    }
+                    composable("callLog/{customerId}", arguments = listOf(navArgument("customerId") { type = NavType.LongType })) { entry ->
+                        val customerId = entry.arguments?.getLong("customerId") ?: return@composable
+                        CallLogRoute(
+                            customerId = customerId,
+                            repository = container.callLogRepository,
+                            onBack = { navController.popBackStack() },
+                            onSaved = {
+                                navController.previousBackStackEntry?.savedStateHandle?.set("refreshCustomerDetail", true)
                                 navController.popBackStack()
                             },
                         )

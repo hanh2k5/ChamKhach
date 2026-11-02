@@ -6,6 +6,8 @@ import com.telesales.assistant.data.mapper.toUpdateDto
 import com.telesales.assistant.data.network.ApiServiceProvider
 import com.telesales.assistant.data.network.ApiErrorDto
 import com.telesales.assistant.data.network.CustomerStatusDto
+import com.telesales.assistant.data.network.InteractionCreateDto
+import com.telesales.assistant.data.network.FollowUpCreateDto
 import com.telesales.assistant.data.settings.SettingsStore
 import com.telesales.assistant.domain.model.Customer
 import com.telesales.assistant.domain.model.CustomerProfile
@@ -61,6 +63,18 @@ sealed interface ArchiveCustomerResult {
     data class Success(val cancelledFollowUpIds: List<Long>) : ArchiveCustomerResult
     data class Failure(val reason: CustomerDetailFailure) : ArchiveCustomerResult
 }
+sealed interface RecordInteractionResult {
+    data object Success : RecordInteractionResult
+    data class ValidationError(val fields: Map<String, List<String>>) : RecordInteractionResult
+    data object SetupRequired : RecordInteractionResult
+    data object NetworkError : RecordInteractionResult
+    data object Unauthorized : RecordInteractionResult
+    data object ServerError : RecordInteractionResult
+}
+interface CallLogRepository {
+    suspend fun getCallLogCustomer(id: Long): CustomerDetailResult
+    suspend fun recordInteraction(id: Long, request: InteractionCreateDto): RecordInteractionResult
+}
 
 interface CustomerDetailRepository {
     suspend fun getCustomerDetail(id: Long): CustomerDetailResult
@@ -71,7 +85,7 @@ interface CustomerDetailRepository {
 class ApiCustomerRepository(
     private val settingsStore: SettingsStore,
     private val apiServiceProvider: ApiServiceProvider,
-) : CustomerRepository, CustomerFormRepository, CustomerDetailRepository {
+) : CustomerRepository, CustomerFormRepository, CustomerDetailRepository, CallLogRepository {
     override suspend fun getCustomers(query: CustomerQuery, page: Int): CustomerLoadResult {
         val settings = settingsStore.settings.first()
         if (settings.baseUrl.isBlank() || settings.token.isBlank()) return CustomerLoadResult.SetupRequired
@@ -147,6 +161,30 @@ class ApiCustomerRepository(
             ArchiveCustomerResult.Failure(detailFailure(error.code()))
         } catch (error: IOException) {
             ArchiveCustomerResult.Failure(CustomerDetailFailure.Network)
+        }
+    }
+
+    override suspend fun getCallLogCustomer(id: Long) = getCustomerDetail(id)
+
+    override suspend fun recordInteraction(id: Long, request: InteractionCreateDto): RecordInteractionResult {
+        val settings = settingsStore.settings.first()
+        if (settings.baseUrl.isBlank() || settings.token.isBlank()) return RecordInteractionResult.SetupRequired
+        return try {
+            apiServiceProvider.create(settings.baseUrl, settings.token).createInteraction(id, request)
+            RecordInteractionResult.Success
+        } catch (error: HttpException) {
+            if (error.code() == 422) {
+                val body = error.response()?.errorBody()?.string()
+                val apiError = try { body?.let { Json { ignoreUnknownKeys = true }.decodeFromString<ApiErrorDto>(it) } }
+                catch (_: SerializationException) { null }
+                RecordInteractionResult.ValidationError(apiError?.errors.orEmpty())
+            } else when (error.code()) {
+                401 -> RecordInteractionResult.Unauthorized
+                in 500..599 -> RecordInteractionResult.ServerError
+                else -> RecordInteractionResult.ServerError
+            }
+        } catch (error: IOException) {
+            RecordInteractionResult.NetworkError
         }
     }
 

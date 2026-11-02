@@ -12,7 +12,7 @@ class ApiServiceFactory : ApiServiceProvider {
             "Base URL is invalid"
         }
         val contentType = "application/json".toMediaType()
-        val json = Json { ignoreUnknownKeys = true }
+        val json = Json { ignoreUnknownKeys = true; explicitNulls = false }
         val client = OkHttpClient.Builder()
             .addInterceptor(AuthInterceptor { token })
             .build()

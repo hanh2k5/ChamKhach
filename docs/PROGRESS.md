@@ -7,7 +7,7 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** A4 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 30 unit tests xanh (02/11/2026). Kiểm thử emulator A2/A3/A4 còn nợ. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
+- **Task hiện tại:** A5 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 38 unit tests xanh (02/11/2026). Kiểm thử emulator A2–A5 còn nợ. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -121,6 +121,17 @@
 - **Còn nợ — thử thủ công emulator A2/A3/A4:** mở chi tiết từ danh sách; xem timeline; nút Gọi mở trình quay số đúng số; sửa hồ sơ; lưu trữ có xác nhận; hộp thoại trùng số mở đúng hồ sơ cũ; xoay màn hình. Emulator chưa được thử.
 - Lệnh xác minh cần chạy: `cd android && ./gradlew clean testDebugUnitTest assembleDebug`.
 
+## A5 — Form ghi nhận cuộc gọi (hoàn thành code và unit test)
+
+- Từ Chi tiết khách, khách active mở form ghi nhận cuộc gọi; tên/SĐT được tải sẵn, khách archived không có nút ghi nhận. Lưu thành công quay lại Chi tiết và tải mới hồ sơ + timeline.
+- Kết quả dùng nút chọn lớn; nhu cầu dùng chip, mặc định `other` và luôn giữ ít nhất một lựa chọn; ghi chú giới hạn 500 ký tự. Có Material3 DatePicker/TimePicker và nút xóa lịch.
+- D12 được xử lý bằng hộp thoại “Chọn lịch” / “Lưu không có lịch”. Lịch không ở tương lai bị chặn trước khi gọi mạng bằng Clock tiêm được. Giờ Asia/Ho_Chi_Minh được đổi sang UTC ISO-8601 có `+00:00`; request không chứa `follow_up` khi lịch null.
+- POST `/customers/{id}/interactions`; đang lưu khóa nút để chống gửi lặp; lỗi 422 giữ và hiển thị theo trường. Response `follow_up` và `completed_follow_up_ids` hiện chưa đặt/hủy báo thức; phần đó thuộc A8.
+- Unit tests A5: 8 tests (kết quả bắt buộc, nhu cầu mặc định/không rỗng, giới hạn ghi chú, D12, chặn lịch quá khứ, chống double-submit, lỗi 422 theo trường, quy đổi qua nửa đêm và DTO bỏ follow_up null). Toàn bộ Android: 38 tests, 0 skipped, 0 failures, 0 errors.
+- Xác minh: `cd android && ./gradlew clean testDebugUnitTest assembleDebug` — `BUILD SUCCESSFUL`.
+- **Còn nợ — thử thủ công emulator A2–A5:** A2 danh sách/tìm kiếm/bộ lọc/lỗi mạng-thử lại/chưa cấu hình/xoay màn hình/tải trang 2; A3 tạo/sửa/422/trùng số/chống lưu lặp/quay lại danh sách; A4 mở chi tiết/timeline/Gọi/sửa/lưu trữ/xác nhận/trùng số/xoay màn hình; A5 lưu cuộc gọi không lịch; lưu có lịch; callback không lịch hiện hộp thoại; lịch quá khứ bị chặn; số lần liên hệ tăng đúng 1; timeline có bản ghi mới ở đầu; thời gian hiển thị đúng giờ Việt Nam. Emulator chưa được thử.
+- Báo thức chưa được làm; thuộc A8.
+
 ## Kết quả kiểm tra môi trường thực tế (sau T0)
 
 ```
@@ -148,4 +159,4 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 
 ## Việc tiếp theo
 
-1. Thử thủ công A2, A3 và A4 trên emulator theo checklist ở trên.
+1. Thử thủ công A2, A3, A4 và A5 trên emulator theo checklist ở trên.

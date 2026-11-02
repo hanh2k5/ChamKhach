@@ -38,6 +38,9 @@ interface ApiService {
         @Query("per_page") perPage: Int,
     ): InteractionPageDto
 
+    @POST("customers/{id}/interactions")
+    suspend fun createInteraction(@Path("id") id: Long, @Body interaction: InteractionCreateDto): InteractionCreateResponseDto
+
     @PATCH("customers/{id}")
     suspend fun updateCustomerStatus(@Path("id") id: Long, @Body status: CustomerStatusDto): CustomerProfileResponseDto
 }
@@ -76,6 +79,19 @@ interface ApiService {
     val note: String? = null,
     val contacted_at: String,
 )
+@Serializable data class InteractionCreateDto(
+    val result: String,
+    val needs: List<String>,
+    val note: String? = null,
+    val follow_up: FollowUpCreateDto? = null,
+)
+@Serializable data class FollowUpCreateDto(val remind_at: String)
+@Serializable data class InteractionCreateResponseDto(
+    val interaction: InteractionDto,
+    val follow_up: FollowUpCreatedDto? = null,
+    val completed_follow_up_ids: List<Long> = emptyList(),
+)
+@Serializable data class FollowUpCreatedDto(val id: Long, val customer_id: Long, val remind_at: String, val status: String)
 @Serializable data class CustomerCreateDto(
     val company_name: String?,
     val contact_name: String?,

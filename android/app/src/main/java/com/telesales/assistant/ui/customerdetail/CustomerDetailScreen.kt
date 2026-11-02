@@ -49,6 +49,7 @@ fun CustomerDetailRoute(
     onEdit: () -> Unit,
     onSettings: () -> Unit,
     onCall: (String) -> Unit,
+    onCallLog: (Long) -> Unit,
     onArchived: (List<Long>) -> Unit,
     clock: Clock = Clock.systemUTC(),
     zoneId: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh"),
@@ -59,7 +60,7 @@ fun CustomerDetailRoute(
         if (shouldRefresh) { vm.retry(); onRefreshConsumed() }
     }
     LaunchedEffect(state.isArchived) { if (state.isArchived) onArchived(state.cancelledFollowUpIds) }
-    CustomerDetailScreen(state, vm, onBack, onEdit, onSettings, onCall, clock, zoneId)
+    CustomerDetailScreen(state, vm, onBack, onEdit, onSettings, onCall, onCallLog, clock, zoneId)
 }
 
 @Composable
@@ -71,6 +72,7 @@ private fun CustomerDetailScreen(
     onEdit: () -> Unit,
     onSettings: () -> Unit,
     onCall: (String) -> Unit,
+    onCallLog: (Long) -> Unit,
     clock: Clock,
     zoneId: ZoneId,
 ) {
@@ -98,7 +100,7 @@ private fun CustomerDetailScreen(
                     } else TextButton(onClick = vm::retry) { Text(stringResource(R.string.customers_retry)) }
                 }
             }
-            state.customer != null -> DetailContent(state, vm, state.customer, onEdit, onCall, clock, zoneId, Modifier.padding(padding))
+        state.customer != null -> DetailContent(state, vm, state.customer, onEdit, onCall, onCallLog, clock, zoneId, Modifier.padding(padding))
         }
     }
 }
@@ -110,6 +112,7 @@ private fun DetailContent(
     customer: CustomerProfile,
     onEdit: () -> Unit,
     onCall: (String) -> Unit,
+    onCallLog: (Long) -> Unit,
     clock: Clock,
     zoneId: ZoneId,
     modifier: Modifier,
@@ -132,6 +135,7 @@ private fun DetailContent(
                     customer.nextFollowUp?.let { Text(stringResource(R.string.detail_next_follow_up, vm.formatTime(it.remindAt))) }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = { onCall(customer.phone) }) { Text(stringResource(R.string.detail_call)) }
+                        if (customer.status != "archived") TextButton(onClick = { onCallLog(customer.id) }) { Text(stringResource(R.string.call_log_title)) }
                         TextButton(onClick = onEdit) { Text(stringResource(R.string.customer_form_edit_title)) }
                         TextButton(onClick = vm::showArchiveConfirmation) { Text(stringResource(R.string.detail_archive)) }
                     }

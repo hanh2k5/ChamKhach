@@ -198,3 +198,11 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 - Khi mở app, xử lý Room overdue trước khi gọi đồng bộ API; giữ logic thời gian qua Clock/ZoneId tiêm được. Không dùng WorkManager; không đăng ký `LOCKED_BOOT_COMPLETED`; chưa làm A10.
 - Xác minh: `cd android && ./gradlew clean testDebugUnitTest assembleDebug` — `BUILD SUCCESSFUL`; **72 tests, 18 suites**. Lệnh `grep -L 'failures="0" errors="0"' ...` không in file nào. Lệnh đếm test theo yêu cầu dùng `bc` không chạy vì môi trường thiếu `bc`; phép cộng tương đương bằng `awk` trên cùng output `grep` cho kết quả 72.
 - **Còn nợ — thử tay (chưa thực hiện):** khởi động lại máy thật/emulator và kiểm tra báo thức tương lai; tắt máy qua giờ hẹn rồi bật lại, kiểm tra thông báo “Lịch bị lỡ”; reboot lần nữa sau khi lịch đã báo để xác nhận không bắn lặp.
+
+## Bugfix D11 — Server tự gán contacted_at (02/11/2026)
+
+- `StoreInteractionRequest` không còn bắt client gửi `contacted_at`; `InteractionService` gán thời điểm nhận request bằng `Carbon::now()` trước khi lưu.
+- Thêm feature test POST interaction không có `contacted_at`, xác nhận server lưu và trả về thời điểm hiện tại.
+- Android `InteractionCreateDto` tiếp tục không khai báo trường này; unit test xác nhận JSON request không chứa `contacted_at`.
+- Xác minh: `cd backend && php artisan test --filter=InteractionTest` — 16 tests, 44 assertions passed; `cd android && ./gradlew.bat testDebugUnitTest` (JBR 21) — `BUILD SUCCESSFUL`.
+- Commit: `fix(backend): auto assign contacted_at for interactions (D11)`.

@@ -79,6 +79,7 @@ class CallLogViewModelTest {
         val dto = InteractionCreateDto("interested", listOf("other"), follow_up = null)
         val json = kotlinx.serialization.json.Json { explicitNulls = false }.encodeToString(InteractionCreateDto.serializer(), dto)
         assertFalse(json.contains("follow_up"))
+        assertFalse(json.contains("contacted_at"))
     }
 
     private fun TestScope.create(repo: FakeRepository, clock: Clock = Clock.fixed(Instant.parse("2026-11-02T00:00:00Z"), ZoneOffset.UTC)) =

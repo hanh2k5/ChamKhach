@@ -24,7 +24,6 @@ class InteractionService
      *   result: string,
      *   needs: string[],
      *   note: string|null,
-     *   contacted_at: string,
      *   follow_up: array{remind_at: string}|null
      * } $dto
      * @return array{
@@ -55,7 +54,7 @@ class InteractionService
                 'customer_id'  => $customer->id,
                 'result'       => CallResult::from($dto['result']),
                 'note'         => $dto['note'] ?? null,
-                'contacted_at' => Carbon::parse($dto['contacted_at']),
+                'contacted_at' => Carbon::now(),
             ]);
 
             // Tạo interaction_needs

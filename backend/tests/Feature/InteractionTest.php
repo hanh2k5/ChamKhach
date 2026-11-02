@@ -64,6 +64,29 @@ class InteractionTest extends TestCase
         $this->assertDatabaseCount('interactions', 1);
     }
 
+    public function test_create_interaction_assigns_contacted_at_on_server(): void
+    {
+        $contactedAt = Carbon::parse('2026-11-02T12:34:56+00:00');
+        Carbon::setTestNow($contactedAt);
+
+        try {
+            $response = $this->withHeaders($this->authHeaders())
+                ->postJson("/api/v1/customers/{$this->customer->id}/interactions", [
+                    'result' => 'callback',
+                    'needs' => ['website'],
+                ]);
+
+            $response->assertCreated()
+                ->assertJsonPath('interaction.contacted_at', $contactedAt->toIso8601String());
+            $this->assertDatabaseHas('interactions', [
+                'customer_id' => $this->customer->id,
+                'contacted_at' => $contactedAt->toDateTimeString(),
+            ]);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
     // -----------------------------------------------------------------------
     // Test 2: last_contacted_at cập nhật đúng
     // -----------------------------------------------------------------------

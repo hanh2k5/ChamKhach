@@ -24,7 +24,6 @@ class StoreInteractionRequest extends FormRequest
             'needs'               => ['required', 'array', 'min:1', 'max:5'],
             'needs.*'             => ['required', 'string', Rule::in($validNeeds)],
             'note'                => ['nullable', 'string', 'max:500'],
-            'contacted_at'        => ['required', 'date'],
             'follow_up'           => ['nullable', 'array'],
             'follow_up.remind_at' => ['required_with:follow_up', 'date', 'after:now'],
         ];
@@ -38,8 +37,6 @@ class StoreInteractionRequest extends FormRequest
             'needs.required'               => 'Nhu cầu là bắt buộc.',
             'needs.min'                    => 'Phải chọn ít nhất 1 nhu cầu.',
             'needs.*.in'                   => 'Loại nhu cầu không hợp lệ.',
-            'contacted_at.required'        => 'Thời điểm liên hệ là bắt buộc.',
-            'contacted_at.date'            => 'Thời điểm liên hệ không đúng định dạng.',
             'follow_up.remind_at.after'    => 'Thời gian nhắc phải ở tương lai.',
             'follow_up.remind_at.required_with' => 'Thời gian nhắc là bắt buộc khi có lịch gọi lại.',
         ];

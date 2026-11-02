@@ -32,4 +32,18 @@ data class CustomerProfile(
     val source: String?,
     val potentialLevel: String,
     val status: String,
+    val interactionCount: Int = 0,
+    val lastContactedAt: Instant? = null,
+    val lastResult: String? = null,
+    val nextFollowUp: NextFollowUp? = null,
+)
+
+data class NextFollowUp(val id: Long, val remindAt: Instant)
+
+data class Interaction(
+    val id: Long,
+    val result: String,
+    val needs: List<String>,
+    val note: String?,
+    val contactedAt: Instant,
 )

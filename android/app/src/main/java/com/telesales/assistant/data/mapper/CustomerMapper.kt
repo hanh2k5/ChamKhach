@@ -4,7 +4,11 @@ import com.telesales.assistant.data.network.CustomerDto
 import com.telesales.assistant.data.network.CustomerProfileDto
 import com.telesales.assistant.data.network.CustomerCreateDto
 import com.telesales.assistant.data.network.CustomerUpdateDto
+import com.telesales.assistant.data.network.InteractionDto
+import com.telesales.assistant.data.network.NextFollowUpDto
 import com.telesales.assistant.domain.model.Customer
+import com.telesales.assistant.domain.model.Interaction
+import com.telesales.assistant.domain.model.NextFollowUp
 import com.telesales.assistant.domain.model.CustomerProfile
 import java.time.Instant
 
@@ -44,6 +48,28 @@ fun CustomerProfileDto.toDomain(): CustomerProfile = CustomerProfile(
     source = source,
     potentialLevel = potential_level,
     status = status,
+    interactionCount = interaction_count,
+    lastContactedAt = last_contacted_at?.let(Instant::parse),
+    lastResult = last_result,
+    nextFollowUp = next_follow_up?.toDomain(),
+)
+
+fun NextFollowUpDto.toDomain() = NextFollowUp(id, Instant.parse(remind_at))
+
+fun InteractionDto.toDomain(): Interaction = Interaction(
+    id = id,
+    result = result,
+    needs = needs,
+    note = note,
+    contactedAt = Instant.parse(contacted_at),
+)
+
+fun Interaction.toDto(): InteractionDto = InteractionDto(
+    id = id,
+    result = result,
+    needs = needs,
+    note = note,
+    contacted_at = contactedAt.toString(),
 )
 
 fun CustomerProfile.toCreateDto(): CustomerCreateDto = CustomerCreateDto(

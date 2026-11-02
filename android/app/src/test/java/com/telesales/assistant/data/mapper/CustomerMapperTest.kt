@@ -2,6 +2,7 @@ package com.telesales.assistant.data.mapper
 
 import com.telesales.assistant.data.network.CustomerDto
 import com.telesales.assistant.data.network.CustomerProfileDto
+import com.telesales.assistant.data.network.InteractionDto
 import com.telesales.assistant.data.mapper.toCreateDto
 import com.telesales.assistant.data.mapper.toUpdateDto
 import org.junit.Assert.assertEquals
@@ -14,6 +15,17 @@ import java.time.Instant
 import java.time.ZoneId
 
 class CustomerMapperTest {
+    @Test fun mapsInteractionNeedsAndUtcTimeToDomainAndBack() {
+        val dto = InteractionDto(19, "callback", listOf("website", "ads"), "Gọi chiều mai", "2026-11-02T03:00:00Z")
+        val interaction = dto.toDomain()
+        assertEquals(listOf("website", "ads"), interaction.needs)
+        assertEquals(Instant.parse("2026-11-02T03:00:00Z"), interaction.contactedAt)
+        assertEquals(dto, interaction.toDto())
+        val clock = Clock.fixed(Instant.parse("2026-11-02T03:00:00Z"), ZoneId.of("UTC"))
+        assertEquals("02/11/2026 10:00", java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+            .withZone(clock.withZone(ZoneId.of("Asia/Ho_Chi_Minh")).zone).format(interaction.contactedAt))
+    }
+
     @Test fun mapsDtoToDomainAndBackAndConvertsUtcToBusinessZone() {
         val dto = CustomerDto(7, "Cửa hàng", "Lan", "0912345678", "Bán lẻ", "high", "active", 3,
             "2026-10-30T07:15:00+00:00", "interested")

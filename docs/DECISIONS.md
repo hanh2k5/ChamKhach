@@ -40,9 +40,9 @@
 
 ---
 
-## D-A3-01: Mở khách trùng số bằng form sửa trong A3
+## D-A3-01: Điều hướng hồ sơ cũ trong A3 (đã thay bằng màn chi tiết A4)
 
-- **Quyết định:** Trong A3, “Mở hồ sơ cũ” trong hộp thoại trùng số mở form sửa khách `existing_customer_id` (GET `/customers/{id}`, cập nhật bằng PATCH), không mở màn chi tiết A4. Bấm một khách ở danh sách A2 cũng mở form sửa khách đó.
+- **Quyết định ban đầu (A3):** “Mở hồ sơ cũ” trong hộp thoại trùng số mở form sửa khách `existing_customer_id` (GET `/customers/{id}`, cập nhật bằng PATCH). Bấm một khách ở danh sách A2 cũng mở form sửa khách đó.
 - **Khi đổi số trùng lúc sửa:** “Mở hồ sơ cũ” thay form hiện tại trong back stack bằng form sửa khách bị trùng; “Sửa lại” đóng hộp thoại và giữ nguyên form hiện tại.
-- **Sau A4:** Đổi đích bấm khách trong danh sách từ form sửa sang màn chi tiết.
+- **Trạng thái sau A4:** Đã thay bằng màn Chi tiết khách. Bấm khách trong danh sách và “Mở hồ sơ cũ” mở chi tiết; form sửa mở từ nút Sửa ở màn chi tiết.
 - **Ghi bởi:** Người dùng · 02/11/2026

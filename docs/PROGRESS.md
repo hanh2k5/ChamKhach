@@ -7,7 +7,7 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** A3 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 25 unit tests xanh (02/11/2026). Kiểm thử emulator A2/A3 còn nợ. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
+- **Task hiện tại:** A4 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 30 unit tests xanh (02/11/2026). Kiểm thử emulator A2/A3/A4 còn nợ. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -93,7 +93,7 @@
 - Đã thêm DTO/pagination, mapper DTO ↔ domain `Customer`, `ApiCustomerRepository`, và màn danh sách khách làm màn chính với điều hướng Cài đặt.
 - ViewModel giữ query, filter và rows; debounce 300 ms, hủy request cũ, reset trang/danh sách khi đổi query/filter, chống gọi tải thêm trùng và ngừng tải khi hết trang.
 - Lọc status (mặc định active, archived/all), potential_level và last_result; lấy 20 khách/trang. Thiếu Base URL/token thì không tạo API request và hiện hướng dẫn mở Cài đặt.
-- Có component trạng thái loading/empty/error/retry, thông báo 401/mạng/5xx, nhãn tiếng Việt cho kết quả gần nhất, giờ hiển thị theo Asia/Ho_Chi_Minh qua Clock/ZoneId. Có nút làm mới; bấm khách chưa mở chi tiết (A4).
+- Có component trạng thái loading/empty/error/retry, thông báo 401/mạng/5xx, nhãn tiếng Việt cho kết quả gần nhất, giờ hiển thị theo Asia/Ho_Chi_Minh qua Clock/ZoneId. Có nút làm mới; từ A4 bấm khách mở màn chi tiết.
 - Thêm unit tests cho ViewModel (loading/content/empty/error/retry, debounce và kết quả mới nhất, tải thêm chống lặp, reset filter), mapper/múi giờ, và không gọi API khi thiếu cấu hình. Đã xác minh: 19 tests, 0 failures/errors.
 - Lệnh xác minh: `cd android && ./gradlew clean testDebugUnitTest assembleDebug` — `BUILD SUCCESSFUL`.
 - API contract và dependency không đổi; navigation-compose đã có từ A0.
@@ -108,6 +108,18 @@
 - Unit tests ViewModel với FakeRepository bao phủ tạo/sửa, nạp hồ sơ, 422 theo trường, duplicate ID và chống double-submit; mapper kiểm tra DTO và PATCH gửi null để xóa trường tùy chọn.
 - Xác minh: `cd android && ./gradlew clean testDebugUnitTest assembleDebug` — `BUILD SUCCESSFUL`; 25 tests, 0 skipped, 0 failures, 0 errors.
 - **Còn nợ — thử thủ công emulator A3:** tạo khách tối thiểu với chỉ SĐT; sửa và xác nhận dữ liệu được nạp/lưu; 422 hiển thị đúng trường; trùng SĐT khi tạo mở đúng form sửa khách cũ; trùng SĐT khi sửa cho phép mở khách trùng hoặc giữ form hiện tại; chặn lưu lặp; quay lại danh sách và thấy dữ liệu mới.
+
+## A4 — Chi tiết khách, timeline, gọi và lưu trữ (hoàn thành code và unit test)
+
+- Đã thêm hồ sơ chi tiết, tổng hợp cuộc gọi/lịch tiếp theo, timeline mới nhất trước với phân trang 20 dòng, trạng thái tải thêm chống lặp, retry và trạng thái timeline rỗng.
+- Nút Gọi dùng ACTION_DIAL với số điện thoại; Sửa mở form A3; Lưu trữ xác nhận rồi PATCH status=archived, quay về danh sách và yêu cầu làm mới.
+- Khách trong danh sách và “Mở hồ sơ cũ” do hộp thoại trùng số giờ mở màn chi tiết. D-A3-01 đã được cập nhật theo kết quả A4.
+- Thời gian API UTC hiển thị theo Asia/Ho_Chi_Minh qua Clock/ZoneId; chuỗi giao diện và nhãn needs/kết quả đặt trong strings.xml.
+- Đã thêm unit tests ViewModel với FakeRepository (tải/lỗi, retry, timeline phân trang/chống tải lặp/rỗng, lưu trữ thành công/lỗi) và mapper interaction/UTC.
+- Xác minh: `cd android && ./gradlew clean testDebugUnitTest assembleDebug` — `BUILD SUCCESSFUL`; tổng cộng 30 tests, 0 skipped, 0 failures, 0 errors.
+- Khi lưu trữ, `cancelled_follow_up_ids` được nhận nhưng chưa đồng bộ hủy báo thức; xử lý thuộc A8.
+- **Còn nợ — thử thủ công emulator A2/A3/A4:** mở chi tiết từ danh sách; xem timeline; nút Gọi mở trình quay số đúng số; sửa hồ sơ; lưu trữ có xác nhận; hộp thoại trùng số mở đúng hồ sơ cũ; xoay màn hình. Emulator chưa được thử.
+- Lệnh xác minh cần chạy: `cd android && ./gradlew clean testDebugUnitTest assembleDebug`.
 
 ## Kết quả kiểm tra môi trường thực tế (sau T0)
 
@@ -136,4 +148,4 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 
 ## Việc tiếp theo
 
-1. Thử thủ công A2 và A3 trên emulator; ở A4 đổi thao tác bấm khách trong danh sách từ form sửa sang màn chi tiết.
+1. Thử thủ công A2, A3 và A4 trên emulator theo checklist ở trên.

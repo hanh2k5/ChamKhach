@@ -71,5 +71,32 @@
     <string name="customer_form_unauthorized">Token không hợp lệ. Hãy kiểm tra Token trong Cài đặt.</string>
     <string name="customer_form_not_found">Không tìm thấy khách hàng này.</string>
     <string name="customer_form_server_error">Máy chủ gặp lỗi. Vui lòng thử lại.</string>
+    <string name="detail_title">Chi tiết khách</string>
+    <string name="detail_loading">Đang tải hồ sơ khách…</string>
+    <string name="detail_setup_required">Hãy cấu hình Base URL và Token trong Cài đặt để xem khách.</string>
+    <string name="detail_contact">Người liên hệ: %1$s</string>
+    <string name="detail_phone">Số điện thoại: %1$s</string>
+    <string name="detail_address">Địa chỉ: %1$s</string>
+    <string name="detail_industry">Ngành: %1$s</string>
+    <string name="detail_source">Nguồn: %1$s</string>
+    <string name="detail_field">%1$s %2$s</string>
+    <string name="detail_interaction_count">Số cuộc gọi: %1$d</string>
+    <string name="detail_potential">Tiềm năng: %1$s</string>
+    <string name="detail_next_follow_up">Lịch gọi tiếp: %1$s</string>
+    <string name="detail_call">Gọi</string>
+    <string name="detail_archive">Lưu trữ</string>
+    <string name="detail_archive_title">Lưu trữ khách hàng?</string>
+    <string name="detail_archive_confirm">Khách sẽ ngừng được theo dõi và các lịch gọi đang chờ sẽ bị hủy.</string>
+    <string name="detail_timeline">Lịch sử cuộc gọi</string>
+    <string name="detail_timeline_empty">Chưa có cuộc gọi nào</string>
+    <string name="detail_interaction_heading">%1$s · %2$s</string>
+    <string name="detail_needs">Nhu cầu: %1$s</string>
+    <string name="detail_note">Ghi chú: %1$s</string>
+    <string name="need_website">Website</string>
+    <string name="need_web_app">Ứng dụng web</string>
+    <string name="need_software">Phần mềm</string>
+    <string name="need_ads">Quảng cáo</string>
+    <string name="detail_archived_notice">Đã lưu trữ khách hàng.</string>
+    <string name="need_other">Chưa xác định/Khác</string>
 </resources>
 

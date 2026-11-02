@@ -43,6 +43,17 @@ interface ApiService {
 
     @PATCH("customers/{id}")
     suspend fun updateCustomerStatus(@Path("id") id: Long, @Body status: CustomerStatusDto): CustomerProfileResponseDto
+
+    @GET("follow-ups")
+    suspend fun followUps(
+        @Query("status") status: String,
+        @Query("group") group: String,
+        @Query("page") page: Int,
+        @Query("per_page") perPage: Int,
+    ): FollowUpPageDto
+
+    @PATCH("follow-ups/{id}")
+    suspend fun updateFollowUp(@Path("id") id: Long, @Body request: FollowUpActionDto): FollowUpResponseDto
 }
 
 @Serializable data class CustomerPageDto(val data: List<CustomerDto> = emptyList(), val links: CustomerPageLinksDto = CustomerPageLinksDto(), val meta: CustomerPageMetaDto = CustomerPageMetaDto())
@@ -92,6 +103,27 @@ interface ApiService {
     val completed_follow_up_ids: List<Long> = emptyList(),
 )
 @Serializable data class FollowUpCreatedDto(val id: Long, val customer_id: Long, val remind_at: String, val status: String)
+@Serializable data class FollowUpPageDto(
+    val data: List<FollowUpDto> = emptyList(),
+    val links: CustomerPageLinksDto = CustomerPageLinksDto(),
+    val meta: CustomerPageMetaDto = CustomerPageMetaDto(),
+)
+@Serializable data class FollowUpResponseDto(val data: FollowUpDto)
+@Serializable data class FollowUpDto(
+    val id: Long,
+    val remind_at: String,
+    val status: String,
+    val group: String,
+    val customer: FollowUpCustomerDto,
+    val note: String? = null,
+)
+@Serializable data class FollowUpCustomerDto(
+    val id: Long,
+    val company_name: String? = null,
+    val contact_name: String? = null,
+    val phone: String,
+)
+@Serializable data class FollowUpActionDto(val action: String, val remind_at: String? = null)
 @Serializable data class CustomerCreateDto(
     val company_name: String?,
     val contact_name: String?,

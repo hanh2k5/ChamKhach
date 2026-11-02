@@ -19,6 +19,7 @@ import android.net.Uri
 import android.widget.Toast
 import com.telesales.assistant.ui.customerdetail.CustomerDetailRoute
 import com.telesales.assistant.ui.calllog.CallLogRoute
+import com.telesales.assistant.ui.followups.FollowUpsRoute
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,6 +35,7 @@ class MainActivity : ComponentActivity() {
                             repository = container.customerRepository,
                             onSettings = { navController.navigate("settings") },
                             onAddCustomer = { navController.navigate("customerForm/new") },
+                            onFollowUps = { navController.navigate("followUps") },
                             onEditCustomer = { customerId -> navController.navigate("customerDetail/$customerId") },
                             shouldRefresh = shouldRefresh,
                             onRefreshConsumed = { entry.savedStateHandle["refreshCustomers"] = false },
@@ -99,6 +101,15 @@ class MainActivity : ComponentActivity() {
                                 navController.previousBackStackEntry?.savedStateHandle?.set("refreshCustomerDetail", true)
                                 navController.popBackStack()
                             },
+                        )
+                    }
+                    composable("followUps") {
+                        FollowUpsRoute(
+                            repository = container.followUpRepository,
+                            onSettings = { navController.navigate("settings") },
+                            onBack = { navController.popBackStack() },
+                            onCall = { phone -> startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${Uri.encode(phone)}"))) },
+                            onCustomer = { customerId -> navController.navigate("customerDetail/$customerId") },
                         )
                     }
                     composable("settings") {

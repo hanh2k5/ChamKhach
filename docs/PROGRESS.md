@@ -7,7 +7,7 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** A5 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 38 unit tests xanh (02/11/2026). Kiểm thử emulator A2–A5 còn nợ. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
+- **Task hiện tại:** A6 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 46 unit tests xanh (02/11/2026). Kiểm thử emulator A2–A6 còn nợ. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -132,6 +132,16 @@
 - **Còn nợ — thử thủ công emulator A2–A5:** A2 danh sách/tìm kiếm/bộ lọc/lỗi mạng-thử lại/chưa cấu hình/xoay màn hình/tải trang 2; A3 tạo/sửa/422/trùng số/chống lưu lặp/quay lại danh sách; A4 mở chi tiết/timeline/Gọi/sửa/lưu trữ/xác nhận/trùng số/xoay màn hình; A5 lưu cuộc gọi không lịch; lưu có lịch; callback không lịch hiện hộp thoại; lịch quá khứ bị chặn; số lần liên hệ tăng đúng 1; timeline có bản ghi mới ở đầu; thời gian hiển thị đúng giờ Việt Nam. Emulator chưa được thử.
 - Báo thức chưa được làm; thuộc A8.
 
+## A6 — Màn Lịch cần gọi + thao tác (hoàn thành code và unit test)
+
+- Thêm lối vào “Lịch cần gọi” từ thanh trên màn Danh sách khách. Màn lấy `GET /follow-ups?status=pending&group=all&page={page}&per_page=20`, giữ trạng thái trong ViewModel, tải thêm khi cuộn hết và chặn yêu cầu trang trùng.
+- Hiển thị nhóm theo `group` server trả về: quá hạn trước, sau đó hôm nay và sắp tới; thứ tự trong nhóm theo `remind_at` tăng dần. Thời gian hiển thị theo Asia/Ho_Chi_Minh qua Clock/ZoneId tiêm được. Có ghi chú nullable, số khách và nhãn “Quá hạn”.
+- Mỗi mục có Gọi (ACTION_DIAL), mở Chi tiết khách, Đã xử lý (PATCH complete) và Dời lịch (Material3 DatePicker/TimePicker). Lịch quá khứ bị chặn client; 409 `FOLLOW_UP_NOT_PENDING` báo và tải lại; 422 hiển thị lỗi `remind_at`; có xử lý lỗi mạng/401/5xx, retry và pull-to-refresh không thêm thư viện.
+- Complete loại mục khỏi danh sách; reschedule cập nhật mục theo resource trả về, dùng group server và sắp xếp lại. Khóa các thao tác của mục trong lúc request. Chưa đặt/hủy báo thức: A8 cần cancel khi complete và schedule lại khi reschedule.
+- Unit tests A6: 7 test ViewModel cho loading/content/empty/error/retry, thứ tự nhóm, phân trang/chống tải lặp, complete, reschedule + chặn quá khứ, 409 refresh, chống bấm lặp; 1 test mapper kiểm tra note null và UTC → giờ Việt Nam. Toàn bộ Android: 46 tests, 0 skipped, 0 failures, 0 errors (13 suites).
+- Xác minh: `cd android && ./gradlew clean testDebugUnitTest assembleDebug` — `BUILD SUCCESSFUL`.
+- **Còn nợ — thử thủ công emulator A2–A6:** A2 danh sách/tìm kiếm/bộ lọc/lỗi mạng-thử lại/chưa cấu hình/xoay màn hình/tải trang 2; A3 tạo/sửa/422/trùng số/chống lưu lặp/quay lại danh sách; A4 mở chi tiết/timeline/Gọi/sửa/lưu trữ/xác nhận/trùng số/xoay màn hình; A5 lưu không lịch/có lịch/D12 callback không lịch/lịch quá khứ/chỉ tăng số liên hệ một lần/timeline mới lên đầu/giờ Việt Nam; A6 mở màn lịch; nhóm quá hạn đứng trước; Gọi mở trình quay số đúng số; Đã xử lý làm mục biến mất; Dời lịch đổi giờ; lịch quá khứ bị chặn; lỗi mạng và thử lại; xoay màn hình. Emulator chưa được thử.
+
 ## Kết quả kiểm tra môi trường thực tế (sau T0)
 
 ```
@@ -159,4 +169,4 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 
 ## Việc tiếp theo
 
-1. Thử thủ công A2, A3, A4 và A5 trên emulator theo checklist ở trên.
+1. Thử thủ công A2–A6 trên emulator theo checklist ở trên.

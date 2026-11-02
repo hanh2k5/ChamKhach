@@ -9,6 +9,8 @@ import com.telesales.assistant.data.repository.CustomerRepository
 import com.telesales.assistant.data.repository.CustomerFormRepository
 import com.telesales.assistant.data.repository.CustomerDetailRepository
 import com.telesales.assistant.data.repository.CallLogRepository
+import com.telesales.assistant.data.repository.ApiFollowUpRepository
+import com.telesales.assistant.data.repository.FollowUpRepository
 
 /**
  * Interface cho Dependency Container theo mô hình Manual DI (SRS mục 2 & 9.1).
@@ -22,6 +24,7 @@ interface AppContainer {
     val customerFormRepository: CustomerFormRepository
     val customerDetailRepository: CustomerDetailRepository
     val callLogRepository: CallLogRepository
+    val followUpRepository: FollowUpRepository
 }
 
 class DefaultAppContainer(context: Context) : AppContainer {
@@ -32,5 +35,6 @@ class DefaultAppContainer(context: Context) : AppContainer {
     override val customerFormRepository: CustomerFormRepository = customerApiRepository
     override val customerDetailRepository: CustomerDetailRepository = customerApiRepository
     override val callLogRepository: CallLogRepository = customerApiRepository
+    override val followUpRepository: FollowUpRepository = ApiFollowUpRepository(settingsStore, apiServiceFactory)
 }
 

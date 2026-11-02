@@ -27,6 +27,7 @@ fun CustomersRoute(
     repository: com.telesales.assistant.data.repository.CustomerRepository,
     onSettings: () -> Unit,
     onAddCustomer: () -> Unit,
+    onFollowUps: () -> Unit,
     onEditCustomer: (Long) -> Unit,
     shouldRefresh: Boolean,
     onRefreshConsumed: () -> Unit,
@@ -48,6 +49,7 @@ fun CustomersRoute(
         clock = clock,
         zoneId = zoneId,
         onAddCustomer = onAddCustomer,
+        onFollowUps = onFollowUps,
         onEditCustomer = onEditCustomer,
     )
 }
@@ -61,11 +63,13 @@ private fun CustomersScreen(
     clock: Clock,
     zoneId: ZoneId,
     onAddCustomer: () -> Unit,
+    onFollowUps: () -> Unit,
     onEditCustomer: (Long) -> Unit,
 ) {
     val listState = rememberLazyListState()
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.customers_title)) }, actions = {
         TextButton(onClick = onAddCustomer) { Text(stringResource(R.string.customer_form_add_title)) }
+        TextButton(onClick = onFollowUps) { Text(stringResource(R.string.followups_title)) }
         TextButton(onClick = onSettings) { Text(stringResource(R.string.customers_settings)) }
     }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {

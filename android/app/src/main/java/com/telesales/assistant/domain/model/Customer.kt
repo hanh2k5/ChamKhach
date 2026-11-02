@@ -21,3 +21,15 @@ data class Customer(
         DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(clock.withZone(zoneId).zone).format(it)
     }
 }
+
+data class CustomerProfile(
+    val id: Long,
+    val companyName: String?,
+    val contactName: String?,
+    val phone: String,
+    val address: String?,
+    val industry: String?,
+    val source: String?,
+    val potentialLevel: String,
+    val status: String,
+)

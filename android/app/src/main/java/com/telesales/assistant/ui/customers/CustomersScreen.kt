@@ -23,24 +23,49 @@ import java.time.ZoneId
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun CustomersRoute(repository: com.telesales.assistant.data.repository.CustomerRepository, onSettings: () -> Unit,
-    clock: Clock = Clock.systemUTC(), zoneId: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh")) {
+fun CustomersRoute(
+    repository: com.telesales.assistant.data.repository.CustomerRepository,
+    onSettings: () -> Unit,
+    onAddCustomer: () -> Unit,
+    onEditCustomer: (Long) -> Unit,
+    shouldRefresh: Boolean,
+    onRefreshConsumed: () -> Unit,
+    clock: Clock = Clock.systemUTC(),
+    zoneId: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh"),
+) {
     val vm: CustomersViewModel = viewModel(factory = CustomersViewModelFactory(repository))
     val state by vm.state.collectAsState()
+    LaunchedEffect(shouldRefresh) {
+        if (shouldRefresh) {
+            vm.refresh()
+            onRefreshConsumed()
+        }
+    }
     CustomersScreen(
         state = state,
         vm = vm,
         onSettings = onSettings,
         clock = clock,
         zoneId = zoneId,
+        onAddCustomer = onAddCustomer,
+        onEditCustomer = onEditCustomer,
     )
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun CustomersScreen(state: CustomersUiState, vm: CustomersViewModel, onSettings: () -> Unit, clock: Clock, zoneId: ZoneId) {
+private fun CustomersScreen(
+    state: CustomersUiState,
+    vm: CustomersViewModel,
+    onSettings: () -> Unit,
+    clock: Clock,
+    zoneId: ZoneId,
+    onAddCustomer: () -> Unit,
+    onEditCustomer: (Long) -> Unit,
+) {
     val listState = rememberLazyListState()
     Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.customers_title)) }, actions = {
+        TextButton(onClick = onAddCustomer) { Text(stringResource(R.string.customer_form_add_title)) }
         TextButton(onClick = onSettings) { Text(stringResource(R.string.customers_settings)) }
     }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
@@ -67,7 +92,7 @@ private fun CustomersScreen(state: CustomersUiState, vm: CustomersViewModel, onS
             } else {
                 TextButton(onClick = vm::refresh) { Text(stringResource(R.string.customers_refresh)) }
                 LazyColumn(state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(state.customers, key = { it.id }) { customer -> CustomerRow(customer, clock, zoneId) }
+                    items(state.customers, key = { it.id }) { customer -> CustomerRow(customer, clock, zoneId) { onEditCustomer(customer.id) } }
                     if (state.isLoadingMore) item { CircularProgressIndicator() }
                 }
                 val layout by remember { derivedStateOf { listState.layoutInfo } }
@@ -107,7 +132,7 @@ private fun filterValueLabel(value: String?): String = when (value) {
 }
 
 @Composable
-private fun CustomerRow(customer: Customer, clock: Clock, zoneId: ZoneId) {
+private fun CustomerRow(customer: Customer, clock: Clock, zoneId: ZoneId, onClick: () -> Unit) {
     val time = customer.formattedLastContactedAt(clock, zoneId) ?: stringResource(R.string.customers_not_contacted)
     val result = when (customer.lastResult) {
         "interested" -> stringResource(R.string.result_interested)
@@ -116,7 +141,7 @@ private fun CustomerRow(customer: Customer, clock: Clock, zoneId: ZoneId) {
         "rejected" -> stringResource(R.string.result_rejected)
         else -> stringResource(R.string.customers_not_contacted)
     }
-    Card(Modifier.fillMaxWidth().clickable { }) {
+    Card(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Column(Modifier.padding(16.dp)) {
             Text(customer.companyName ?: customer.contactName ?: customer.phone, style = MaterialTheme.typography.titleMedium)
             customer.contactName?.let { Text(it) }

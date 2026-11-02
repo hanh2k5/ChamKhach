@@ -37,3 +37,12 @@
 - **Thiếu trước A0:** JDK 17, Android Studio Narwhal (Windows)
 - **Trạng thái:** Đang tiến hành cài đặt trong phiên T0.
 - **Ghi bởi:** Agent · T0 · 30/10/2026
+
+---
+
+## D-A3-01: Mở khách trùng số bằng form sửa trong A3
+
+- **Quyết định:** Trong A3, “Mở hồ sơ cũ” trong hộp thoại trùng số mở form sửa khách `existing_customer_id` (GET `/customers/{id}`, cập nhật bằng PATCH), không mở màn chi tiết A4. Bấm một khách ở danh sách A2 cũng mở form sửa khách đó.
+- **Khi đổi số trùng lúc sửa:** “Mở hồ sơ cũ” thay form hiện tại trong back stack bằng form sửa khách bị trùng; “Sửa lại” đóng hộp thoại và giữ nguyên form hiện tại.
+- **Sau A4:** Đổi đích bấm khách trong danh sách từ form sửa sang màn chi tiết.
+- **Ghi bởi:** Người dùng · 02/11/2026

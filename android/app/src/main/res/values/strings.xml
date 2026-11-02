@@ -48,5 +48,28 @@
     <string name="result_no_answer">Không nghe máy</string>
     <string name="result_callback">Hẹn gọi lại</string>
     <string name="result_rejected">Từ chối</string>
+    <string name="customer_form_add_title">Thêm khách</string>
+    <string name="customer_form_edit_title">Sửa khách</string>
+    <string name="customer_form_back">Quay lại</string>
+    <string name="customer_form_company">Tên công ty</string>
+    <string name="customer_form_contact">Người liên hệ</string>
+    <string name="customer_form_phone">Số điện thoại *</string>
+    <string name="customer_form_address">Địa chỉ</string>
+    <string name="customer_form_industry">Ngành nghề</string>
+    <string name="customer_form_source">Nguồn khách</string>
+    <string name="customer_form_potential">Mức tiềm năng</string>
+    <string name="customer_form_status">Trạng thái</string>
+    <string name="customer_form_save">Lưu khách hàng</string>
+    <string name="customer_form_enum_value">%1$s: %2$s</string>
+    <string name="customer_form_field_error">Vui lòng kiểm tra lại thông tin này.</string>
+    <string name="customer_form_duplicate_title">Số điện thoại đã tồn tại</string>
+    <string name="customer_form_duplicate_message">Số điện thoại này đã thuộc về một khách hàng khác.</string>
+    <string name="customer_form_open_existing">Mở hồ sơ cũ</string>
+    <string name="customer_form_edit_again">Sửa lại</string>
+    <string name="customer_form_setup_required">Hãy cấu hình Base URL và Token trong Cài đặt.</string>
+    <string name="customer_form_network_error">Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.</string>
+    <string name="customer_form_unauthorized">Token không hợp lệ. Hãy kiểm tra Token trong Cài đặt.</string>
+    <string name="customer_form_not_found">Không tìm thấy khách hàng này.</string>
+    <string name="customer_form_server_error">Máy chủ gặp lỗi. Vui lòng thử lại.</string>
 </resources>
 

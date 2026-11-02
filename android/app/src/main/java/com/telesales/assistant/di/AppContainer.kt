@@ -6,6 +6,7 @@ import com.telesales.assistant.data.network.ApiServiceProvider
 import com.telesales.assistant.data.settings.SettingsStore
 import com.telesales.assistant.data.repository.ApiCustomerRepository
 import com.telesales.assistant.data.repository.CustomerRepository
+import com.telesales.assistant.data.repository.CustomerFormRepository
 
 /**
  * Interface cho Dependency Container theo mô hình Manual DI (SRS mục 2 & 9.1).
@@ -16,11 +17,14 @@ interface AppContainer {
     val settingsStore: SettingsStore
     val apiServiceFactory: ApiServiceProvider
     val customerRepository: CustomerRepository
+    val customerFormRepository: CustomerFormRepository
 }
 
 class DefaultAppContainer(context: Context) : AppContainer {
     override val settingsStore = SettingsStore(context)
     override val apiServiceFactory = ApiServiceFactory()
-    override val customerRepository = ApiCustomerRepository(settingsStore, apiServiceFactory)
+    private val customerApiRepository = ApiCustomerRepository(settingsStore, apiServiceFactory)
+    override val customerRepository: CustomerRepository = customerApiRepository
+    override val customerFormRepository: CustomerFormRepository = customerApiRepository
 }
 

@@ -3,6 +3,10 @@ package com.telesales.assistant.data.repository
 import com.telesales.assistant.data.network.ApiService
 import com.telesales.assistant.data.network.ApiServiceProvider
 import com.telesales.assistant.data.network.CustomerPageDto
+import com.telesales.assistant.data.network.CustomerProfileDto
+import com.telesales.assistant.data.network.CustomerProfileResponseDto
+import com.telesales.assistant.data.network.CustomerCreateDto
+import com.telesales.assistant.data.network.CustomerUpdateDto
 import com.telesales.assistant.data.network.PingDto
 import com.telesales.assistant.data.settings.InMemoryPreferencesDataStore
 import com.telesales.assistant.data.settings.SettingsStore
@@ -28,6 +32,9 @@ class CustomerRepositoryTest {
             return object : ApiService {
                 override suspend fun ping() = PingDto()
                 override suspend fun customers(query: String?, status: String, potential: String?, lastResult: String?, page: Int, perPage: Int) = CustomerPageDto()
+                override suspend fun customer(id: Long) = CustomerProfileResponseDto(CustomerProfileDto(id, phone = "0901234567"))
+                override suspend fun createCustomer(customer: CustomerCreateDto) = CustomerProfileResponseDto(CustomerProfileDto(1, phone = customer.phone))
+                override suspend fun updateCustomer(id: Long, customer: CustomerUpdateDto) = CustomerProfileResponseDto(CustomerProfileDto(id, phone = customer.phone))
             }
         }
     }

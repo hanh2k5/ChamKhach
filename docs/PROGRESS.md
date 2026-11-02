@@ -7,7 +7,7 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** A2 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 19 unit tests xanh (02/11/2026). A2 chưa được thử thủ công trên emulator. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
+- **Task hiện tại:** A3 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 25 unit tests xanh (02/11/2026). Kiểm thử emulator A2/A3 còn nợ. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -100,6 +100,15 @@
 - **Còn nợ — thử thủ công A2 trên emulator:** danh sách; tìm kiếm; bộ lọc; lỗi mạng và thử lại; chưa cấu hình Base URL/token; xoay màn hình; tải trang 2.
 - Lệnh chạy lại: `cd android && ./gradlew clean testDebugUnitTest assembleDebug`.
 
+## A3 — Form khách hàng + chống trùng (hoàn thành code và unit test)
+
+- Đã thêm form dùng chung cho tạo mới và sửa: chỉ số điện thoại bắt buộc theo API; các trường tên công ty, người liên hệ, địa chỉ, ngành, nguồn, tiềm năng và trạng thái (khi sửa).
+- Form sửa nạp GET `/customers/{id}`; tạo bằng POST `/customers`; sửa bằng PATCH `/customers/{id}`. 422 được ánh xạ lỗi theo trường; 409 `DUPLICATE_PHONE` mở dialog với lựa chọn “Mở hồ sơ cũ” hoặc “Sửa lại”; khóa gửi lặp khi đang lưu.
+- Theo D-A3-01, mở hồ sơ cũ thay form hiện tại bằng form sửa khách bị trùng; bấm khách trong danh sách mở form sửa; sau khi lưu quay về danh sách và tải lại.
+- Unit tests ViewModel với FakeRepository bao phủ tạo/sửa, nạp hồ sơ, 422 theo trường, duplicate ID và chống double-submit; mapper kiểm tra DTO và PATCH gửi null để xóa trường tùy chọn.
+- Xác minh: `cd android && ./gradlew clean testDebugUnitTest assembleDebug` — `BUILD SUCCESSFUL`; 25 tests, 0 skipped, 0 failures, 0 errors.
+- **Còn nợ — thử thủ công emulator A3:** tạo khách tối thiểu với chỉ SĐT; sửa và xác nhận dữ liệu được nạp/lưu; 422 hiển thị đúng trường; trùng SĐT khi tạo mở đúng form sửa khách cũ; trùng SĐT khi sửa cho phép mở khách trùng hoặc giữ form hiện tại; chặn lưu lặp; quay lại danh sách và thấy dữ liệu mới.
+
 ## Kết quả kiểm tra môi trường thực tế (sau T0)
 
 ```
@@ -127,4 +136,4 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 
 ## Việc tiếp theo
 
-1. Thử thủ công các mục A2 còn nợ trên emulator; chưa bắt đầu A3.
+1. Thử thủ công A2 và A3 trên emulator; ở A4 đổi thao tác bấm khách trong danh sách từ form sửa sang màn chi tiết.

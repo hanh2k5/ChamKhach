@@ -15,6 +15,7 @@ import com.telesales.assistant.data.network.FollowUpActionDto
 import com.telesales.assistant.data.network.FollowUpResponseDto
 import com.telesales.assistant.data.network.FollowUpDto
 import com.telesales.assistant.data.network.FollowUpCustomerDto
+import com.telesales.assistant.data.network.DashboardDto
 import com.telesales.assistant.data.network.CustomerStatusDto
 import com.telesales.assistant.data.network.PingDto
 import com.telesales.assistant.data.settings.InMemoryPreferencesDataStore
@@ -48,6 +49,7 @@ class CustomerRepositoryTest {
                 override suspend fun createInteraction(id: Long, interaction: InteractionCreateDto) = InteractionCreateResponseDto(com.telesales.assistant.data.network.InteractionDto(1, interaction.result, interaction.needs, interaction.note, "2026-11-02T00:00:00+00:00"))
                 override suspend fun followUps(status: String, group: String, page: Int, perPage: Int) = FollowUpPageDto()
                 override suspend fun updateFollowUp(id: Long, request: FollowUpActionDto) = FollowUpResponseDto(FollowUpDto(id, "2026-11-02T00:00:00+00:00", "pending", "today", FollowUpCustomerDto(1, phone = "0900000000")))
+                override suspend fun dashboard() = DashboardDto(0, 0, 0)
                 override suspend fun updateCustomerStatus(id: Long, status: CustomerStatusDto) = CustomerProfileResponseDto(CustomerProfileDto(id, phone = "0901234567", status = status.status))
             }
         }

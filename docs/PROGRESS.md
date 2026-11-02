@@ -7,7 +7,7 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** A6 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 46 unit tests xanh (02/11/2026). Kiểm thử emulator A2–A6 còn nợ. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
+- **Task hiện tại:** A7 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 53 unit tests xanh (02/11/2026). Kiểm thử emulator A2–A7 còn nợ. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -167,6 +167,16 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 - `docs/API_EXAMPLES.md` vẫn ghi `docs/SRS.md` là nguồn đặc tả; cần cập nhật chú thích sang `docs/TELESALES_SPEC.md`.
 - Cảnh báo lint `Check for instance is always true` tại `android/app/src/test/java/com/telesales/assistant/AppContainerTest.kt:25`.
 
+## A7 — Dashboard (hoàn thành code và unit test)
+
+- Dashboard gọi `GET /dashboard`; ba thẻ hiển thị trực tiếp `overdue_count`, `today_count`, `potential_count` từ server. Danh sách dùng `items` theo nguyên thứ tự server, tái sử dụng FollowUp mapper/card A6, hiển thị giờ Việt Nam, note tùy chọn, nhãn quá hạn, Gọi và mở Chi tiết.
+- Dashboard là màn mở đầu; nút thêm khách, danh sách khách, lịch (qua thẻ Quá hạn/Hôm nay) và Cài đặt có điều hướng. Danh sách khách/lịch cũng có lối truy cập Dashboard/Cài đặt. Dashboard tự refresh khi trở lại màn và có pull-to-refresh Compose không thêm dependency.
+- Khi thiếu Base URL/Token, repository dừng trước khi tạo ApiService, UI hướng dẫn mở Cài đặt. Trạng thái loading/error/retry; danh sách rỗng hiện “Hôm nay chưa có lịch nào”, ba thẻ vẫn giữ số liệu server.
+- Báo thức chưa được đặt/hủy; tích hợp thuộc A8.
+- Unit tests A7: 4 ViewModel tests (loading/content/counts/order, empty, lỗi/retry/refresh số liệu, chưa cấu hình), 2 mapper tests (items rỗng, note null, UTC → giờ Việt Nam, round-trip), 1 repository test xác nhận thiếu cấu hình không tạo API client. Toàn bộ Android: 53 tests, 0 skipped, 0 failures, 0 errors (16 suites).
+- Xác minh: `cd android && ./gradlew clean testDebugUnitTest assembleDebug` — `BUILD SUCCESSFUL`.
+- **Còn nợ — thử thủ công A2–A7:** A2–A6 theo checklist phía trên; A7 mở app vào Dashboard; 3 số liệu khớp dữ liệu thực; công việc quá hạn đứng trước; bấm mục mở chi tiết; Gọi mở đúng số; các nút điều hướng; kéo làm mới; lỗi mạng và thử lại; chưa cấu hình Base URL/Token; xoay màn hình. Emulator chưa được thử.
+
 ## Việc tiếp theo
 
-1. Thử thủ công A2–A6 trên emulator theo checklist ở trên.
+1. Thử thủ công A2–A7 trên emulator theo checklist ở trên.

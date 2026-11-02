@@ -28,6 +28,7 @@ fun CustomersRoute(
     onSettings: () -> Unit,
     onAddCustomer: () -> Unit,
     onFollowUps: () -> Unit,
+    onDashboard: () -> Unit,
     onEditCustomer: (Long) -> Unit,
     shouldRefresh: Boolean,
     onRefreshConsumed: () -> Unit,
@@ -50,6 +51,7 @@ fun CustomersRoute(
         zoneId = zoneId,
         onAddCustomer = onAddCustomer,
         onFollowUps = onFollowUps,
+        onDashboard = onDashboard,
         onEditCustomer = onEditCustomer,
     )
 }
@@ -64,10 +66,13 @@ private fun CustomersScreen(
     zoneId: ZoneId,
     onAddCustomer: () -> Unit,
     onFollowUps: () -> Unit,
+    onDashboard: () -> Unit,
     onEditCustomer: (Long) -> Unit,
 ) {
     val listState = rememberLazyListState()
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.customers_title)) }, actions = {
+    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.customers_title)) }, navigationIcon = {
+        TextButton(onClick = onDashboard) { Text(stringResource(R.string.dashboard_title)) }
+    }, actions = {
         TextButton(onClick = onAddCustomer) { Text(stringResource(R.string.customer_form_add_title)) }
         TextButton(onClick = onFollowUps) { Text(stringResource(R.string.followups_title)) }
         TextButton(onClick = onSettings) { Text(stringResource(R.string.customers_settings)) }

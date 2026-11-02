@@ -54,6 +54,9 @@ interface ApiService {
 
     @PATCH("follow-ups/{id}")
     suspend fun updateFollowUp(@Path("id") id: Long, @Body request: FollowUpActionDto): FollowUpResponseDto
+
+    @GET("dashboard")
+    suspend fun dashboard(): DashboardDto
 }
 
 @Serializable data class CustomerPageDto(val data: List<CustomerDto> = emptyList(), val links: CustomerPageLinksDto = CustomerPageLinksDto(), val meta: CustomerPageMetaDto = CustomerPageMetaDto())
@@ -124,6 +127,12 @@ interface ApiService {
     val phone: String,
 )
 @Serializable data class FollowUpActionDto(val action: String, val remind_at: String? = null)
+@Serializable data class DashboardDto(
+    val overdue_count: Int,
+    val today_count: Int,
+    val potential_count: Int,
+    val items: List<FollowUpDto> = emptyList(),
+)
 @Serializable data class CustomerCreateDto(
     val company_name: String?,
     val contact_name: String?,

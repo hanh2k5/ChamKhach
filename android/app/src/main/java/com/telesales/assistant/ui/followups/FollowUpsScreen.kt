@@ -1,9 +1,7 @@
 package com.telesales.assistant.ui.followups
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,13 +10,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -35,22 +31,18 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.Velocity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.telesales.assistant.R
 import com.telesales.assistant.data.repository.FollowUpRepository
 import com.telesales.assistant.domain.model.FollowUp
+import com.telesales.assistant.ui.components.FollowUpCard
+import com.telesales.assistant.ui.components.rememberPullToRefreshGesture
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalTime
@@ -94,35 +86,17 @@ private fun FollowUpsScreen(
     val listState = rememberLazyListState()
     val showDate = remember { mutableStateOf(false) }
     val showTime = remember { mutableStateOf(false) }
-    val pullDistance = remember { mutableFloatStateOf(0f) }
-    val pullConnection = remember(listState, state.isRefreshing) {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (available.y > 0 && listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0) {
-                    pullDistance.floatValue += available.y
-                    return Offset(0f, available.y)
-                }
-                if (available.y < 0) pullDistance.floatValue = 0f
-                return Offset.Zero
-            }
-
-            override suspend fun onPreFling(available: Velocity): Velocity {
-                if (pullDistance.floatValue >= 90f && !state.isRefreshing) vm.refresh()
-                pullDistance.floatValue = 0f
-                return Velocity.Zero
-            }
-        }
-    }
+    val pullRefresh = rememberPullToRefreshGesture(listState, state.isRefreshing, vm::refresh)
     if (state.rescheduleForId != null) RescheduleDialog(state, vm, showDate, showTime, onSettings)
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.followups_title)) }, navigationIcon = {
             onBack?.let { TextButton(onClick = it) { Text(stringResource(R.string.customer_form_back)) } }
-        }) },
+        }, actions = { TextButton(onClick = onSettings) { Text(stringResource(R.string.customers_settings)) } }) },
         snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
-            if (state.isRefreshing || pullDistance.floatValue > 0) LinearProgressIndicator(Modifier.fillMaxWidth())
-            LazyColumn(Modifier.fillMaxSize().nestedScroll(pullConnection).padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (state.isRefreshing || pullRefresh.isPulling) LinearProgressIndicator(Modifier.fillMaxWidth())
+            LazyColumn(Modifier.fillMaxSize().then(pullRefresh.modifier).padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 when {
                     state.isLoading && state.items.isEmpty() -> item { CircularProgressIndicator(Modifier.padding(24.dp)) }
                     state.error != null && state.items.isEmpty() -> item {
@@ -158,15 +132,15 @@ private fun FollowUpsScreen(
                         val upcoming = state.items.filter { it.group == "upcoming" }
                         if (overdue.isNotEmpty()) {
                             item { Text(stringResource(R.string.followups_overdue), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.error) }
-                            items(overdue, key = { it.id }) { FollowUpCard(it, state, vm, onCall, onCustomer) }
+                            items(overdue, key = { it.id }) { item -> FollowUpRow(item, state, vm, onCall, onCustomer) }
                         }
                         if (today.isNotEmpty()) {
                             item { Text(stringResource(R.string.followups_today), style = MaterialTheme.typography.titleLarge) }
-                            items(today, key = { it.id }) { FollowUpCard(it, state, vm, onCall, onCustomer) }
+                            items(today, key = { it.id }) { item -> FollowUpRow(item, state, vm, onCall, onCustomer) }
                         }
                         if (upcoming.isNotEmpty()) {
                             item { Text(stringResource(R.string.followups_upcoming), style = MaterialTheme.typography.titleLarge) }
-                            items(upcoming, key = { it.id }) { FollowUpCard(it, state, vm, onCall, onCustomer) }
+                            items(upcoming, key = { it.id }) { item -> FollowUpRow(item, state, vm, onCall, onCustomer) }
                         }
                         if (state.isLoadingMore) item { CircularProgressIndicator(Modifier.padding(16.dp)) }
                     }
@@ -181,23 +155,12 @@ private fun FollowUpsScreen(
 }
 
 @Composable
-private fun FollowUpCard(item: FollowUp, state: FollowUpsUiState, vm: FollowUpsViewModel, onCall: (String) -> Unit, onCustomer: (Long) -> Unit) {
-    val label = item.customer.companyName ?: item.customer.contactName ?: item.customer.phone
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            if (item.group == "overdue") Text(stringResource(R.string.followups_overdue_badge), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelLarge)
-            Text(label, Modifier.clickable { onCustomer(item.customer.id) }, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
-            Text(item.customer.phone)
-            Text(stringResource(R.string.followups_remind_at, vm.formatTime(item)))
-            item.note?.takeIf(String::isNotBlank)?.let { Text(stringResource(R.string.followups_note, it)) }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { onCall(item.customer.phone) }, enabled = item.id !in state.busyIds) { Text(stringResource(R.string.detail_call)) }
-                Button(onClick = { vm.complete(item) }, enabled = item.id !in state.busyIds) {
-                    Text(stringResource(if (item.id in state.busyIds) R.string.followups_processing else R.string.followups_complete))
-                }
-                TextButton(onClick = { vm.beginReschedule(item) }, enabled = item.id !in state.busyIds) { Text(stringResource(R.string.followups_reschedule)) }
-            }
+private fun FollowUpRow(item: FollowUp, state: FollowUpsUiState, vm: FollowUpsViewModel, onCall: (String) -> Unit, onCustomer: (Long) -> Unit) {
+    FollowUpCard(item, vm.formatTime(item), { onCall(item.customer.phone) }, { onCustomer(item.customer.id) }, callEnabled = item.id !in state.busyIds) {
+        Button(onClick = { vm.complete(item) }, enabled = item.id !in state.busyIds) {
+            Text(stringResource(if (item.id in state.busyIds) R.string.followups_processing else R.string.followups_complete))
         }
+        TextButton(onClick = { vm.beginReschedule(item) }, enabled = item.id !in state.busyIds) { Text(stringResource(R.string.followups_reschedule)) }
     }
 }
 

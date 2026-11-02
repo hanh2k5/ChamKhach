@@ -110,6 +110,16 @@
     <string name="followups_past_time">Lịch gọi lại phải sau thời điểm hiện tại.</string>
     <string name="followups_schedule_incomplete">Chọn cả ngày và giờ để dời lịch.</string>
     <string name="followups_conflict">Lịch này đã được xử lý ở nơi khác. Danh sách đang được làm mới.</string>
+    <string name="dashboard_title">Tổng quan</string>
+    <string name="dashboard_customers">Danh sách khách</string>
+    <string name="dashboard_add_customer">Thêm khách hàng</string>
+    <string name="dashboard_overdue">Quá hạn</string>
+    <string name="dashboard_today">Cần gọi hôm nay</string>
+    <string name="dashboard_potential">Khách tiềm năng</string>
+    <string name="dashboard_due_items">Công việc sắp đến hạn</string>
+    <string name="dashboard_empty">Hôm nay chưa có lịch nào</string>
+    <string name="dashboard_loading">Đang tải tổng quan…</string>
+    <string name="dashboard_setup_required">Hãy cấu hình Base URL và Token trong Cài đặt để xem tổng quan.</string>
     <string name="detail_loading">Đang tải hồ sơ khách…</string>
     <string name="detail_setup_required">Hãy cấu hình Base URL và Token trong Cài đặt để xem khách.</string>
     <string name="detail_contact">Người liên hệ: %1$s</string>

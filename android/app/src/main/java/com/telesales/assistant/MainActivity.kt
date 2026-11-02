@@ -20,6 +20,7 @@ import android.widget.Toast
 import com.telesales.assistant.ui.customerdetail.CustomerDetailRoute
 import com.telesales.assistant.ui.calllog.CallLogRoute
 import com.telesales.assistant.ui.followups.FollowUpsRoute
+import com.telesales.assistant.ui.dashboard.DashboardRoute
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,7 +29,18 @@ class MainActivity : ComponentActivity() {
         setContent {
             TelesalesTheme {
                 val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "customers") {
+                NavHost(navController = navController, startDestination = "dashboard") {
+                    composable("dashboard") {
+                        DashboardRoute(
+                            repository = container.dashboardRepository,
+                            onSettings = { navController.navigate("settings") },
+                            onAddCustomer = { navController.navigate("customerForm/new") },
+                            onCustomers = { navController.navigate("customers") },
+                            onFollowUps = { navController.navigate("followUps") },
+                            onCustomer = { customerId -> navController.navigate("customerDetail/$customerId") },
+                            onCall = { phone -> startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${Uri.encode(phone)}"))) },
+                        )
+                    }
                     composable("customers") { entry ->
                         val shouldRefresh by entry.savedStateHandle.getStateFlow("refreshCustomers", false).collectAsState()
                         CustomersRoute(
@@ -36,6 +48,7 @@ class MainActivity : ComponentActivity() {
                             onSettings = { navController.navigate("settings") },
                             onAddCustomer = { navController.navigate("customerForm/new") },
                             onFollowUps = { navController.navigate("followUps") },
+                            onDashboard = { navController.popBackStack("dashboard", inclusive = false) },
                             onEditCustomer = { customerId -> navController.navigate("customerDetail/$customerId") },
                             shouldRefresh = shouldRefresh,
                             onRefreshConsumed = { entry.savedStateHandle["refreshCustomers"] = false },

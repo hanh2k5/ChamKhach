@@ -10,6 +10,8 @@ import com.telesales.assistant.data.repository.CustomerDetailRepository
 import com.telesales.assistant.data.repository.CallLogRepository
 import com.telesales.assistant.data.repository.FollowUpRepository
 import com.telesales.assistant.data.repository.ApiFollowUpRepository
+import com.telesales.assistant.data.repository.DashboardRepository
+import com.telesales.assistant.data.repository.ApiDashboardRepository
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -26,6 +28,7 @@ class AppContainerTest {
             override val customerDetailRepository: CustomerDetailRepository = customerApiRepository
             override val callLogRepository: CallLogRepository = customerApiRepository
             override val followUpRepository: FollowUpRepository = ApiFollowUpRepository(settingsStore, apiServiceFactory)
+            override val dashboardRepository: DashboardRepository = ApiDashboardRepository(settingsStore, apiServiceFactory)
         }
 
         assertNotNull(container.settingsStore)

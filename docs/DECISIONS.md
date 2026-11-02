@@ -10,6 +10,7 @@
 - **Quyết định:** Dùng `AlarmManager.setExactAndAllowWhileIdle` + `BroadcastReceiver`, **không** dùng WorkManager.
 - **Lý do:** WorkManager không đảm bảo thời điểm chính xác khi máy ở chế độ Doze/tiết kiệm pin — có thể trễ nhiều phút. Ứng dụng telesales cần nhắc đúng phút để không bỏ lỡ cuộc hẹn.
 - **Hệ quả:** Cần quyền `SCHEDULE_EXACT_ALARM` (Android 12+); từ Android 14 mặc định bị từ chối — phải kiểm tra `canScheduleExactAlarms()` và hướng dẫn người dùng cấp quyền.
+- **Áp dụng ở A8:** Dùng exact alarm khi quyền được cấp; nếu chưa cấp thì dùng báo thức inexact và hiển thị hướng dẫn trong Cài đặt. WorkManager không được dùng cho nhắc đúng phút.
 - **Ghi bởi:** Agent · T0 · 30/10/2026
 
 ---

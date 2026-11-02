@@ -7,7 +7,7 @@
 
 ## Trạng thái
 
-- **Task hiện tại:** A7 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 53 unit tests xanh (02/11/2026). Kiểm thử emulator A2–A7 còn nợ. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
+- **Task hiện tại:** A8 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 67 unit tests xanh (02/11/2026). Kiểm thử emulator A2–A8 còn nợ. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
   - [x] T1: Dựng Laravel 13 + MySQL + migrations + models + enums (30/10/2026)
@@ -179,4 +179,14 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 
 ## Việc tiếp theo
 
-1. Thử thủ công A2–A7 trên emulator theo checklist ở trên.
+1. Thử thủ công A2–A8 trên emulator theo checklist bên dưới.
+
+## A8 — Báo thức và thông báo (hoàn thành code và unit test)
+
+- Thêm Room `reminders` với `ReminderEntity`, `ReminderDao`, `AppDatabase`; không lưu cache khách hàng. `ReminderStore` bọc DAO để test thay được.
+- Thêm `ReminderScheduler` và AlarmManager: URI riêng theo follow-up để thay báo thức cùng ID; dùng exact khi quyền cho phép, fallback `setAndAllowWhileIdle` nếu chưa cấp. `ReminderReceiver` xác nhận bản ghi còn trong Room/chưa báo, hiện notification rồi đánh dấu `notified`.
+- `NotificationHelper` tạo channel HIGH lúc Application khởi động; notification có giờ Asia/Ho_Chi_Minh, ghi chú, PendingIntent immutable/update-current; mở MainActivity vào hồ sơ khách theo `customer_id`. Không đăng ký quyền/receiver khởi động máy thuộc A9.
+- Nối lưu interaction (lịch mới và ID completed), complete/cancel/reschedule, archive; Dashboard và Lịch đồng bộ tất cả trang pending với Room, hủy lịch stale và không đặt lịch quá khứ. ReminderPlanner giữ quyết định thuần, có Clock/ZoneId tiêm được.
+- Android 13+ xin quyền thông báo khi vào app; Cài đặt hiển thị trạng thái quyền, cảnh báo, lối tới cài đặt quyền. Bản debug có nút thông báo thử sau 30 giây. WorkManager không dùng vì không bảo đảm đúng phút; quyết định D-ARCH-01.
+- Xác minh: `cd android && ./gradlew clean testDebugUnitTest assembleDebug` — `BUILD SUCCESSFUL`; 67 tests, 17 suites, 0 skipped, 0 failures, 0 errors. XML test results ở `android/app/build/test-results/testDebugUnitTest/`.
+- **Còn nợ — thử tay trên emulator/điện thoại (chưa thực hiện):** xin quyền thông báo; thông báo debug sau 30 giây kể cả khóa màn hình; đặt lịch thật sau 2 phút và xác nhận giờ bắn; nhấn thông báo mở đúng khách; dời lịch để xác nhận alarm cũ không bắn; hoàn thành/lưu trữ để xác nhận không bắn; tắt thông báo xác nhận app không crash và có giải thích; Android 14+ chưa cấp exact alarm để xác nhận cảnh báo/fallback. A9 (khởi động lại máy/lịch lỡ) chưa làm.

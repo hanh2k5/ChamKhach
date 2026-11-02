@@ -19,6 +19,8 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import com.telesales.assistant.reminder.ReminderCoordinator
+import com.telesales.assistant.reminder.ReminderPlanner
 
 data class CustomerDetailUiState(
     val customer: CustomerProfile? = null,
@@ -41,6 +43,7 @@ class CustomerDetailViewModel(
     private val repository: CustomerDetailRepository,
     private val clock: Clock = Clock.systemUTC(),
     private val zoneId: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh"),
+    private val reminderCoordinator: ReminderCoordinator? = null,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(CustomerDetailUiState())
     val state: StateFlow<CustomerDetailUiState> = mutableState.asStateFlow()
@@ -96,12 +99,15 @@ class CustomerDetailViewModel(
             val result = try { repository.archiveCustomer(customerId) }
             catch (cancelled: CancellationException) { throw cancelled }
             when (result) {
-                is ArchiveCustomerResult.Success -> mutableState.value = mutableState.value.copy(
-                    isArchiving = false,
-                    archiveConfirmationVisible = false,
-                    isArchived = true,
-                    cancelledFollowUpIds = result.cancelledFollowUpIds,
-                )
+                is ArchiveCustomerResult.Success -> {
+                    reminderCoordinator?.apply(ReminderPlanner.archive(result.cancelledFollowUpIds))
+                    mutableState.value = mutableState.value.copy(
+                        isArchiving = false,
+                        archiveConfirmationVisible = false,
+                        isArchived = true,
+                        cancelledFollowUpIds = result.cancelledFollowUpIds,
+                    )
+                }
                 is ArchiveCustomerResult.Failure -> mutableState.value = mutableState.value.copy(
                     isArchiving = false,
                     archiveError = result.reason,

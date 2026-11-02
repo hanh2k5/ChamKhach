@@ -9,6 +9,9 @@ import com.telesales.assistant.data.repository.CustomerDetailFailure
 import com.telesales.assistant.data.repository.CustomerDetailResult
 import com.telesales.assistant.data.repository.RecordInteractionResult
 import com.telesales.assistant.domain.model.CustomerProfile
+import com.telesales.assistant.reminder.ReminderAction
+import com.telesales.assistant.reminder.ReminderCoordinator
+import com.telesales.assistant.reminder.ReminderPlanner
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,6 +43,7 @@ class CallLogViewModel(
     private val customerId: Long,
     private val repository: CallLogRepository,
     private val clock: Clock = Clock.systemUTC(),
+    private val reminderCoordinator: ReminderCoordinator? = null,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(CallLogUiState())
     val state = mutableState.asStateFlow()
@@ -102,7 +106,21 @@ class CallLogViewModel(
             val result = try { repository.recordInteraction(customerId, request) }
             catch (cancelled: CancellationException) { throw cancelled }
             when (result) {
-                RecordInteractionResult.Success -> mutableState.value = mutableState.value.copy(isSaving = false, saved = true)
+                is RecordInteractionResult.Success -> {
+                    val reminder = result.followUpId?.let { id -> result.remindAt?.let { at ->
+                        reminderCoordinator?.createReminder(
+                            followUpId = id,
+                            customerId = customerId,
+                            customerName = current.customer?.contactName?.takeIf(String::isNotBlank)
+                                ?: current.customer?.companyName?.takeIf(String::isNotBlank)
+                                ?: current.customer?.phone.orEmpty(),
+                            remindAt = Instant.parse(at),
+                            note = current.note.takeIf(String::isNotBlank),
+                        )
+                    } }
+                    reminderCoordinator?.apply(ReminderPlanner.interaction(reminder, result.completedFollowUpIds))
+                    mutableState.value = mutableState.value.copy(isSaving = false, saved = true)
+                }
                 is RecordInteractionResult.ValidationError -> mutableState.value = mutableState.value.copy(isSaving = false, validationErrors = result.fields)
                 RecordInteractionResult.SetupRequired -> fail("setup")
                 RecordInteractionResult.NetworkError -> fail("network")

@@ -64,7 +64,7 @@ sealed interface ArchiveCustomerResult {
     data class Failure(val reason: CustomerDetailFailure) : ArchiveCustomerResult
 }
 sealed interface RecordInteractionResult {
-    data object Success : RecordInteractionResult
+    data class Success(val followUpId: Long?, val remindAt: String?, val completedFollowUpIds: List<Long>) : RecordInteractionResult
     data class ValidationError(val fields: Map<String, List<String>>) : RecordInteractionResult
     data object SetupRequired : RecordInteractionResult
     data object NetworkError : RecordInteractionResult
@@ -170,8 +170,8 @@ class ApiCustomerRepository(
         val settings = settingsStore.settings.first()
         if (settings.baseUrl.isBlank() || settings.token.isBlank()) return RecordInteractionResult.SetupRequired
         return try {
-            apiServiceProvider.create(settings.baseUrl, settings.token).createInteraction(id, request)
-            RecordInteractionResult.Success
+            val response = apiServiceProvider.create(settings.baseUrl, settings.token).createInteraction(id, request)
+            RecordInteractionResult.Success(response.follow_up?.id, response.follow_up?.remind_at, response.completed_follow_up_ids)
         } catch (error: HttpException) {
             if (error.code() == 422) {
                 val body = error.response()?.errorBody()?.string()

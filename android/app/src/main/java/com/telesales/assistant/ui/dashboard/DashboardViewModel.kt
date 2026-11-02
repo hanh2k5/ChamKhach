@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.Clock
 import java.time.ZoneId
+import com.telesales.assistant.data.repository.FollowUpRepository
+import com.telesales.assistant.reminder.ReminderCoordinator
 
 enum class DashboardError { SetupRequired, Network, Unauthorized, Server }
 
@@ -27,6 +29,8 @@ class DashboardViewModel(
     private val repository: DashboardRepository,
     private val clock: Clock = Clock.systemUTC(),
     private val businessZone: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh"),
+    private val followUpRepository: FollowUpRepository? = null,
+    private val reminderCoordinator: ReminderCoordinator? = null,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(DashboardUiState())
     val state = mutableState.asStateFlow()
@@ -50,11 +54,10 @@ class DashboardViewModel(
             val result = try { repository.getDashboard() } catch (cancelled: CancellationException) { throw cancelled }
             if (generation != requestGeneration) return@launch
             when (result) {
-                is DashboardResult.Success -> mutableState.value = DashboardUiState(
-                    dashboard = result.dashboard,
-                    isLoading = false,
-                    isRefreshing = false,
-                )
+                is DashboardResult.Success -> {
+                    mutableState.value = DashboardUiState(dashboard = result.dashboard, isLoading = false, isRefreshing = false)
+                    if (followUpRepository != null) reminderCoordinator?.sync(followUpRepository)
+                }
                 DashboardResult.SetupRequired -> fail(DashboardError.SetupRequired)
                 DashboardResult.NetworkError -> fail(DashboardError.Network)
                 DashboardResult.Unauthorized -> fail(DashboardError.Unauthorized)

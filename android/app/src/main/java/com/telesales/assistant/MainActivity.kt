@@ -2,6 +2,8 @@ package com.telesales.assistant
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import com.telesales.assistant.ui.theme.TelesalesTheme
 import com.telesales.assistant.ui.settings.SettingsRoute
@@ -14,6 +16,8 @@ import com.telesales.assistant.ui.customers.CustomersRoute
 import com.telesales.assistant.ui.customerform.CustomerFormRoute
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import android.os.Build
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
@@ -23,13 +27,27 @@ import com.telesales.assistant.ui.followups.FollowUpsRoute
 import com.telesales.assistant.ui.dashboard.DashboardRoute
 
 class MainActivity : ComponentActivity() {
+    private var reminderNavController: androidx.navigation.NavHostController? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val container = (application as TelesalesApplication).container
         setContent {
             TelesalesTheme {
+                val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
+                LaunchedEffect(Unit) {
+                    if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                        notificationPermission.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }
                 val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = "dashboard") {
+                reminderNavController = navController
+                val initialCustomerId = intent.getLongExtra(com.telesales.assistant.reminder.NotificationHelper.EXTRA_CUSTOMER_ID, 0L)
+                if (initialCustomerId > 0) {
+                    LaunchedEffect(initialCustomerId) {
+                        container.reminderCoordinator.sync(container.followUpRepository)
+                    }
+                }
+                NavHost(navController = navController, startDestination = if (initialCustomerId > 0) "customerDetail/$initialCustomerId" else "dashboard") {
                     composable("dashboard") {
                         DashboardRoute(
                             repository = container.dashboardRepository,
@@ -39,6 +57,8 @@ class MainActivity : ComponentActivity() {
                             onFollowUps = { navController.navigate("followUps") },
                             onCustomer = { customerId -> navController.navigate("customerDetail/$customerId") },
                             onCall = { phone -> startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${Uri.encode(phone)}"))) },
+                            followUpRepository = container.followUpRepository,
+                            reminderCoordinator = container.reminderCoordinator,
                         )
                     }
                     composable("customers") { entry ->
@@ -97,6 +117,7 @@ class MainActivity : ComponentActivity() {
                             onSettings = { navController.navigate("settings") },
                             onCall = { phone -> startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${Uri.encode(phone)}"))) },
                             onCallLog = { id -> navController.navigate("callLog/$id") },
+                            reminderCoordinator = container.reminderCoordinator,
                             onArchived = {
                                 Toast.makeText(this@MainActivity, getString(com.telesales.assistant.R.string.detail_archived_notice), Toast.LENGTH_SHORT).show()
                                 navController.previousBackStackEntry?.savedStateHandle?.set("refreshCustomers", true)
@@ -114,6 +135,7 @@ class MainActivity : ComponentActivity() {
                                 navController.previousBackStackEntry?.savedStateHandle?.set("refreshCustomerDetail", true)
                                 navController.popBackStack()
                             },
+                            reminderCoordinator = container.reminderCoordinator,
                         )
                     }
                     composable("followUps") {
@@ -123,6 +145,7 @@ class MainActivity : ComponentActivity() {
                             onBack = { navController.popBackStack() },
                             onCall = { phone -> startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${Uri.encode(phone)}"))) },
                             onCustomer = { customerId -> navController.navigate("customerDetail/$customerId") },
+                            reminderCoordinator = container.reminderCoordinator,
                         )
                     }
                     composable("settings") {
@@ -130,11 +153,21 @@ class MainActivity : ComponentActivity() {
                             settingsStore = container.settingsStore,
                             apiServiceFactory = container.apiServiceFactory,
                             onBack = { navController.popBackStack() },
+                            permissionStateProvider = com.telesales.assistant.ui.settings.AndroidReminderPermissionStateProvider(this@MainActivity),
+                            reminderCoordinator = container.reminderCoordinator,
+                            debugBuild = (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0,
                         )
                     }
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val customerId = intent.getLongExtra(com.telesales.assistant.reminder.NotificationHelper.EXTRA_CUSTOMER_ID, 0L)
+        if (customerId > 0) reminderNavController?.navigate("customerDetail/$customerId")
     }
 }
 

@@ -53,8 +53,9 @@ fun CustomerDetailRoute(
     onArchived: (List<Long>) -> Unit,
     clock: Clock = Clock.systemUTC(),
     zoneId: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh"),
+    reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator? = null,
 ) {
-    val vm: CustomerDetailViewModel = viewModel(factory = CustomerDetailViewModelFactory(customerId, repository, clock, zoneId))
+    val vm: CustomerDetailViewModel = viewModel(factory = CustomerDetailViewModelFactory(customerId, repository, clock, zoneId, reminderCoordinator))
     val state by vm.state.collectAsState()
     LaunchedEffect(shouldRefresh) {
         if (shouldRefresh) { vm.retry(); onRefreshConsumed() }

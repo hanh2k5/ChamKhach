@@ -45,8 +45,8 @@ import java.time.LocalTime
 import java.time.ZoneId
 
 @Composable
-fun CallLogRoute(customerId: Long, repository: CallLogRepository, onBack: () -> Unit, onSaved: () -> Unit) {
-    val vm: CallLogViewModel = viewModel(factory = CallLogFactory(customerId, repository))
+fun CallLogRoute(customerId: Long, repository: CallLogRepository, onBack: () -> Unit, onSaved: () -> Unit, reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator? = null) {
+    val vm: CallLogViewModel = viewModel(factory = CallLogFactory(customerId, repository, reminderCoordinator))
     val state by vm.state.collectAsState()
     LaunchedEffect(state.saved) { if (state.saved) onSaved() }
     CallLogScreen(state, vm, onBack)
@@ -129,9 +129,9 @@ private fun FormContent(state: CallLogUiState, vm: CallLogViewModel, customer: C
     Button(onClick = vm::save, enabled = !state.isSaving, modifier = Modifier.fillMaxWidth()) { Text(stringResource(if (state.isSaving) R.string.call_log_saving else R.string.call_log_save)) }
 }
 
-private class CallLogFactory(private val id: Long, private val repository: CallLogRepository) : ViewModelProvider.Factory {
+private class CallLogFactory(private val id: Long, private val repository: CallLogRepository, private val reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator?) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         require(modelClass.isAssignableFrom(CallLogViewModel::class.java))
-        return modelClass.cast(CallLogViewModel(id, repository, Clock.systemUTC()))
+        return modelClass.cast(CallLogViewModel(id, repository, Clock.systemUTC(), reminderCoordinator))
     }
 }

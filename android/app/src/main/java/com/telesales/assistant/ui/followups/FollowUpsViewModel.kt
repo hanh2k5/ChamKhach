@@ -17,6 +17,9 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import com.telesales.assistant.reminder.ReminderAction
+import com.telesales.assistant.reminder.ReminderCoordinator
+import com.telesales.assistant.reminder.ReminderPlanner
 
 enum class FollowUpsError { SetupRequired, Network, Unauthorized, Server }
 
@@ -41,6 +44,7 @@ class FollowUpsViewModel(
     private val repository: FollowUpRepository,
     private val clock: Clock = Clock.systemUTC(),
     private val businessZone: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh"),
+    private val reminderCoordinator: ReminderCoordinator? = null,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(FollowUpsUiState())
     val state = mutableState.asStateFlow()
@@ -124,6 +128,10 @@ class FollowUpsViewModel(
             val state = mutableState.value.copy(busyIds = mutableState.value.busyIds - item.id)
             when (result) {
                 is FollowUpActionResult.Success -> {
+                    reminderCoordinator?.apply(
+                        if (action == "reschedule") listOf(ReminderAction.Schedule(reminderCoordinator.toReminder(result.item)))
+                        else ReminderPlanner.completeOrCancel(item.id),
+                    )
                     val updatedItems = if (action == "complete") state.items.filterNot { it.id == item.id }
                     else state.items.map { if (it.id == item.id) result.item else it }
                     mutableState.value = state.copy(items = sortByServerGroup(updatedItems), rescheduleForId = if (action == "reschedule") null else state.rescheduleForId)
@@ -169,6 +177,7 @@ class FollowUpsViewModel(
                         hasMore = result.page.currentPage < result.page.lastPage,
                         error = null,
                     )
+                    reminderCoordinator?.sync(repository)
                 }
                 else -> applyListError(result)
             }

@@ -1,5 +1,21 @@
 <resources>
     <string name="app_name">Telesales Assistant</string>
+    <string name="reminder_channel_name">Nhắc lịch gọi lại</string>
+    <string name="reminder_notification_title">Gọi lại: %1$s</string>
+    <string name="reminder_time_format">Giờ hẹn: %1$s</string>
+    <string name="reminder_note_format">%1$s · %2$s</string>
+    <string name="reminder_debug_title">Gọi lại: thông báo thử</string>
+    <string name="reminder_debug_body">Thông báo thử sau 30 giây</string>
+    <string name="reminder_settings_title">Nhắc lịch</string>
+    <string name="reminder_notifications_enabled">Quyền thông báo: Đã cấp</string>
+    <string name="reminder_notifications_disabled">Quyền thông báo: Chưa cấp</string>
+    <string name="reminder_exact_enabled">Quyền báo thức chính xác: Đã cấp</string>
+    <string name="reminder_exact_disabled">Quyền báo thức chính xác: Chưa cấp</string>
+    <string name="reminder_notifications_explanation">Lịch vẫn được lưu khi tắt quyền, nhưng thông báo nhắc gọi sẽ không hiện.</string>
+    <string name="reminder_exact_explanation">Báo thức sẽ dùng chế độ không chính xác và có thể đến trễ. Hãy cấp quyền để nhắc đúng giờ.</string>
+    <string name="reminder_open_exact_settings">Cài đặt báo thức chính xác</string>
+    <string name="reminder_open_notification_settings">Cài đặt thông báo</string>
+    <string name="reminder_debug_schedule">Đặt thông báo thử sau 30 giây</string>
     <string name="settings_title">Cài đặt kết nối</string>
     <string name="settings_back">Quay lại danh sách khách</string>
     <string name="settings_base_url">Base URL</string>

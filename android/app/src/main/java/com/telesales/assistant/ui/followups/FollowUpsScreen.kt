@@ -58,8 +58,9 @@ fun FollowUpsRoute(
     onBack: (() -> Unit)? = null,
     clock: Clock = Clock.systemUTC(),
     businessZone: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh"),
+    reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator? = null,
 ) {
-    val vm: FollowUpsViewModel = viewModel(factory = FollowUpsFactory(repository, clock, businessZone))
+    val vm: FollowUpsViewModel = viewModel(factory = FollowUpsFactory(repository, clock, businessZone, reminderCoordinator))
     val state by vm.state.collectAsState()
     val snackbar = remember { SnackbarHostState() }
     val conflictMessage = stringResource(R.string.followups_conflict)
@@ -209,9 +210,9 @@ private fun errorText(error: FollowUpsError): String = when (error) {
     FollowUpsError.Server -> stringResource(R.string.customers_server_error)
 }
 
-private class FollowUpsFactory(private val repository: FollowUpRepository, private val clock: Clock, private val zone: ZoneId) : ViewModelProvider.Factory {
+private class FollowUpsFactory(private val repository: FollowUpRepository, private val clock: Clock, private val zone: ZoneId, private val reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator?) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         require(modelClass.isAssignableFrom(FollowUpsViewModel::class.java))
-        return modelClass.cast(FollowUpsViewModel(repository, clock, zone))
+        return modelClass.cast(FollowUpsViewModel(repository, clock, zone, reminderCoordinator))
     }
 }

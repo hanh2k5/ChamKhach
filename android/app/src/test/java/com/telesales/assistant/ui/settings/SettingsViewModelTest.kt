@@ -99,6 +99,19 @@ class SettingsViewModelTest {
         assertFalse(viewModel.state.value.isChecking)
     }
 
+    @Test
+    fun reminderPermissionStateIsShownInViewModel() = runViewModelTest {
+        val viewModel = SettingsViewModel(
+            SettingsStore(InMemoryPreferencesDataStore()),
+            FakeApiServiceProvider(),
+            ReminderPermissionStateProvider { ReminderPermissionState(notificationsGranted = false, exactAlarmsGranted = false) },
+        )
+        ViewModelStore().also { store -> store.put("settings-permissions", viewModel); viewModelStores += store }
+        advanceUntilIdle()
+        assertFalse(viewModel.state.value.notificationsGranted)
+        assertFalse(viewModel.state.value.exactAlarmsGranted)
+    }
+
     private fun TestScope.createViewModel(apiProvider: FakeApiServiceProvider): SettingsViewModel {
         val viewModel = SettingsViewModel(
             SettingsStore(InMemoryPreferencesDataStore()),

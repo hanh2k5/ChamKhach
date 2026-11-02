@@ -17,17 +17,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
+import android.os.Build
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.telesales.assistant.R
 import com.telesales.assistant.data.network.ApiServiceProvider
 import com.telesales.assistant.data.settings.SettingsStore
 
 @Composable
-fun SettingsRoute(settingsStore: SettingsStore, apiServiceFactory: ApiServiceProvider, onBack: (() -> Unit)? = null) {
+fun SettingsRoute(settingsStore: SettingsStore, apiServiceFactory: ApiServiceProvider, onBack: (() -> Unit)? = null, permissionStateProvider: ReminderPermissionStateProvider? = null, reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator? = null, debugBuild: Boolean = false) {
     val settingsViewModel: SettingsViewModel = viewModel(
-        factory = SettingsViewModelFactory(settingsStore, apiServiceFactory),
+        factory = SettingsViewModelFactory(settingsStore, apiServiceFactory, permissionStateProvider, reminderCoordinator, debugBuild),
     )
     val state by settingsViewModel.state.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner, settingsViewModel) {
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) settingsViewModel.refreshReminderPermissions() }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
     SettingsScreen(
         state = state,
         onBaseUrlChanged = settingsViewModel::onBaseUrlChanged,
@@ -35,6 +49,8 @@ fun SettingsRoute(settingsStore: SettingsStore, apiServiceFactory: ApiServicePro
         onSave = settingsViewModel::save,
         onCheckConnection = settingsViewModel::checkConnection,
         onBack = onBack,
+        onDebugReminder = settingsViewModel::scheduleDebugReminder,
+        debugBuild = debugBuild,
     )
 }
 
@@ -46,7 +62,10 @@ private fun SettingsScreen(
     onSave: () -> Unit,
     onCheckConnection: () -> Unit,
     onBack: (() -> Unit)?,
+    onDebugReminder: () -> Unit,
+    debugBuild: Boolean,
 ) {
+    val context = LocalContext.current
     Scaffold { padding ->
         Column(
             modifier = Modifier
@@ -61,6 +80,22 @@ private fun SettingsScreen(
                 }
             }
             Text(text = stringResource(R.string.settings_title))
+            Text(text = stringResource(R.string.reminder_settings_title))
+            Text(text = stringResource(if (state.notificationsGranted) R.string.reminder_notifications_enabled else R.string.reminder_notifications_disabled))
+            Text(text = stringResource(if (state.exactAlarmsGranted) R.string.reminder_exact_enabled else R.string.reminder_exact_disabled))
+            if (!state.notificationsGranted) Text(stringResource(R.string.reminder_notifications_explanation), color = androidx.compose.material3.MaterialTheme.colorScheme.error)
+            if (!state.exactAlarmsGranted) Text(stringResource(R.string.reminder_exact_explanation), color = androidx.compose.material3.MaterialTheme.colorScheme.error)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                Button(onClick = {
+                    context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")))
+                }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.reminder_open_exact_settings)) }
+            }
+            Button(onClick = {
+                context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName))
+            }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.reminder_open_notification_settings)) }
+            if (debugBuild) Button(onClick = onDebugReminder, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.reminder_debug_schedule))
+            }
             OutlinedTextField(
                 value = state.baseUrl,
                 onValueChange = onBaseUrlChanged,

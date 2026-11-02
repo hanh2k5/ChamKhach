@@ -54,8 +54,10 @@ fun DashboardRoute(
     onCall: (String) -> Unit,
     clock: Clock = Clock.systemUTC(),
     businessZone: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh"),
+    followUpRepository: com.telesales.assistant.data.repository.FollowUpRepository? = null,
+    reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator? = null,
 ) {
-    val vm: DashboardViewModel = viewModel(factory = DashboardFactory(repository, clock, businessZone))
+    val vm: DashboardViewModel = viewModel(factory = DashboardFactory(repository, clock, businessZone, followUpRepository, reminderCoordinator))
     val state by vm.state.collectAsState()
     val lifecycleOwner = LocalLifecycleOwner.current
     val firstResume = remember { mutableStateOf(true) }
@@ -170,9 +172,9 @@ private fun errorText(error: DashboardError): String = when (error) {
     DashboardError.Server -> stringResource(R.string.customers_server_error)
 }
 
-private class DashboardFactory(private val repository: DashboardRepository, private val clock: Clock, private val zone: ZoneId) : ViewModelProvider.Factory {
+private class DashboardFactory(private val repository: DashboardRepository, private val clock: Clock, private val zone: ZoneId, private val followUpRepository: com.telesales.assistant.data.repository.FollowUpRepository?, private val reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator?) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         require(modelClass.isAssignableFrom(DashboardViewModel::class.java))
-        return modelClass.cast(DashboardViewModel(repository, clock, zone))
+        return modelClass.cast(DashboardViewModel(repository, clock, zone, followUpRepository, reminderCoordinator))
     }
 }

@@ -60,7 +60,7 @@ class CallLogViewModelTest {
         val repo = FakeRepository().apply { action = { gate.await() } }; val vm = create(repo); advanceUntilIdle()
         vm.chooseResult("interested"); vm.save(); vm.save(); runCurrent()
         assertEquals(1, repo.requests.size); assertTrue(vm.state.value.isSaving)
-        gate.complete(RecordInteractionResult.Success); advanceUntilIdle(); assertTrue(vm.state.value.saved)
+        gate.complete(RecordInteractionResult.Success(null, null, emptyList())); advanceUntilIdle(); assertTrue(vm.state.value.saved)
     }
 
     @Test fun validationErrorsAreKeptByFieldIncludingFollowUpRemindAt() = vmTest {
@@ -90,7 +90,7 @@ class CallLogViewModelTest {
 
     private class FakeRepository : CallLogRepository {
         val requests = mutableListOf<InteractionCreateDto>()
-        var action: suspend () -> RecordInteractionResult = { RecordInteractionResult.Success }
+        var action: suspend () -> RecordInteractionResult = { RecordInteractionResult.Success(null, null, emptyList()) }
         override suspend fun getCallLogCustomer(id: Long) = CustomerDetailResult.Success(customer)
         override suspend fun recordInteraction(id: Long, request: InteractionCreateDto): RecordInteractionResult { requests += request; return action() }
     }

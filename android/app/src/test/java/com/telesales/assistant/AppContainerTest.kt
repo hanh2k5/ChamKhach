@@ -15,6 +15,13 @@ import com.telesales.assistant.data.repository.ApiDashboardRepository
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.telesales.assistant.data.local.ReminderEntity
+import com.telesales.assistant.reminder.ReminderCoordinator
+import com.telesales.assistant.reminder.ReminderDaoStore
+import com.telesales.assistant.reminder.ReminderScheduler
+import com.telesales.assistant.reminder.ReminderStore
+import java.time.Clock
+import com.telesales.assistant.reminder.ReminderCopy
 
 class AppContainerTest {
     @Test
@@ -29,6 +36,22 @@ class AppContainerTest {
             override val callLogRepository: CallLogRepository = customerApiRepository
             override val followUpRepository: FollowUpRepository = ApiFollowUpRepository(settingsStore, apiServiceFactory)
             override val dashboardRepository: DashboardRepository = ApiDashboardRepository(settingsStore, apiServiceFactory)
+            override val reminderStore: ReminderStore = object : ReminderStore {
+                override suspend fun getAll() = emptyList<ReminderEntity>()
+                override suspend fun get(id: Long): ReminderEntity? = null
+                override suspend fun upsert(reminder: ReminderEntity) = Unit
+                override suspend fun delete(id: Long) = Unit
+                override suspend fun markNotified(id: Long) = Unit
+            }
+            override val reminderScheduler: ReminderScheduler = object : ReminderScheduler {
+                override fun schedule(reminder: ReminderEntity) = Unit
+                override fun cancel(followUpId: Long) = Unit
+            }
+            override val reminderCoordinator = ReminderCoordinator(reminderStore, reminderScheduler, Clock.systemUTC(), copy = object : ReminderCopy {
+                override fun notificationTitle(customerName: String) = customerName
+                override fun notificationBody(remindAt: java.time.Instant, note: String?, zoneId: java.time.ZoneId) = note.orEmpty()
+                override fun debugReminder(atEpochMs: Long) = ReminderEntity(0, 0, "debug", "debug", atEpochMs)
+            })
         }
 
         assertNotNull(container.settingsStore)

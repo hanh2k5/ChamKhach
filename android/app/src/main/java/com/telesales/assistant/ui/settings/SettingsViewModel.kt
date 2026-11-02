@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
+import com.telesales.assistant.reminder.ReminderAction
+import com.telesales.assistant.reminder.ReminderCoordinator
 
 enum class SettingsStatus {
     None,
@@ -34,14 +36,38 @@ data class SettingsUiState(
     val isChecking: Boolean = false,
     val baseUrlInvalid: Boolean = false,
     val status: SettingsStatus = SettingsStatus.None,
+    val notificationsGranted: Boolean = true,
+    val exactAlarmsGranted: Boolean = true,
 )
 
 class SettingsViewModel(
     private val settingsStore: SettingsStore,
     private val apiServiceFactory: ApiServiceProvider,
+    private val permissionStateProvider: ReminderPermissionStateProvider? = null,
+    private val reminderCoordinator: ReminderCoordinator? = null,
+    private val debugBuild: Boolean = false,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(SettingsUiState())
     val state: StateFlow<SettingsUiState> = mutableState.asStateFlow()
+
+    init { refreshReminderPermissions() }
+
+    fun refreshReminderPermissions() {
+        permissionStateProvider?.current()?.let { permissions ->
+            mutableState.value = mutableState.value.copy(
+                notificationsGranted = permissions.notificationsGranted,
+                exactAlarmsGranted = permissions.exactAlarmsGranted,
+            )
+        }
+    }
+
+    fun scheduleDebugReminder() {
+        if (!debugBuild) return
+        viewModelScope.launch {
+            val reminder = reminderCoordinator?.createDebugReminder(DEBUG_REMINDER_ID) ?: return@launch
+            reminderCoordinator?.apply(listOf(ReminderAction.Schedule(reminder)))
+        }
+    }
 
     init {
         viewModelScope.launch {
@@ -134,4 +160,6 @@ class SettingsViewModel(
             }
         }
     }
+
+    companion object { const val DEBUG_REMINDER_ID = Long.MIN_VALUE + 8 }
 }

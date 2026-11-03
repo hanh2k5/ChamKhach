@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -27,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.telesales.assistant.R
@@ -134,11 +136,21 @@ private fun DetailContent(
                     Text(stringResource(R.string.customers_last_result, resultLabel(customer.lastResult)))
                     Text(stringResource(R.string.detail_potential, potentialLabel(customer.potentialLevel)))
                     customer.nextFollowUp?.let { Text(stringResource(R.string.detail_next_follow_up, vm.formatTime(it.remindAt))) }
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { onCall(customer.phone) }) { Text(stringResource(R.string.detail_call)) }
-                        if (customer.status != "archived") TextButton(onClick = { onCallLog(customer.id) }) { Text(stringResource(R.string.call_log_title)) }
-                        TextButton(onClick = onEdit) { Text(stringResource(R.string.customer_form_edit_title)) }
-                        TextButton(onClick = vm::showArchiveConfirmation) { Text(stringResource(R.string.detail_archive)) }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = { onCall(customer.phone) }, modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.detail_call), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        if (customer.status != "archived") TextButton(onClick = { onCallLog(customer.id) }, modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.call_log_title), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        } else Spacer(Modifier.weight(1f))
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(onClick = onEdit, modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.customer_form_edit_title), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                        TextButton(onClick = vm::showArchiveConfirmation, modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.detail_archive), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
                     }
                     if (state.archiveError != null) {
                         Text(failureMessage(state.archiveError))

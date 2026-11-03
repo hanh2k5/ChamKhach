@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -88,9 +89,9 @@ private fun DashboardScreen(
     val listState = rememberLazyListState()
     val pullRefresh = rememberPullToRefreshGesture(listState, state.isRefreshing, vm::refresh)
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.dashboard_title)) }, actions = {
-            TextButton(onClick = onCustomers) { Text(stringResource(R.string.dashboard_customers)) }
-            TextButton(onClick = onSettings) { Text(stringResource(R.string.customers_settings)) }
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.dashboard_title), maxLines = 1, overflow = TextOverflow.Ellipsis) }, actions = {
+            TextButton(onClick = onCustomers) { Text(stringResource(R.string.dashboard_customers), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+            TextButton(onClick = onSettings) { Text(stringResource(R.string.customers_settings), maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }) },
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = onAddCustomer) { Text(stringResource(R.string.dashboard_add_customer)) }

@@ -12,6 +12,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.telesales.assistant.R
@@ -70,19 +72,29 @@ private fun CustomersScreen(
     onEditCustomer: (Long) -> Unit,
 ) {
     val listState = rememberLazyListState()
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.customers_title)) }, navigationIcon = {
-        TextButton(onClick = onDashboard) { Text(stringResource(R.string.dashboard_title)) }
-    }, actions = {
-        TextButton(onClick = onAddCustomer) { Text(stringResource(R.string.customer_form_add_title)) }
-        TextButton(onClick = onFollowUps) { Text(stringResource(R.string.followups_title)) }
-        TextButton(onClick = onSettings) { Text(stringResource(R.string.customers_settings)) }
-    }) }) { padding ->
+    Scaffold(
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.customers_title)) }, navigationIcon = {
+            TextButton(onClick = onDashboard) { Text(stringResource(R.string.dashboard_title), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+        }) },
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(selected = false, onClick = onAddCustomer, icon = {}, label = {
+                    Text(stringResource(R.string.customer_form_add_title), maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+                })
+                NavigationBarItem(selected = false, onClick = onFollowUps, icon = {}, label = {
+                    Text(stringResource(R.string.followups_title), maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+                })
+                NavigationBarItem(selected = false, onClick = onSettings, icon = {}, label = {
+                    Text(stringResource(R.string.customers_settings), maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+                })
+            }
+        },
+    ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
             OutlinedTextField(state.query, vm::onQueryChanged, Modifier.fillMaxWidth(), label = { Text(stringResource(R.string.customers_search)) }, singleLine = true)
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterMenu(stringResource(R.string.customers_status), state.status, listOf("active", "archived", "all")) { it?.let(vm::onStatusChanged) }
                 FilterMenu(stringResource(R.string.customers_potential), state.potential, listOf(null, "high", "medium", "low", "unrated"), vm::onPotentialChanged)
-                FilterMenu(stringResource(R.string.customers_result), state.lastResult, listOf(null, "interested", "no_answer", "callback", "rejected"), vm::onLastResultChanged)
             }
             if (state.isRefreshing) LinearProgressIndicator(Modifier.fillMaxWidth())
             if (state.error != null) {

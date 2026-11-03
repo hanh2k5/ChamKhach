@@ -206,3 +206,11 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 - Android `InteractionCreateDto` tiếp tục không khai báo trường này; unit test xác nhận JSON request không chứa `contacted_at`.
 - Xác minh: `cd backend && php artisan test --filter=InteractionTest` — 16 tests, 44 assertions passed; `cd android && ./gradlew.bat testDebugUnitTest` (JBR 21) — `BUILD SUCCESSFUL`.
 - Commit: `fix(backend): auto assign contacted_at for interactions (D11)`.
+
+## UI layout fixes — Dashboard, danh sách và chi tiết khách (02/11/2026)
+
+- Dashboard title và các nhãn điều hướng dài chỉ hiển thị một dòng, phần dư được ellipsis; trên màn danh sách chuyển Thêm khách/Lịch cần gọi/Cài đặt xuống NavigationBar.
+- Màn danh sách chỉ còn bộ lọc Trạng thái và Tiềm năng; dropdown Kết quả gần nhất được ẩn.
+- Nút hành động chi tiết khách chia thành hai hàng, mỗi nút có độ rộng đều và chữ một dòng.
+- Xác minh: `cd android && ./gradlew.bat assembleDebug` (JBR 21) — `BUILD SUCCESSFUL`.
+- Kiểm tra hồi quy: `clean testDebugUnitTest` với Gradle 8.13 và JBR 21 — `BUILD SUCCESSFUL`; wrapper bị timeout chờ lock nên chạy task bằng distribution đã giải nén.

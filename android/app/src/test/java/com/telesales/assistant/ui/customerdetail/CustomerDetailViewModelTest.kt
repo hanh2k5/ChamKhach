@@ -1,7 +1,7 @@
 package com.telesales.assistant.ui.customerdetail
 
 import androidx.lifecycle.ViewModelStore
-import com.telesales.assistant.data.repository.ArchiveCustomerResult
+import com.telesales.assistant.data.repository.DeleteCustomerResult
 import com.telesales.assistant.data.repository.CustomerDetailFailure
 import com.telesales.assistant.data.repository.CustomerDetailRepository
 import com.telesales.assistant.data.repository.CustomerDetailResult
@@ -67,36 +67,36 @@ class CustomerDetailViewModelTest {
         assertEquals(listOf(1, 2, 3), repo.pages)
     }
 
-    @Test fun keepsNoCallsAsEmptyTimelineAndArchivesWithCancelledIds() = vmTest {
+    @Test fun keepsNoCallsAsEmptyTimelineAndDeletesWithFollowUpIds() = vmTest {
         val repo = FakeRepository().apply {
-            archiveAction = { ArchiveCustomerResult.Success(listOf(4, 5)) }
+            deleteAction = { DeleteCustomerResult.Success(listOf(4, 5)) }
         }
         val vm = create(repo)
         advanceUntilIdle()
         assertTrue(vm.state.value.interactions.isEmpty())
-        vm.showArchiveConfirmation()
-        assertTrue(vm.state.value.archiveConfirmationVisible)
-        vm.archive()
+        vm.showDeleteConfirmation()
+        assertTrue(vm.state.value.deleteConfirmationVisible)
+        vm.deleteCustomer()
         advanceUntilIdle()
-        assertTrue(vm.state.value.isArchived)
-        assertEquals(listOf(4L, 5L), vm.state.value.cancelledFollowUpIds)
-        assertFalse(vm.state.value.archiveConfirmationVisible)
+        assertTrue(vm.state.value.isDeleted)
+        assertEquals(listOf(4L, 5L), vm.state.value.deletedFollowUpIds)
+        assertFalse(vm.state.value.deleteConfirmationVisible)
     }
 
-    @Test fun reportsArchiveFailureAndCanRetry() = vmTest {
+    @Test fun reportsDeleteFailureAndCanRetry() = vmTest {
         var fail = true
         val repo = FakeRepository().apply {
-            archiveAction = { if (fail) ArchiveCustomerResult.Failure(CustomerDetailFailure.Server) else ArchiveCustomerResult.Success(emptyList()) }
+            deleteAction = { if (fail) DeleteCustomerResult.Failure(CustomerDetailFailure.Server) else DeleteCustomerResult.Success(emptyList()) }
         }
         val vm = create(repo)
         advanceUntilIdle()
-        vm.archive()
+        vm.deleteCustomer()
         advanceUntilIdle()
-        assertEquals(CustomerDetailFailure.Server, vm.state.value.archiveError)
+        assertEquals(CustomerDetailFailure.Server, vm.state.value.deleteError)
         fail = false
-        vm.retryArchive()
+        vm.retryDelete()
         advanceUntilIdle()
-        assertTrue(vm.state.value.isArchived)
+        assertTrue(vm.state.value.isDeleted)
     }
 
     private fun TestScope.create(repo: FakeRepository) = CustomerDetailViewModel(7, repo).also {
@@ -111,11 +111,11 @@ class CustomerDetailViewModelTest {
     private class FakeRepository : CustomerDetailRepository {
         var detailAction: suspend () -> CustomerDetailResult = { CustomerDetailResult.Success(customer) }
         var interactionsAction: suspend (Int) -> InteractionPageResult = { page -> success(page, emptyList()) }
-        var archiveAction: suspend () -> ArchiveCustomerResult = { ArchiveCustomerResult.Success(emptyList()) }
+        var deleteAction: suspend () -> DeleteCustomerResult = { DeleteCustomerResult.Success(emptyList()) }
         val pages = mutableListOf<Int>()
         override suspend fun getCustomerDetail(id: Long) = detailAction()
         override suspend fun getInteractions(id: Long, page: Int): InteractionPageResult { pages += page; return interactionsAction(page) }
-        override suspend fun archiveCustomer(id: Long) = archiveAction()
+        override suspend fun deleteCustomer(id: Long) = deleteAction()
     }
 
     companion object {

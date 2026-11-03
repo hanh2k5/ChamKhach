@@ -1,5 +1,6 @@
 package com.telesales.assistant.ui.dashboard
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -39,6 +39,7 @@ import com.telesales.assistant.R
 import com.telesales.assistant.data.repository.DashboardRepository
 import com.telesales.assistant.domain.model.FollowUp
 import com.telesales.assistant.ui.components.FollowUpCard
+import com.telesales.assistant.ui.components.GlassCard
 import com.telesales.assistant.ui.components.rememberPullToRefreshGesture
 import java.time.Clock
 import java.time.ZoneId
@@ -89,10 +90,8 @@ private fun DashboardScreen(
     val listState = rememberLazyListState()
     val pullRefresh = rememberPullToRefreshGesture(listState, state.isRefreshing, vm::refresh)
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.dashboard_title), maxLines = 1, overflow = TextOverflow.Ellipsis) }, actions = {
-            TextButton(onClick = onCustomers) { Text(stringResource(R.string.dashboard_customers), maxLines = 1, overflow = TextOverflow.Ellipsis) }
-            TextButton(onClick = onSettings) { Text(stringResource(R.string.customers_settings), maxLines = 1, overflow = TextOverflow.Ellipsis) }
-        }) },
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.dashboard_title), maxLines = 1, overflow = TextOverflow.Ellipsis) }, colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(containerColor = androidx.compose.ui.graphics.Color.Transparent)) },
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = onAddCustomer) { Text(stringResource(R.string.dashboard_add_customer)) }
         },
@@ -152,7 +151,7 @@ private fun DashboardScreen(
 
 @Composable
 private fun MetricCard(label: String, count: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Card(modifier = modifier.fillMaxWidth(), onClick = onClick) {
+    GlassCard(modifier = modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(label, style = MaterialTheme.typography.labelMedium)
             Text(count.toString(), style = MaterialTheme.typography.headlineSmall)

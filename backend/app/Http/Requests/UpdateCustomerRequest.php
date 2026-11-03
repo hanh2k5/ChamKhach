@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests;
 
-use App\Enums\CustomerStatus;
 use App\Enums\PotentialLevel;
 use App\Support\PhoneNormalizer;
 use Closure;
@@ -35,7 +34,6 @@ class UpdateCustomerRequest extends FormRequest
             'industry' => ['sometimes', 'nullable', 'string', 'max:100'],
             'source' => ['sometimes', 'nullable', 'string', 'max:100'],
             'potential_level' => ['sometimes', 'nullable', Rule::enum(PotentialLevel::class)],
-            'status' => ['sometimes', 'required', Rule::enum(CustomerStatus::class)],
         ];
     }
 }

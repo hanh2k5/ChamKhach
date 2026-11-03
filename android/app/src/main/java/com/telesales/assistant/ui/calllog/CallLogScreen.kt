@@ -1,11 +1,16 @@
 package com.telesales.assistant.ui.calllog
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -30,6 +35,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -80,15 +87,17 @@ private fun CallLogScreen(state: CallLogUiState, vm: CallLogViewModel, onBack: (
             TextButton(onClick = { vm.setTime(LocalTime.of(picker.hour, picker.minute)); showTime.value = false }) { Text(stringResource(R.string.call_log_ok)) }
         }, dismissButton = { TextButton(onClick = { showTime.value = false }) { Text(stringResource(R.string.call_log_cancel)) } }, text = { TimePicker(state = picker) })
     }
-    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.call_log_title)) }, navigationIcon = {
+    Scaffold(containerColor = androidx.compose.ui.graphics.Color.Transparent, topBar = { TopAppBar(title = { Text(stringResource(R.string.call_log_title), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = {
         TextButton(onClick = onBack) { Text(stringResource(R.string.customer_form_back)) }
-    }) }) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    }, colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(containerColor = androidx.compose.ui.graphics.Color.Transparent)) }) { padding ->
+        Box(Modifier.fillMaxSize().padding(padding).imePadding(), contentAlignment = Alignment.TopCenter) {
+        Column(Modifier.fillMaxWidth().widthIn(max = 720.dp).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             when {
                 state.isLoading -> Text(stringResource(R.string.call_log_loading))
                 state.customer != null -> FormContent(state, vm, state.customer, showDate, showTime)
                 else -> Text(stringResource(R.string.call_log_load_error))
             }
+        }
         }
     }
 }
@@ -107,15 +116,19 @@ private fun FormContent(state: CallLogUiState, vm: CallLogViewModel, customer: C
     }
     if (state.formError == "result") Text(stringResource(R.string.call_log_result_required), color = androidx.compose.material3.MaterialTheme.colorScheme.error)
     Text(stringResource(R.string.call_log_needs_label), style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
-    listOf("website" to R.string.need_website, "web_app" to R.string.need_web_app, "software" to R.string.need_software, "ads" to R.string.need_ads, "other" to R.string.need_other).forEach { (value, label) ->
-        FilterChip(selected = value in state.needs, onClick = { vm.toggleNeed(value) }, label = { Text(stringResource(label)) })
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        items(listOf("website" to R.string.need_website, "web_app" to R.string.need_web_app, "software" to R.string.need_software, "ads" to R.string.need_ads, "other" to R.string.need_other)) { (value, label) ->
+            FilterChip(selected = value in state.needs, onClick = { vm.toggleNeed(value) }, label = { Text(stringResource(label), maxLines = 1) })
+        }
     }
     OutlinedTextField(value = state.note, onValueChange = vm::setNote, label = { Text(stringResource(R.string.call_log_note)) }, supportingText = { Text("${state.note.length}/500") }, modifier = Modifier.fillMaxWidth(), minLines = 1, maxLines = 3)
     Text(stringResource(R.string.call_log_schedule_label), style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = { showDate.value = true }) { Text(state.date?.let { stringResource(R.string.call_log_date_value, it.toString()) } ?: stringResource(R.string.call_log_select_date)) }
-        OutlinedButton(onClick = { showTime.value = true }) { Text(state.time?.let { stringResource(R.string.call_log_time_value, it.toString()) } ?: stringResource(R.string.call_log_select_time)) }
-        TextButton(onClick = vm::clearSchedule) { Text(stringResource(R.string.call_log_clear_schedule)) }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = { showDate.value = true }, modifier = Modifier.weight(1f)) { Text(state.date?.let { stringResource(R.string.call_log_date_value, it.toString()) } ?: stringResource(R.string.call_log_select_date), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+            OutlinedButton(onClick = { showTime.value = true }, modifier = Modifier.weight(1f)) { Text(state.time?.let { stringResource(R.string.call_log_time_value, it.toString()) } ?: stringResource(R.string.call_log_select_time), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+        }
+        TextButton(onClick = vm::clearSchedule) { Text(stringResource(R.string.call_log_clear_schedule), maxLines = 1, overflow = TextOverflow.Ellipsis) }
     }
     if (state.formError == "past_schedule") Text(stringResource(R.string.call_log_schedule_past), color = androidx.compose.material3.MaterialTheme.colorScheme.error)
     if (state.formError == "incomplete_schedule") Text(stringResource(R.string.call_log_schedule_incomplete), color = androidx.compose.material3.MaterialTheme.colorScheme.error)

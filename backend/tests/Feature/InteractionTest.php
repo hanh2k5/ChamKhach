@@ -214,7 +214,7 @@ class InteractionTest extends TestCase
     // -----------------------------------------------------------------------
     // Test 8: khách archived → 422
     // -----------------------------------------------------------------------
-    public function test_create_interaction_archived_customer_returns_422(): void
+    public function test_create_interaction_is_not_blocked_by_legacy_customer_status(): void
     {
         $this->customer->update(['status' => CustomerStatus::Archived]);
 
@@ -225,8 +225,7 @@ class InteractionTest extends TestCase
                 'contacted_at' => '2026-10-30T03:00:00+00:00',
             ]);
 
-        $response->assertStatus(422)
-            ->assertJsonPath('code', 'CUSTOMER_ARCHIVED');
+        $response->assertStatus(201);
     }
 
     // -----------------------------------------------------------------------

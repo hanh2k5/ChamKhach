@@ -35,9 +35,14 @@
     <string name="settings_server_error">Máy chủ trả lỗi. Vui lòng thử lại.</string>
     <string name="settings_storage_error">Không lưu được cài đặt trên thiết bị.</string>
     <string name="customers_title">Danh sách khách</string>
+    <string name="nav_dashboard">Tổng quan</string>
+    <string name="nav_customers">Khách</string>
+    <string name="nav_followups">Lịch</string>
+    <string name="nav_settings">Cài đặt</string>
+    <string name="customers_select_detail">Chọn một khách hàng để xem chi tiết</string>
+    <string name="detail_close_pane">Đóng</string>
     <string name="customers_settings">Cài đặt</string>
     <string name="customers_search">Tìm theo tên hoặc số điện thoại</string>
-    <string name="customers_status">Trạng thái</string>
     <string name="customers_potential">Tiềm năng</string>
     <string name="customers_result">Kết quả gần nhất</string>
     <string name="customers_filter_all">Tất cả</string>
@@ -54,13 +59,10 @@
     <string name="customers_last_contact">Gọi gần nhất: %1$s</string>
     <string name="customers_last_result">Kết quả gần nhất: %1$s</string>
     <string name="customers_filter_label">%1$s: %2$s</string>
-    <string name="status_active">Đang theo dõi</string>
-    <string name="status_archived">Ngừng theo dõi</string>
     <string name="status_all">Tất cả</string>
     <string name="potential_high">Cao</string>
     <string name="potential_medium">Vừa</string>
     <string name="potential_low">Thấp</string>
-    <string name="potential_unrated">Chưa đánh giá</string>
     <string name="result_interested">Quan tâm</string>
     <string name="result_no_answer">Không nghe máy</string>
     <string name="result_callback">Hẹn gọi lại</string>
@@ -75,7 +77,7 @@
     <string name="customer_form_industry">Ngành nghề</string>
     <string name="customer_form_source">Nguồn khách</string>
     <string name="customer_form_potential">Mức tiềm năng</string>
-    <string name="customer_form_status">Trạng thái</string>
+    <string name="potential_unrated">Chưa đánh giá</string>
     <string name="customer_form_save">Lưu khách hàng</string>
     <string name="customer_form_enum_value">%1$s: %2$s</string>
     <string name="customer_form_field_error">Vui lòng kiểm tra lại thông tin này.</string>
@@ -149,9 +151,9 @@
     <string name="detail_potential">Tiềm năng: %1$s</string>
     <string name="detail_next_follow_up">Lịch gọi tiếp: %1$s</string>
     <string name="detail_call">Gọi</string>
-    <string name="detail_archive">Lưu trữ</string>
-    <string name="detail_archive_title">Lưu trữ khách hàng?</string>
-    <string name="detail_archive_confirm">Khách sẽ ngừng được theo dõi và các lịch gọi đang chờ sẽ bị hủy.</string>
+    <string name="detail_delete">Xóa vĩnh viễn</string>
+    <string name="detail_delete_title">Xóa khách hàng vĩnh viễn?</string>
+    <string name="detail_delete_confirm">Bạn có chắc muốn xóa vĩnh viễn khách hàng này cùng toàn bộ lịch sử cuộc gọi và lịch nhắc? Hành động này không thể hoàn tác.</string>
     <string name="detail_timeline">Lịch sử cuộc gọi</string>
     <string name="detail_timeline_empty">Chưa có cuộc gọi nào</string>
     <string name="detail_interaction_heading">%1$s · %2$s</string>
@@ -161,7 +163,7 @@
     <string name="need_web_app">Ứng dụng web</string>
     <string name="need_software">Phần mềm</string>
     <string name="need_ads">Quảng cáo</string>
-    <string name="detail_archived_notice">Đã lưu trữ khách hàng.</string>
+    <string name="detail_deleted_notice">Đã xóa vĩnh viễn khách hàng.</string>
     <string name="need_other">Chưa xác định/Khác</string>
 </resources>
 

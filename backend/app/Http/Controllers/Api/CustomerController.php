@@ -59,11 +59,14 @@ class CustomerController extends Controller
         $customer = Customer::findOrFail($id);
         $result = $this->customerService->update($customer, $request->validated());
 
-        $resource = new CustomerResource($result['customer']);
-        if (isset($result['cancelled_follow_up_ids'])) {
-            $resource->withExtra(['cancelled_follow_up_ids' => $result['cancelled_follow_up_ids']]);
-        }
+        return new CustomerResource($result['customer']);
+    }
 
-        return $resource;
+    /** Permanently delete a customer and all dependent records. */
+    public function destroy(int $id): JsonResponse
+    {
+        $followUpIds = $this->customerService->delete($id);
+
+        return response()->json(['data' => ['deleted_follow_up_ids' => $followUpIds]]);
     }
 }

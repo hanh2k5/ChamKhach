@@ -47,3 +47,11 @@
 - **Khi đổi số trùng lúc sửa:** “Mở hồ sơ cũ” thay form hiện tại trong back stack bằng form sửa khách bị trùng; “Sửa lại” đóng hộp thoại và giữ nguyên form hiện tại.
 - **Trạng thái sau A4:** Đã thay bằng màn Chi tiết khách. Bấm khách trong danh sách và “Mở hồ sơ cũ” mở chi tiết; form sửa mở từ nút Sửa ở màn chi tiết.
 - **Ghi bởi:** Người dùng · 02/11/2026
+
+
+## D15: Hard delete customers instead of archive
+
+- **Decision:** Permanently delete a customer through `DELETE /api/v1/customers/{id}`. Foreign-key cascades remove interactions, interaction needs, and follow-ups; Android confirms the irreversible action and cancels related local alarms.
+- **Reason:** The user wants to fully clean the data and does not need the history of deleted customers.
+- **Consequences:** Archive is no longer the deletion behavior; deleted customer lookups return 404. The API returns `deleted_follow_up_ids` so the app can remove local alarms.
+- **Recorded by:** User ? 2026-11-03

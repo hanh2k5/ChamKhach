@@ -2,7 +2,7 @@ package com.telesales.assistant.ui.customerdetail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.telesales.assistant.data.repository.ArchiveCustomerResult
+import com.telesales.assistant.data.repository.DeleteCustomerResult
 import com.telesales.assistant.data.repository.CustomerDetailFailure
 import com.telesales.assistant.data.repository.CustomerDetailRepository
 import com.telesales.assistant.data.repository.CustomerDetailResult
@@ -31,11 +31,11 @@ data class CustomerDetailUiState(
     val isLoadingMore: Boolean = false,
     val hasMore: Boolean = false,
     val timelineError: CustomerDetailFailure? = null,
-    val archiveConfirmationVisible: Boolean = false,
-    val isArchiving: Boolean = false,
-    val archiveError: CustomerDetailFailure? = null,
-    val isArchived: Boolean = false,
-    val cancelledFollowUpIds: List<Long> = emptyList(),
+    val deleteConfirmationVisible: Boolean = false,
+    val isDeleting: Boolean = false,
+    val deleteError: CustomerDetailFailure? = null,
+    val isDeleted: Boolean = false,
+    val deletedFollowUpIds: List<Long> = emptyList(),
 )
 
 class CustomerDetailViewModel(
@@ -56,9 +56,9 @@ class CustomerDetailViewModel(
 
     fun retry() = load()
     fun retryTimeline() = loadFirstTimelinePage()
-    fun showArchiveConfirmation() { mutableState.value = mutableState.value.copy(archiveConfirmationVisible = true) }
-    fun dismissArchiveConfirmation() { mutableState.value = mutableState.value.copy(archiveConfirmationVisible = false) }
-    fun retryArchive() = archive()
+    fun showDeleteConfirmation() { mutableState.value = mutableState.value.copy(deleteConfirmationVisible = true) }
+    fun dismissDeleteConfirmation() { mutableState.value = mutableState.value.copy(deleteConfirmationVisible = false) }
+    fun retryDelete() = deleteCustomer()
 
     fun formatTime(instant: Instant): String =
         DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
@@ -92,25 +92,25 @@ class CustomerDetailViewModel(
         }
     }
 
-    fun archive() {
-        if (mutableState.value.isArchiving || mutableState.value.isArchived) return
-        mutableState.value = mutableState.value.copy(isArchiving = true, archiveError = null)
+    fun deleteCustomer() {
+        if (mutableState.value.isDeleting || mutableState.value.isDeleted) return
+        mutableState.value = mutableState.value.copy(isDeleting = true, deleteError = null)
         viewModelScope.launch {
-            val result = try { repository.archiveCustomer(customerId) }
+            val result = try { repository.deleteCustomer(customerId) }
             catch (cancelled: CancellationException) { throw cancelled }
             when (result) {
-                is ArchiveCustomerResult.Success -> {
-                    reminderCoordinator?.apply(ReminderPlanner.archive(result.cancelledFollowUpIds))
+                is DeleteCustomerResult.Success -> {
+                    reminderCoordinator?.apply(ReminderPlanner.delete(result.deletedFollowUpIds))
                     mutableState.value = mutableState.value.copy(
-                        isArchiving = false,
-                        archiveConfirmationVisible = false,
-                        isArchived = true,
-                        cancelledFollowUpIds = result.cancelledFollowUpIds,
+                        isDeleting = false,
+                        deleteConfirmationVisible = false,
+                        isDeleted = true,
+                        deletedFollowUpIds = result.deletedFollowUpIds,
                     )
                 }
-                is ArchiveCustomerResult.Failure -> mutableState.value = mutableState.value.copy(
-                    isArchiving = false,
-                    archiveError = result.reason,
+                is DeleteCustomerResult.Failure -> mutableState.value = mutableState.value.copy(
+                    isDeleting = false,
+                    deleteError = result.reason,
                 )
             }
         }

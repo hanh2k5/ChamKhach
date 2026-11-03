@@ -6,6 +6,7 @@ import retrofit2.http.Query
 import retrofit2.http.Body
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.DELETE
 import retrofit2.http.Path
 
 interface ApiService {
@@ -15,7 +16,6 @@ interface ApiService {
     @GET("customers")
     suspend fun customers(
         @Query("q") query: String?,
-        @Query("status") status: String,
         @Query("potential") potential: String?,
         @Query("last_result") lastResult: String?,
         @Query("page") page: Int,
@@ -41,8 +41,8 @@ interface ApiService {
     @POST("customers/{id}/interactions")
     suspend fun createInteraction(@Path("id") id: Long, @Body interaction: InteractionCreateDto): InteractionCreateResponseDto
 
-    @PATCH("customers/{id}")
-    suspend fun updateCustomerStatus(@Path("id") id: Long, @Body status: CustomerStatusDto): CustomerProfileResponseDto
+    @DELETE("customers/{id}")
+    suspend fun deleteCustomer(@Path("id") id: Long): DeleteCustomerResponseDto
 
     @GET("follow-ups")
     suspend fun followUps(
@@ -78,9 +78,9 @@ interface ApiService {
     val last_contacted_at: String? = null,
     val last_result: String? = null,
     val next_follow_up: NextFollowUpDto? = null,
-    val cancelled_follow_up_ids: List<Long> = emptyList(),
 )
-@Serializable data class CustomerStatusDto(val status: String)
+@Serializable data class DeleteCustomerResponseDto(val data: DeletedCustomerDto)
+@Serializable data class DeletedCustomerDto(val deleted_follow_up_ids: List<Long> = emptyList())
 @Serializable data class InteractionPageDto(
     val data: List<InteractionDto> = emptyList(),
     val links: CustomerPageLinksDto = CustomerPageLinksDto(),
@@ -150,7 +150,6 @@ interface ApiService {
     val industry: String?,
     val source: String?,
     val potential_level: String,
-    val status: String,
 )
 @Serializable data class ApiErrorDto(
     val message: String = "",

@@ -10,7 +10,8 @@ import com.telesales.assistant.data.network.CustomerProfileDto
 import com.telesales.assistant.data.network.CustomerCreateDto
 import com.telesales.assistant.data.network.CustomerUpdateDto
 import com.telesales.assistant.data.network.InteractionPageDto
-import com.telesales.assistant.data.network.CustomerStatusDto
+import com.telesales.assistant.data.network.DeleteCustomerResponseDto
+import com.telesales.assistant.data.network.DeletedCustomerDto
 import com.telesales.assistant.data.settings.InMemoryPreferencesDataStore
 import com.telesales.assistant.data.settings.SettingsStore
 import kotlinx.coroutines.Dispatchers
@@ -151,16 +152,16 @@ class SettingsViewModelTest {
             lastToken = token
             return object : ApiService {
                 override suspend fun ping(): PingDto = pingAction()
-                override suspend fun customers(query: String?, status: String, potential: String?, lastResult: String?, page: Int, perPage: Int) = CustomerPageDto()
+                override suspend fun customers(query: String?, potential: String?, lastResult: String?, page: Int, perPage: Int) = CustomerPageDto()
                 override suspend fun customer(id: Long) = CustomerProfileResponseDto(CustomerProfileDto(id, phone = "0901234567"))
                 override suspend fun createCustomer(customer: CustomerCreateDto) = CustomerProfileResponseDto(CustomerProfileDto(1, phone = customer.phone))
                 override suspend fun updateCustomer(id: Long, customer: CustomerUpdateDto) = CustomerProfileResponseDto(CustomerProfileDto(id, phone = customer.phone))
+                override suspend fun deleteCustomer(id: Long) = DeleteCustomerResponseDto(DeletedCustomerDto())
                 override suspend fun interactions(id: Long, page: Int, perPage: Int) = InteractionPageDto()
                 override suspend fun createInteraction(id: Long, interaction: com.telesales.assistant.data.network.InteractionCreateDto) = com.telesales.assistant.data.network.InteractionCreateResponseDto(com.telesales.assistant.data.network.InteractionDto(1, interaction.result, interaction.needs, interaction.note, "2026-11-02T00:00:00+00:00"))
                 override suspend fun followUps(status: String, group: String, page: Int, perPage: Int) = com.telesales.assistant.data.network.FollowUpPageDto()
                 override suspend fun updateFollowUp(id: Long, request: com.telesales.assistant.data.network.FollowUpActionDto) = com.telesales.assistant.data.network.FollowUpResponseDto(com.telesales.assistant.data.network.FollowUpDto(id, "2026-11-02T00:00:00+00:00", "pending", "today", com.telesales.assistant.data.network.FollowUpCustomerDto(1, phone = "0900000000")))
                 override suspend fun dashboard() = com.telesales.assistant.data.network.DashboardDto(0, 0, 0)
-                override suspend fun updateCustomerStatus(id: Long, status: CustomerStatusDto) = CustomerProfileResponseDto(CustomerProfileDto(id, phone = "0901234567", status = status.status))
             }
         }
     }

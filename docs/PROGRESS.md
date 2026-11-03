@@ -214,3 +214,27 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 - Nút hành động chi tiết khách chia thành hai hàng, mỗi nút có độ rộng đều và chữ một dòng.
 - Xác minh: `cd android && ./gradlew.bat assembleDebug` (JBR 21) — `BUILD SUCCESSFUL`.
 - Kiểm tra hồi quy: `clean testDebugUnitTest` với Gradle 8.13 và JBR 21 — `BUILD SUCCESSFUL`; wrapper bị timeout chờ lock nên chạy task bằng distribution đã giải nén.
+
+## UI responsive/glass redesign (03/11/2026)
+
+- Làm mới Material theme với nền gradient trắng/xanh xám, màu xanh dịu, typography thoáng, góc bo pill/20dp và touch target Material tối thiểu 48dp; thêm `GlassCard` và dùng cho thẻ dashboard, danh sách khách, follow-up, hồ sơ và timeline.
+- Thêm `WindowSizeClass`: NavigationBar trên compact, NavigationRail trên medium/expanded; danh sách khách và chi tiết chạy dạng hai pane ở màn hình rộng, ViewModel chi tiết được khóa theo customer ID.
+- Đổi bộ lọc khách thành hàng `FilterChip` cuộn; thêm `imePadding()` cho form khách, ghi nhận cuộc gọi và Cài đặt; giới hạn bề rộng form để thích ứng tablet/landscape.
+- Dependency mới: `androidx.compose.material3:material3-window-size-class:1.3.0`.
+- Xác minh: `assembleDebug` với Gradle 8.13/JBR 21 — `BUILD SUCCESSFUL`; emulator đang kết nối nhưng chưa cài/chạy app để kiểm tra xoay màn hình thủ công.
+
+## Bugfix Scaffold và nút xóa khách (03/11/2026)
+
+- `AdaptiveNavigationShell` áp dụng `padding` và `consumeWindowInsets` từ Scaffold cha cho NavHost để tránh nested Scaffold cộng lặp system-bar insets; NavigationBar vẫn nằm ở bottomBar của shell.
+- SPEC không có DELETE; nút “Xóa” giữ luồng xác nhận hiện có và gọi `PATCH /customers/{id}` đặt `status=archived`. Thành công làm khách rời danh sách mặc định (active), hủy lịch nhắc qua luồng archive hiện có.
+- Cập nhật hộp thoại đúng nội dung được yêu cầu và thông báo thành công.
+- Xác minh: `cd android && .\\gradlew.bat assembleDebug` (JBR 21) — `BUILD SUCCESSFUL`.
+
+## Hard delete customer update (2026-11-03)
+
+- Replaced the customer archive flow with authenticated `DELETE /api/v1/customers/{id}`. The API permanently deletes the customer and returns `deleted_follow_up_ids` so Android cancels local alarms.
+- Added cascading foreign keys for interactions, interaction needs, and follow-ups; customer listing and interaction recording no longer depend on an archived state.
+- Android detail now asks for irreversible deletion confirmation and calls DELETE; removed archived choices from customer filters/forms.
+- Updated `TELESALES_SPEC.md` and recorded decision D15 in `DECISIONS.md`.
+- Verification: `DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan test` passed (102 tests, 280 assertions); `JAVA_HOME=<Android Studio JBR> .\gradlew.bat testDebugUnitTest` passed.
+- MySQL is not running locally; the Laravel suite used isolated in-memory SQLite. Run the suite on configured `telesales_test` when MySQL is available.

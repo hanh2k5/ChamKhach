@@ -3,14 +3,12 @@
 namespace App\Services;
 
 use App\Enums\CallResult;
-use App\Enums\CustomerStatus;
 use App\Enums\FollowUpStatus;
 use App\Enums\NeedType;
 use App\Models\Customer;
 use App\Models\FollowUp;
 use App\Models\Interaction;
 use App\Models\InteractionNeed;
-use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -36,18 +34,9 @@ class InteractionService
     public function record(Customer $customer, array $dto): array
     {
         return DB::transaction(function () use ($customer, $dto) {
-            // Bước 2: Khoá hàng + kiểm tra trạng thái archived
+            // Bước 2: Khoá hàng để tuần tự hoá các thao tác của khách hàng.
             // lockForUpdate() trả Builder → cần fresh() thay vì chain refresh()
             $customer = Customer::where('id', $customer->id)->lockForUpdate()->firstOrFail();
-
-            if ($customer->status === CustomerStatus::Archived) {
-                throw new HttpResponseException(
-                    response()->json([
-                        'message' => 'Khách hàng đã lưu trữ. Vui lòng kích hoạt lại trước khi ghi nhận cuộc gọi.',
-                        'code'    => 'CUSTOMER_ARCHIVED',
-                    ], 422)
-                );
-            }
 
             // Bước 3: Tạo interaction
             $interaction = Interaction::create([

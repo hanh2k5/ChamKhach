@@ -18,7 +18,7 @@ object ReminderPlanner {
 
     fun completeOrCancel(id: Long) = listOf(ReminderAction.Cancel(id))
 
-    fun archive(cancelledIds: List<Long>) = cancelledIds.map(ReminderAction::Cancel)
+    fun delete(deletedIds: List<Long>) = deletedIds.map(ReminderAction::Cancel)
 
     fun synchronize(
         existing: List<ReminderEntity>,

@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 enum class CustomerError { SetupRequired, Network, Unauthorized, Server }
 data class CustomersUiState(
-    val customers: List<Customer> = emptyList(), val query: String = "", val status: String = "active",
+    val customers: List<Customer> = emptyList(), val query: String = "",
     val potential: String? = null, val lastResult: String? = null, val isLoading: Boolean = true,
     val isRefreshing: Boolean = false, val isLoadingMore: Boolean = false, val hasMore: Boolean = false,
     val error: CustomerError? = null,
@@ -44,7 +44,6 @@ class CustomersViewModel(
         debounceJob = viewModelScope.launch { delay(300); loadFirstPage() }
     }
 
-    fun onStatusChanged(value: String) = changeFilter { copy(status = value) }
     fun onPotentialChanged(value: String?) = changeFilter { copy(potential = value) }
     fun onLastResultChanged(value: String?) = changeFilter { copy(lastResult = value) }
     fun retry() = resetAndLoad()
@@ -118,5 +117,5 @@ class CustomersViewModel(
             isLoadingMore = false, error = error, customers = if (append) mutableState.value.customers else emptyList())
     }
 
-    private fun CustomersUiState.toQuery() = CustomerQuery(query.trim(), status, potential, lastResult)
+    private fun CustomersUiState.toQuery() = CustomerQuery(query.trim(), potential, lastResult)
 }

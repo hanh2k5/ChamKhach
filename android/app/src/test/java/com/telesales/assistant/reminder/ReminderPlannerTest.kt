@@ -48,9 +48,9 @@ class ReminderPlannerTest {
         assertEquals(moved, scheduler.reminders[5])
     }
 
-    @Test fun archiveCancelsAllFollowUps() {
+    @Test fun deleteCancelsAllFollowUps() {
         val scheduler = FakeReminderScheduler().apply { schedule(reminder(1)); schedule(reminder(2)) }
-        val actions = ReminderPlanner.archive(listOf(1, 2))
+        val actions = ReminderPlanner.delete(listOf(1, 2))
         assertEquals(listOf(ReminderAction.Cancel(1), ReminderAction.Cancel(2)), actions)
         apply(actions, scheduler)
         assertEquals(emptyMap<Long, ReminderEntity>(), scheduler.reminders)

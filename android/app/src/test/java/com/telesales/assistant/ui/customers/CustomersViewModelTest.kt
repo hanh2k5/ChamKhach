@@ -87,14 +87,14 @@ class CustomersViewModelTest {
     }
 
     @Test fun changingFilterResetsPageAndClearsOldRows() = vmTest {
-        val repo = FakeRepository { query, page -> success(page, listOf(customer(if (query.status == "archived") 9 else page.toLong())), 2) }
+        val repo = FakeRepository { query, page -> success(page, listOf(customer(if (query.potential == "high") 9 else page.toLong())), 2) }
         val vm = create(repo)
         advanceUntilIdle()
         vm.loadMore(); advanceUntilIdle()
-        vm.onStatusChanged("archived")
+        vm.onPotentialChanged("high")
         assertTrue(vm.state.value.customers.isEmpty())
         advanceUntilIdle()
-        assertEquals("archived", repo.calls.last().first.status)
+        assertEquals("high", repo.calls.last().first.potential)
         assertEquals(1, repo.calls.last().second)
         assertEquals(listOf(9L), vm.state.value.customers.map(Customer::id))
     }

@@ -90,5 +90,4 @@ fun CustomerProfile.toUpdateDto(): CustomerUpdateDto = CustomerUpdateDto(
     industry = industry,
     source = source,
     potential_level = potentialLevel,
-    status = status,
 )

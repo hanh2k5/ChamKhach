@@ -48,7 +48,6 @@ class CustomerFormViewModel(
     fun onIndustryChanged(value: String) = update("industry") { copy(industry = value) }
     fun onSourceChanged(value: String) = update("source") { copy(source = value) }
     fun onPotentialLevelChanged(value: String) = update("potential_level") { copy(potentialLevel = value) }
-    fun onStatusChanged(value: String) = update("status") { copy(status = value) }
 
     fun retryLoad() = loadCustomer()
     fun dismissDuplicate() { mutableState.value = mutableState.value.copy(duplicateCustomerId = null) }

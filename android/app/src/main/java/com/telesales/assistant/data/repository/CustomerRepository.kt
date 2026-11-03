@@ -5,7 +5,6 @@ import com.telesales.assistant.data.mapper.toCreateDto
 import com.telesales.assistant.data.mapper.toUpdateDto
 import com.telesales.assistant.data.network.ApiServiceProvider
 import com.telesales.assistant.data.network.ApiErrorDto
-import com.telesales.assistant.data.network.CustomerStatusDto
 import com.telesales.assistant.data.network.InteractionCreateDto
 import com.telesales.assistant.data.network.FollowUpCreateDto
 import com.telesales.assistant.data.settings.SettingsStore
@@ -19,7 +18,7 @@ import kotlinx.coroutines.flow.first
 import retrofit2.HttpException
 import java.io.IOException
 
-data class CustomerQuery(val text: String, val status: String, val potential: String?, val lastResult: String?)
+data class CustomerQuery(val text: String, val potential: String?, val lastResult: String?)
 data class CustomerPage(val customers: List<Customer>, val currentPage: Int, val lastPage: Int)
 sealed interface CustomerLoadResult {
     data class Success(val page: CustomerPage) : CustomerLoadResult
@@ -59,9 +58,9 @@ sealed interface InteractionPageResult {
     data class Success(val page: InteractionPage) : InteractionPageResult
     data class Failure(val reason: CustomerDetailFailure) : InteractionPageResult
 }
-sealed interface ArchiveCustomerResult {
-    data class Success(val cancelledFollowUpIds: List<Long>) : ArchiveCustomerResult
-    data class Failure(val reason: CustomerDetailFailure) : ArchiveCustomerResult
+sealed interface DeleteCustomerResult {
+    data class Success(val deletedFollowUpIds: List<Long>) : DeleteCustomerResult
+    data class Failure(val reason: CustomerDetailFailure) : DeleteCustomerResult
 }
 sealed interface RecordInteractionResult {
     data class Success(val followUpId: Long?, val remindAt: String?, val completedFollowUpIds: List<Long>) : RecordInteractionResult
@@ -79,7 +78,7 @@ interface CallLogRepository {
 interface CustomerDetailRepository {
     suspend fun getCustomerDetail(id: Long): CustomerDetailResult
     suspend fun getInteractions(id: Long, page: Int): InteractionPageResult
-    suspend fun archiveCustomer(id: Long): ArchiveCustomerResult
+    suspend fun deleteCustomer(id: Long): DeleteCustomerResult
 }
 
 class ApiCustomerRepository(
@@ -91,7 +90,7 @@ class ApiCustomerRepository(
         if (settings.baseUrl.isBlank() || settings.token.isBlank()) return CustomerLoadResult.SetupRequired
         return try {
             val response = apiServiceProvider.create(settings.baseUrl, settings.token).customers(
-                query = query.text.takeIf(String::isNotBlank), status = query.status,
+                query = query.text.takeIf(String::isNotBlank),
                 potential = query.potential, lastResult = query.lastResult, page = page, perPage = 20,
             )
             CustomerLoadResult.Success(CustomerPage(response.data.map { it.toDomain() }, response.meta.current_page, response.meta.last_page))
@@ -148,19 +147,18 @@ class ApiCustomerRepository(
         }
     }
 
-    override suspend fun archiveCustomer(id: Long): ArchiveCustomerResult {
+    override suspend fun deleteCustomer(id: Long): DeleteCustomerResult {
         val settings = settingsStore.settings.first()
         if (settings.baseUrl.isBlank() || settings.token.isBlank()) {
-            return ArchiveCustomerResult.Failure(CustomerDetailFailure.SetupRequired)
+            return DeleteCustomerResult.Failure(CustomerDetailFailure.SetupRequired)
         }
         return try {
-            val response = apiServiceProvider.create(settings.baseUrl, settings.token)
-                .updateCustomerStatus(id, CustomerStatusDto(status = "archived"))
-            ArchiveCustomerResult.Success(response.data.cancelled_follow_up_ids)
+            val response = apiServiceProvider.create(settings.baseUrl, settings.token).deleteCustomer(id)
+            DeleteCustomerResult.Success(response.data.deleted_follow_up_ids)
         } catch (error: HttpException) {
-            ArchiveCustomerResult.Failure(detailFailure(error.code()))
+            DeleteCustomerResult.Failure(detailFailure(error.code()))
         } catch (error: IOException) {
-            ArchiveCustomerResult.Failure(CustomerDetailFailure.Network)
+            DeleteCustomerResult.Failure(CustomerDetailFailure.Network)
         }
     }
 

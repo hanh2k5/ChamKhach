@@ -41,12 +41,12 @@ class CustomerMapperTest {
         val editDto = profile.toUpdateDto()
         assertEquals("Công ty", editDto.company_name)
         assertEquals("0944417032", editDto.phone)
-        assertEquals("active", editDto.status)
 
         val createDto = profile.copy(id = 0, address = null).toCreateDto()
         val createJson = Json.encodeToString(createDto)
         val editJson = Json.encodeToString(profile.copy(address = null).toUpdateDto())
         assertFalse(createJson.contains("status"))
+        assertFalse(editJson.contains("status"))
         assertEquals(true, editJson.contains("\"address\":null"))
     }
 }

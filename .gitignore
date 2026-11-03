@@ -60,3 +60,14 @@ Thumbs.db
 *.log
 *.bak
 *.tmp
+
+
+# Bỏ qua thư mục chứa PHP
+php/
+
+# Bỏ qua thư mục build của Android
+android/.gradle/
+android/.idea/
+android/build/
+android/app/build/
+android/local.properties

@@ -7,7 +7,6 @@ use App\Enums\FollowUpStatus;
 use App\Enums\PotentialLevel;
 use App\Exceptions\DuplicatePhoneException;
 use App\Models\Customer;
-use App\Models\FollowUp;
 use App\Models\Interaction;
 use App\Support\PhoneNormalizer;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -16,6 +15,16 @@ use Illuminate\Support\Facades\DB;
 
 class CustomerService
 {
+    public function delete(int $id): array
+    {
+        return DB::transaction(function () use ($id): array {
+            $customer = Customer::query()->lockForUpdate()->findOrFail($id);
+            $followUpIds = $customer->followUps()->pluck('id')->all();
+            $customer->delete();
+            return $followUpIds;
+        });
+    }
+
     /**
      * Lấy danh sách khách hàng có phân trang, lọc, tìm kiếm và sắp xếp.
      */
@@ -33,15 +42,6 @@ class CustomerService
                     ->limit(1),
                 'last_result'
             );
-
-        // Lọc theo status: active (mặc định), archived, all
-        $status = $filters['status'] ?? 'active';
-        if ($status === 'active') {
-            $query->where('customers.status', CustomerStatus::Active);
-        } elseif ($status === 'archived') {
-            $query->where('customers.status', CustomerStatus::Archived);
-        }
-        // status === 'all' thì không lọc theo status
 
         // Lọc theo potential_level
         if (! empty($filters['potential'])) {
@@ -157,7 +157,7 @@ class CustomerService
      * Cập nhật thông tin khách hàng.
      *
      * @throws DuplicatePhoneException
-     * @return array{customer: Customer, cancelled_follow_up_ids?: array<int>}
+     * @return array{customer: Customer}
      */
     public function update(Customer $customer, array $data): array
     {
@@ -196,42 +196,11 @@ class CustomerService
             $customer->potential_level = PotentialLevel::from($data['potential_level']);
         }
 
-        $cancelledIds = [];
-        $isArchiving = isset($data['status']) && $data['status'] === CustomerStatus::Archived->value;
-
-        if ($isArchiving) {
-            DB::transaction(function () use ($customer, &$cancelledIds) {
-                $pendingFollowUps = FollowUp::where('customer_id', $customer->id)
-                    ->where('status', FollowUpStatus::Pending)
-                    ->lockForUpdate()
-                    ->get();
-
-                $cancelledIds = $pendingFollowUps->pluck('id')->all();
-
-                if (! empty($cancelledIds)) {
-                    FollowUp::whereIn('id', $cancelledIds)->update([
-                        'status' => FollowUpStatus::Cancelled,
-                    ]);
-                }
-
-                $customer->status = CustomerStatus::Archived;
-                $customer->save();
-            });
-        } else {
-            if (isset($data['status'])) {
-                $customer->status = CustomerStatus::from($data['status']);
-            }
-            $customer->save();
-        }
+        $customer->save();
 
         // Nạp lại các trường tổng hợp
         $customer = $this->find($customer->id);
 
-        $result = ['customer' => $customer];
-        if ($isArchiving) {
-            $result['cancelled_follow_up_ids'] = $cancelledIds;
-        }
-
-        return $result;
+        return ['customer' => $customer];
     }
 }

@@ -12,13 +12,13 @@ SRS để mở một số câu hỏi. Dưới đây là quyết định mặc đ
 D1	Đăng nhập	Không có màn hình đăng nhập. Backend có 1 user được tạo bằng lệnh artisan; sinh 1 token Sanctum. Người dùng dán Base URL + Token vào màn Cài đặt của app (một lần). Mọi API yêu cầu Authorization: Bearer.
 D2	Offline	MVP chỉ online. Không cache dữ liệu khách hàng. Room chỉ dùng cho 1 bảng nhỏ lưu các báo thức đã đặt (phục vụ khởi động lại máy).
 D3	Nhắc lại	Nhắc một lần đúng giờ. Không lặp. Người dùng tự dời lịch.
-D4	Số điện thoại	Mỗi khách một số chính. Bắt buộc nhập số điện thoại (cần để gọi và chống trùng); các trường khác không bắt buộc. Chống trùng theo số đã chuẩn hóa, tính cả khách đã lưu trữ.
-D5	Xóa khách	Không xóa cứng. Chỉ có archived (ngừng theo dõi). Khi lưu trữ khách: hủy mọi follow-up đang pending và hủy báo thức tương ứng.
+D4	Số điện thoại	Mỗi khách một số chính. Bắt buộc nhập số điện thoại (cần để gọi và chống trùng); các trường khác không bắt buộc. Chống trùng theo số đã chuẩn hóa của các khách đang tồn tại.
+D5	Xóa khách	Xóa cứng qua DELETE /api/v1/customers/{id}; xóa vĩnh viễn khách và toàn bộ lịch sử cuộc gọi, nhu cầu và lịch nhắc liên quan bằng khóa ngoại cascade. Không thể hoàn tác.
 D6	Mỗi khách có tối đa 1 follow-up pending	Khi lưu cuộc gọi mới: (a) follow-up pending cũ của khách đó tự chuyển completed (vì vừa gọi xong); (b) nếu cuộc gọi có lịch mới thì tạo follow-up pending mới. Backend đảm bảo bằng transaction + khóa hàng (lockForUpdate) ở service.
 D7	"Đã xử lý" = completed; "Dời lịch" = cập nhật remind_at trên cùng một dòng, trạng thái vẫn pending; "Hủy" = cancelled.	
 D8	Nhóm lịch	overdue = pending và remind_at < now. today = pending và now ≤ remind_at ≤ cuối ngày theo Asia/Ho_Chi_Minh. upcoming = pending và sau cuối ngày hôm nay.
 D9	"Khách tiềm năng" (dashboard)	Số khách status=active có potential_level là high hoặc medium. Nhãn do người dùng chọn thủ công.
-D10	"Trạng thái chăm sóc" để lọc	Lọc theo kết quả cuộc gọi gần nhất (last_result), theo potential_level, và theo status (active/archived). Mặc định danh sách ẩn khách đã lưu trữ.
+D10	Bộ lọc danh sách khách	Lọc theo kết quả cuộc gọi gần nhất (last_result) và potential_level. Khách đã xóa không còn trong hệ thống.
 D11	Ngày giờ gọi (contacted_at)	Do server gán bằng thời điểm nhận request (đúng SRS). Không cho client gửi.
 D12	Kết quả "Hẹn gọi lại" mà không chọn giờ	App hiện hộp thoại: "Chọn lịch" hoặc "Lưu không có lịch". Backend vẫn chấp nhận (không bắt buộc có lịch).
 D13	Thời gian	DB và API dùng UTC. Giao diện hiển thị và "hôm nay" tính theo Asia/Ho_Chi_Minh.
@@ -137,7 +137,7 @@ NeedType	website	Website
 	ads	Ads
 	other	Chưa xác định/Khác
 PotentialLevel	high / medium / low / unrated	Cao / Vừa / Thấp / Chưa đánh giá
-CustomerStatus	active / archived	Đang theo dõi / Ngừng theo dõi
+Customer	Không có trạng thái lưu trữ; xóa khách bằng thao tác xóa cứng
 FollowUpStatus	pending / completed / cancelled	—
 5.2 Chuẩn hóa số điện thoại (PhoneNormalizer)
 Cắt khoảng trắng; bỏ mọi ký tự không phải số, trừ dấu + ở đầu.
@@ -235,7 +235,7 @@ Lỗi (định dạng thống nhất):
 500: { "message": "Server error." } (không lộ stacktrace; APP_DEBUG=false ở production)
 7.1 Customers
 
-GET /api/v1/customers?q=&status=active|archived|all&potential=&last_result=&page=&per_page=
+GET /api/v1/customers?q=&potential=&last_result=&page=&per_page=
 
 q: tìm theo company_name, contact_name (LIKE, escape % _) và phone_normalized (nếu q chứa số thì chuẩn hóa nhẹ rồi LIKE).
 Sắp xếp: last_contacted_at giảm dần (null cuối), rồi id giảm dần.
@@ -263,11 +263,10 @@ Chỉ phone bắt buộc. Trùng phone_normalized → 409 DUPLICATE_PHONE kèm e
 
 GET /api/v1/customers/{id} → chi tiết = đầy đủ trường hồ sơ + interaction_count, last_contacted_at, last_result, next_follow_up (follow-up pending hoặc null: {id, remind_at}).
 
-PATCH /api/v1/customers/{id} → cập nhật một phần các trường hồ sơ, potential_level, status.
+PATCH /api/v1/customers/{id} → cập nhật một phần các trường hồ sơ và potential_level.
 
 Đổi phone trùng người khác → 409.
-status: "archived" → hủy mọi follow-up pending của khách (trong cùng transaction) và trả danh sách cancelled_follow_up_ids để app hủy báo thức.
-status: "active" lại thì không tự tạo lịch.
+DELETE /api/v1/customers/{id} → xóa vĩnh viễn khách và toàn bộ interactions, interaction_needs, follow_ups liên quan trong cùng transaction (khóa ngoại cascade). Trả deleted_follow_up_ids để app hủy báo thức cục bộ. Không thể hoàn tác.
 7.2 Interactions
 
 GET /api/v1/customers/{id}/interactions?page=&per_page= (mới nhất trước)
@@ -285,7 +284,7 @@ json
   "follow_up": { "remind_at": "2026-10-31T07:00:00+00:00" }
 }
 follow_up tùy chọn (bỏ hẳn hoặc null nếu không có lịch).
-Khách archived → 422 (phải kích hoạt lại trước).
+Khách không tồn tại (đã bị xóa) → 404.
 Response:
 json
 {
@@ -330,13 +329,13 @@ Routes: routes/api.php, nhóm v1, middleware auth:sanctum.
 Controller chỉ gọi Service và trả Resource.
 InteractionService::record(Customer, DTO):
 Mở transaction.
-lockForUpdate customer; nếu archived → ném exception 422.
+lockForUpdate customer; nếu khách không tồn tại (đã xóa) → trả 404.
 Tạo interaction + interaction_needs.
 Hoàn thành follow-up pending cũ (nếu có) → ghi lại id.
 Nếu có follow_up.remind_at → tạo follow-up mới.
 Commit; trả kết quả.
 FollowUpService::apply(FollowUp, action, ?remind_at) kiểm tra máy trạng thái.
-CustomerService::archive(Customer) hủy follow-up pending trong transaction.
+CustomerService::delete(Customer) xóa khách trong transaction; khóa ngoại cascade xóa toàn bộ dữ liệu liên quan.
 Model dùng $fillable tường minh; enum cast; không dùng $guarded = [].
 Exception → JSON qua handler trong bootstrap/app.php (tùy phiên bản Laravel): đảm bảo API luôn trả JSON kể cả khi thiếu header Accept.
 9. Android — thiết kế
@@ -352,7 +351,7 @@ Thời gian: dùng java.time (Instant, ZonedDateTime, ZoneId.of("Asia/Ho_Chi_Min
 Màn	Nội dung chính	Ghi chú
 Dashboard	3 thẻ (Quá hạn, Hôm nay, Tiềm năng), danh sách việc, nút thêm khách và mở danh sách khách	Pull-to-refresh
 Danh sách khách	Tên công ty, người liên hệ, SĐT, ngành, ngày gọi gần nhất; ô tìm kiếm (debounce 300ms); bộ lọc	Tải thêm khi cuộn hết (page++)
-Chi tiết khách	Hồ sơ, tổng hợp, timeline, nút Gọi (ACTION_DIAL), nút Ghi nhận cuộc gọi, sửa, lưu trữ	Lưu trữ cần xác nhận
+Chi tiết khách	Hồ sơ, tổng hợp, timeline, nút Gọi (ACTION_DIAL), nút Ghi nhận cuộc gọi, sửa, xóa vĩnh viễn	Xóa cần xác nhận rõ không thể hoàn tác
 Form khách	Thêm/sửa; khi gặp 409 hiện hộp thoại "Số này đã có — Mở hồ sơ cũ / Sửa lại"	Chỉ SĐT bắt buộc
 Ghi nhận cuộc gọi	Tên + SĐT hiển thị sẵn, nút chọn nhanh kết quả (1 lựa chọn), chip nhu cầu (nhiều lựa chọn), ghi chú 1 dòng, chọn ngày giờ gọi lại tùy chọn, nút Lưu lớn	Mục tiêu 10–15 giây; khóa nút Lưu khi đang gửi (chống bấm đúp)
 Lịch cần gọi	Nhóm Quá hạn / Hôm nay-Sắp tới; mỗi mục có Gọi, Đã xử lý, Dời lịch	
@@ -394,7 +393,7 @@ Lưu interaction có follow-up	schedule(follow_up mới); cancel mọi id trong 
 Lưu interaction không có lịch	cancel mọi id trong completed_follow_up_ids
 Hoàn thành/hủy follow-up	cancel(id)
 Dời lịch	schedule(id, giờ mới) (ghi đè, vẫn một báo thức)
-Lưu trữ khách	cancel mọi id trong cancelled_follow_up_ids
+Xóa khách	cancel mọi id trong deleted_follow_up_ids
 Mở app / pull-to-refresh Dashboard	Đồng bộ: lấy GET /follow-ups?status=pending; huỷ báo thức không còn pending; đặt báo thức còn thiếu hoặc khác giờ
 10.4 Giới hạn phải nói rõ với người dùng
 Một số máy (Xiaomi, Oppo, Vivo, Samsung bật tiết kiệm pin mạnh) có thể chặn báo thức khi app bị "đóng cứng". Hướng dẫn người dùng tắt tối ưu hóa pin và cho phép chạy nền cho app (ghi vào README).
@@ -403,8 +402,8 @@ Nhắc chỉ chính xác khi quyền thông báo và báo thức chính xác đ�
 Backend (PHPUnit/Pest, DB MySQL riêng telesales_test, RefreshDatabase)
 Unit: PhoneNormalizer (nhiều trường hợp), BusinessTime (ranh giới 00:00 và 23:59 Asia/Ho_Chi_Minh, đổi sang UTC đúng).
 Feature:
-Customers: tạo thành công; thiếu phone → 422; trùng phone (kể cả viết khác dạng +84…) → 409 + existing_customer_id; sửa thành phone trùng → 409; tìm kiếm theo tên và SĐT; lọc; ẩn archived mặc định; lưu trữ hủy follow-up pending.
-Interactions: tạo → interaction_count tăng đúng 1, last_contacted_at cập nhật; bản ghi cũ không đổi; thứ tự mới nhất trước; needs rỗng → 422; khách archived → 422; remind_at quá khứ → 422; tạo mới tự hoàn thành follow-up cũ (D6); lỗi giữa chừng → rollback toàn bộ.
+Customers: tạo thành công; thiếu phone → 422; trùng phone (kể cả viết khác dạng +84…) → 409 + existing_customer_id; sửa thành phone trùng → 409; tìm kiếm theo tên và SĐT; lọc; DELETE xóa customer, interactions, interaction_needs, follow_ups và trả 404 khi truy cập lại.
+Interactions: tạo → interaction_count tăng đúng 1, last_contacted_at cập nhật; bản ghi cũ không đổi; thứ tự mới nhất trước; needs rỗng → 422; khách đã xóa → 404; remind_at quá khứ → 422; tạo mới tự hoàn thành follow-up cũ (D6); lỗi giữa chừng → rollback toàn bộ.
 Follow-ups: complete/cancel/reschedule; thao tác lên follow-up đã kết thúc → 409; phân nhóm overdue/today/upcoming đúng ở ranh giới (dùng Carbon::setTestNow).
 Dashboard: đếm đúng ba số liệu.
 Auth: thiếu/sai token → 401 JSON (kể cả thiếu header Accept).
@@ -454,7 +453,7 @@ DoD: toàn bộ test Interactions xanh (đếm +1, last_contacted_at, rollback, 
 
 T5. Follow-ups + Dashboard API
 
-Việc làm: BusinessTime, FollowUpService, endpoints 7.3 và 7.4, tích hợp lưu trữ khách hủy follow-up.
+Việc làm: BusinessTime, FollowUpService, endpoints 7.3 và 7.4.
 DoD: test phân nhóm ở ranh giới thời gian xanh; dashboard đếm đúng.
 
 T6. Đóng băng API contract
@@ -483,9 +482,9 @@ A3. Form khách hàng + chống trùng
 Việc làm: thêm/sửa khách, hiển thị lỗi 422 theo trường, hộp thoại 409 mở hồ sơ cũ.
 DoD: nhập số trùng → hộp thoại, mở được hồ sơ cũ.
 
-A4. Chi tiết khách + timeline + nút Gọi + lưu trữ
+A4. Chi tiết khách + timeline + nút Gọi + xóa vĩnh viễn
 
-Việc làm: màn chi tiết, timeline phân trang, ACTION_DIAL, lưu trữ có xác nhận.
+Việc làm: màn chi tiết, timeline phân trang, ACTION_DIAL, xóa vĩnh viễn có xác nhận.
 DoD: bấm Gọi mở ứng dụng Điện thoại với số đã điền; timeline mới nhất trước.
 
 A5. Form ghi nhận cuộc gọi (chưa có báo thức)

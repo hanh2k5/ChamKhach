@@ -37,6 +37,7 @@ import com.telesales.assistant.data.repository.CustomerDetailRepository
 import com.telesales.assistant.domain.model.CustomerProfile
 import com.telesales.assistant.domain.model.Interaction
 import com.telesales.assistant.ui.components.LoadStateContent
+import com.telesales.assistant.ui.components.GlassCard
 import java.time.Clock
 import java.time.ZoneId
 
@@ -52,18 +53,23 @@ fun CustomerDetailRoute(
     onSettings: () -> Unit,
     onCall: (String) -> Unit,
     onCallLog: (Long) -> Unit,
-    onArchived: (List<Long>) -> Unit,
+    onDeleted: (List<Long>) -> Unit,
     clock: Clock = Clock.systemUTC(),
     zoneId: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh"),
     reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator? = null,
+    modifier: Modifier = Modifier,
+    sidePane: Boolean = false,
 ) {
-    val vm: CustomerDetailViewModel = viewModel(factory = CustomerDetailViewModelFactory(customerId, repository, clock, zoneId, reminderCoordinator))
+    val vm: CustomerDetailViewModel = viewModel(
+        key = "customer-detail-$customerId",
+        factory = CustomerDetailViewModelFactory(customerId, repository, clock, zoneId, reminderCoordinator),
+    )
     val state by vm.state.collectAsState()
     LaunchedEffect(shouldRefresh) {
         if (shouldRefresh) { vm.retry(); onRefreshConsumed() }
     }
-    LaunchedEffect(state.isArchived) { if (state.isArchived) onArchived(state.cancelledFollowUpIds) }
-    CustomerDetailScreen(state, vm, onBack, onEdit, onSettings, onCall, onCallLog, clock, zoneId)
+    LaunchedEffect(state.isDeleted) { if (state.isDeleted) onDeleted(state.deletedFollowUpIds) }
+    CustomerDetailScreen(state, vm, onBack, onEdit, onSettings, onCall, onCallLog, clock, zoneId, modifier, sidePane)
 }
 
 @Composable
@@ -78,19 +84,25 @@ private fun CustomerDetailScreen(
     onCallLog: (Long) -> Unit,
     clock: Clock,
     zoneId: ZoneId,
+    modifier: Modifier,
+    sidePane: Boolean,
 ) {
-    if (state.archiveConfirmationVisible) AlertDialog(
-        onDismissRequest = vm::dismissArchiveConfirmation,
-        title = { Text(stringResource(R.string.detail_archive_title)) },
-        text = { Text(stringResource(R.string.detail_archive_confirm)) },
-        confirmButton = { TextButton(onClick = vm::archive, enabled = !state.isArchiving) { Text(stringResource(R.string.detail_archive)) } },
-        dismissButton = { TextButton(onClick = vm::dismissArchiveConfirmation) { Text(stringResource(R.string.customer_form_edit_again)) } },
+    if (state.deleteConfirmationVisible) AlertDialog(
+        onDismissRequest = vm::dismissDeleteConfirmation,
+        title = { Text(stringResource(R.string.detail_delete_title)) },
+        text = { Text(stringResource(R.string.detail_delete_confirm)) },
+        confirmButton = { TextButton(onClick = vm::deleteCustomer, enabled = !state.isDeleting) { Text(stringResource(R.string.detail_delete)) } },
+        dismissButton = { TextButton(onClick = vm::dismissDeleteConfirmation) { Text(stringResource(R.string.customer_form_edit_again)) } },
     )
-    Scaffold(topBar = {
-        TopAppBar(title = { Text(stringResource(R.string.detail_title)) }, navigationIcon = {
-            TextButton(onClick = onBack) { Text(stringResource(R.string.customer_form_back)) }
-        })
-    }) { padding ->
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+        topBar = {
+            TopAppBar(title = { Text(stringResource(R.string.detail_title), maxLines = 1, overflow = TextOverflow.Ellipsis) }, navigationIcon = {
+                TextButton(onClick = onBack) { Text(stringResource(if (sidePane) R.string.detail_close_pane else R.string.customer_form_back), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+            }, colors = androidx.compose.material3.TopAppBarDefaults.topAppBarColors(containerColor = androidx.compose.ui.graphics.Color.Transparent))
+        },
+    ) { padding ->
         when {
             state.isLoading -> LoadStateContent(stringResource(R.string.detail_loading), stringResource(R.string.customers_retry), true)
             state.error != null -> {
@@ -123,7 +135,7 @@ private fun DetailContent(
     val listState = rememberLazyListState()
     LazyColumn(modifier.fillMaxSize().padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
-            Card(Modifier.fillMaxWidth()) {
+            GlassCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(customer.companyName ?: customer.contactName ?: customer.phone)
                     detailField(R.string.detail_contact, customer.contactName)
@@ -140,23 +152,23 @@ private fun DetailContent(
                         Button(onClick = { onCall(customer.phone) }, modifier = Modifier.weight(1f)) {
                             Text(stringResource(R.string.detail_call), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
-                        if (customer.status != "archived") TextButton(onClick = { onCallLog(customer.id) }, modifier = Modifier.weight(1f)) {
+                        TextButton(onClick = { onCallLog(customer.id) }, modifier = Modifier.weight(1f)) {
                             Text(stringResource(R.string.call_log_title), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        } else Spacer(Modifier.weight(1f))
+                        }
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         TextButton(onClick = onEdit, modifier = Modifier.weight(1f)) {
                             Text(stringResource(R.string.customer_form_edit_title), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
-                        TextButton(onClick = vm::showArchiveConfirmation, modifier = Modifier.weight(1f)) {
-                            Text(stringResource(R.string.detail_archive), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        TextButton(onClick = vm::showDeleteConfirmation, modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.detail_delete), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
-                    if (state.archiveError != null) {
-                        Text(failureMessage(state.archiveError))
-                        TextButton(onClick = vm::retryArchive) { Text(stringResource(R.string.customers_retry)) }
+                    if (state.deleteError != null) {
+                        Text(failureMessage(state.deleteError))
+                        TextButton(onClick = vm::retryDelete) { Text(stringResource(R.string.customers_retry)) }
                     }
-                    if (state.isArchiving) CircularProgressIndicator()
+                    if (state.isDeleting) CircularProgressIndicator()
                 }
             }
         }
@@ -188,7 +200,7 @@ private fun detailField(label: Int, value: String?) {
 
 @Composable
 private fun InteractionRow(interaction: Interaction, vm: CustomerDetailViewModel) {
-    Card(Modifier.fillMaxWidth()) {
+    GlassCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(stringResource(R.string.detail_interaction_heading, resultLabel(interaction.result), vm.formatTime(interaction.contactedAt)))
             if (interaction.needs.isNotEmpty()) Text(stringResource(R.string.detail_needs, needLabels(interaction.needs)))
@@ -209,7 +221,6 @@ private fun resultLabel(value: String?): String = when (value) {
 @Composable
 private fun potentialLabel(value: String): String = when (value) {
     "high" -> stringResource(R.string.potential_high)
-    "medium" -> stringResource(R.string.potential_medium)
     "low" -> stringResource(R.string.potential_low)
     else -> stringResource(R.string.potential_unrated)
 }

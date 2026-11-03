@@ -253,93 +253,57 @@ class CustomerTest extends TestCase
             ]);
     }
 
-    public function test_archive_customer_cancels_pending_follow_ups(): void
+    public function test_delete_customer_permanently_cascades_related_records(): void
     {
         $customer = Customer::create([
-            'phone' => '0901112233',
-            'phone_normalized' => '0901112233',
+            'phone' => '0901112244',
+            'phone_normalized' => '0901112244',
             'potential_level' => PotentialLevel::Medium,
             'status' => CustomerStatus::Active,
         ]);
-
-        $fu1 = FollowUp::create([
+        $interaction = Interaction::create([
             'customer_id' => $customer->id,
-            'remind_at' => Carbon::now()->addDays(1),
+            'result' => CallResult::NoAnswer,
+            'contacted_at' => Carbon::now(),
+        ]);
+        DB::table('interaction_needs')->insert([
+            'interaction_id' => $interaction->id,
+            'need_type' => 'website',
+        ]);
+        $followUp = FollowUp::create([
+            'customer_id' => $customer->id,
+            'interaction_id' => $interaction->id,
+            'remind_at' => Carbon::now()->addDay(),
             'status' => FollowUpStatus::Pending,
         ]);
 
-        $fu2 = FollowUp::create([
-            'customer_id' => $customer->id,
-            'remind_at' => Carbon::now()->addDays(2),
-            'status' => FollowUpStatus::Pending,
-        ]);
+        $this->withHeaders($this->authHeaders())
+            ->deleteJson("/api/v1/customers/{$customer->id}")
+            ->assertOk()
+            ->assertJsonPath('data.deleted_follow_up_ids.0', $followUp->id);
 
-        $fuCompleted = FollowUp::create([
-            'customer_id' => $customer->id,
-            'remind_at' => Carbon::now()->subDays(1),
-            'status' => FollowUpStatus::Completed,
-        ]);
-
-        $response = $this->withHeaders($this->authHeaders())
-            ->patchJson("/api/v1/customers/{$customer->id}", [
-                'status' => 'archived',
-            ]);
-
-        $response->assertStatus(200)
-            ->assertJsonPath('data.status', 'archived')
-            ->assertJsonPath('data.cancelled_follow_up_ids', [$fu1->id, $fu2->id]);
-
-        $this->assertDatabaseHas('follow_ups', ['id' => $fu1->id, 'status' => 'cancelled']);
-        $this->assertDatabaseHas('follow_ups', ['id' => $fu2->id, 'status' => 'cancelled']);
-        $this->assertDatabaseHas('follow_ups', ['id' => $fuCompleted->id, 'status' => 'completed']);
+        $this->assertDatabaseMissing('customers', ['id' => $customer->id]);
+        $this->assertDatabaseMissing('interactions', ['id' => $interaction->id]);
+        $this->assertDatabaseMissing('interaction_needs', ['interaction_id' => $interaction->id]);
+        $this->assertDatabaseMissing('follow_ups', ['id' => $followUp->id]);
     }
 
-    public function test_list_customers_default_filters_and_pagination(): void
+    public function test_list_customers_includes_all_existing_customers_without_archive_filter(): void
     {
-        Customer::create([
-            'company_name' => 'Active Customer',
-            'phone' => '0901000001',
-            'phone_normalized' => '0901000001',
-            'potential_level' => PotentialLevel::High,
-            'status' => CustomerStatus::Active,
-        ]);
-
-        Customer::create([
-            'company_name' => 'Archived Customer',
-            'phone' => '0901000002',
-            'phone_normalized' => '0901000002',
-            'potential_level' => PotentialLevel::High,
-            'status' => CustomerStatus::Archived,
-        ]);
-
-        // Mặc định ẩn archived
-        $response = $this->withHeaders($this->authHeaders())
-            ->getJson('/api/v1/customers');
-
-        $response->assertStatus(200)
-            ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.company_name', 'Active Customer')
-            ->assertJsonStructure([
-                'data' => [
-                    '*' => [
-                        'id', 'company_name', 'contact_name', 'phone', 'industry',
-                        'potential_level', 'status', 'interaction_count', 'last_contacted_at', 'last_result',
-                    ],
-                ],
-                'links',
-                'meta',
+        foreach ([CustomerStatus::Active, CustomerStatus::Archived] as $index => $status) {
+            Customer::create([
+                'company_name' => 'Customer '.$index,
+                'phone' => '090100000'.($index + 1),
+                'phone_normalized' => '090100000'.($index + 1),
+                'potential_level' => PotentialLevel::High,
+                'status' => $status,
             ]);
+        }
 
-        // Lọc all
-        $resAll = $this->withHeaders($this->authHeaders())
-            ->getJson('/api/v1/customers?status=all');
-        $resAll->assertJsonCount(2, 'data');
-
-        // Lọc archived
-        $resArchived = $this->withHeaders($this->authHeaders())
-            ->getJson('/api/v1/customers?status=archived');
-        $resArchived->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.company_name', 'Archived Customer');
+        $this->withHeaders($this->authHeaders())
+            ->getJson('/api/v1/customers')
+            ->assertOk()
+            ->assertJsonCount(2, 'data');
     }
 
     public function test_list_customers_search_and_filters(): void

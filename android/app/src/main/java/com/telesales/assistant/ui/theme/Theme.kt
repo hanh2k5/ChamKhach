@@ -42,7 +42,7 @@ private val AppShapes = Shapes(
 fun TelesalesTheme(
     content: @Composable () -> Unit
 ) {
-    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 48.dp) {
+    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 40.dp) {
         MaterialTheme(
             colorScheme = LightColorScheme,
             typography = Typography,
@@ -56,4 +56,3 @@ fun TelesalesTheme(
         }
     }
 }
-

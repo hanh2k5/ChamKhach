@@ -20,8 +20,8 @@ class StoreInteractionRequest extends FormRequest
         $validNeeds   = array_column(NeedType::cases(), 'value');
 
         return [
-            'result'              => ['required', 'string', Rule::in($validResults)],
-            'needs'               => ['required', 'array', 'min:1', 'max:5'],
+            'result'              => ['sometimes', 'nullable', 'string', Rule::in($validResults)],
+            'needs'               => ['sometimes', 'array', 'max:5'],
             'needs.*'             => ['required', 'string', Rule::in($validNeeds)],
             'note'                => ['nullable', 'string', 'max:500'],
             'follow_up'           => ['nullable', 'array'],

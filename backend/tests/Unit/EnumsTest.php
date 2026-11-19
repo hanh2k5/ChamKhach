@@ -6,13 +6,14 @@ use App\Enums\CallResult;
 use App\Enums\CustomerStatus;
 use App\Enums\FollowUpStatus;
 use App\Enums\NeedType;
-use App\Enums\PotentialLevel;
 use PHPUnit\Framework\TestCase;
 
 class EnumsTest extends TestCase
 {
     public function test_call_result_values_and_labels(): void
     {
+        $this->assertSame('contacted', CallResult::Contacted->value);
+        $this->assertSame('Đã liên hệ', CallResult::Contacted->label());
         $this->assertSame('interested', CallResult::Interested->value);
         $this->assertSame('no_answer', CallResult::NoAnswer->value);
         $this->assertSame('callback', CallResult::Callback->value);
@@ -37,19 +38,6 @@ class EnumsTest extends TestCase
         $this->assertSame('Phần mềm', NeedType::Software->label());
         $this->assertSame('Ads', NeedType::Ads->label());
         $this->assertSame('Chưa xác định/Khác', NeedType::Other->label());
-    }
-
-    public function test_potential_level_values_and_labels(): void
-    {
-        $this->assertSame('high', PotentialLevel::High->value);
-        $this->assertSame('medium', PotentialLevel::Medium->value);
-        $this->assertSame('low', PotentialLevel::Low->value);
-        $this->assertSame('unrated', PotentialLevel::Unrated->value);
-
-        $this->assertSame('Cao', PotentialLevel::High->label());
-        $this->assertSame('Vừa', PotentialLevel::Medium->label());
-        $this->assertSame('Thấp', PotentialLevel::Low->label());
-        $this->assertSame('Chưa đánh giá', PotentialLevel::Unrated->label());
     }
 
     public function test_customer_status_values_and_labels(): void

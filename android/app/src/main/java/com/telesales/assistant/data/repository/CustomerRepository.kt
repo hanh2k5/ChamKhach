@@ -46,6 +46,7 @@ sealed interface CustomerFormResult {
 interface CustomerFormRepository {
     suspend fun getCustomer(id: Long): CustomerFormResult
     suspend fun saveCustomer(id: Long?, customer: CustomerProfile): CustomerFormResult
+    suspend fun recordInteraction(id: Long, request: InteractionCreateDto): RecordInteractionResult
 }
 
 enum class CustomerDetailFailure { SetupRequired, Network, Unauthorized, NotFound, Server }
@@ -91,7 +92,8 @@ class ApiCustomerRepository(
         return try {
             val response = apiServiceProvider.create(settings.baseUrl, settings.token).customers(
                 query = query.text.takeIf(String::isNotBlank),
-                potential = query.potential, lastResult = query.lastResult, page = page, perPage = 20,
+                potential = query.potential,
+                lastResult = query.lastResult, page = page, perPage = 20,
             )
             CustomerLoadResult.Success(CustomerPage(response.data.map { it.toDomain() }, response.meta.current_page, response.meta.last_page))
         } catch (error: HttpException) {

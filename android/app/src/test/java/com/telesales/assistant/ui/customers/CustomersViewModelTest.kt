@@ -69,34 +69,17 @@ class CustomersViewModelTest {
         assertEquals("B", repo.calls.last().first.text)
     }
 
-    @Test fun loadingMoreTwiceStartsOnlyOneRequestAndUsesNextPage() = vmTest {
+    @Test fun selectingPageReplacesCustomersAndUpdatesPagination() = vmTest {
         val repo = FakeRepository { _, page -> success(page, listOf(customer(page.toLong())), lastPage = 2) }
         val vm = create(repo)
         advanceUntilIdle()
-        vm.loadMore()
-        vm.loadMore()
-        assertTrue(vm.state.value.isLoadingMore)
+        vm.goToPage(2)
         advanceUntilIdle()
         assertEquals(2, repo.calls.size)
         assertEquals(2, repo.calls.last().second)
-        assertEquals(listOf(1L, 2L), vm.state.value.customers.map(Customer::id))
-        assertFalse(vm.state.value.hasMore)
-        vm.loadMore()
-        advanceUntilIdle()
-        assertEquals(2, repo.calls.size)
-    }
-
-    @Test fun changingFilterResetsPageAndClearsOldRows() = vmTest {
-        val repo = FakeRepository { query, page -> success(page, listOf(customer(if (query.potential == "high") 9 else page.toLong())), 2) }
-        val vm = create(repo)
-        advanceUntilIdle()
-        vm.loadMore(); advanceUntilIdle()
-        vm.onPotentialChanged("high")
-        assertTrue(vm.state.value.customers.isEmpty())
-        advanceUntilIdle()
-        assertEquals("high", repo.calls.last().first.potential)
-        assertEquals(1, repo.calls.last().second)
-        assertEquals(listOf(9L), vm.state.value.customers.map(Customer::id))
+        assertEquals(listOf(2L), vm.state.value.customers.map(Customer::id))
+        assertEquals(2, vm.state.value.currentPage)
+        assertEquals(2, vm.state.value.lastPage)
     }
 
     private fun TestScope.create(repo: CustomerRepository): CustomersViewModel = CustomersViewModel(repo).also {

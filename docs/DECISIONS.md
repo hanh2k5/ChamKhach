@@ -55,3 +55,11 @@
 - **Reason:** The user wants to fully clean the data and does not need the history of deleted customers.
 - **Consequences:** Archive is no longer the deletion behavior; deleted customer lookups return 404. The API returns `deleted_follow_up_ids` so the app can remove local alarms.
 - **Recorded by:** User ? 2026-11-03
+
+
+## D16: Telesales nhanh v? khai th?c nhu c?u kh?ch h?ng
+
+- **Decision:** H? s? kh?ch h?ng l?u `active_since` nullable v? `needs` nullable d??i d?ng JSON array trong c?t TEXT; `industry` hi?n h?u v?n nullable. `needs` ch? nh?n NeedType c? ??nh (website, web_app, software, ads, other). Form ghi nh?n cu?c g?i ch? l?u contacted, ghi ch? v? l?ch g?i l?i t?y ch?n; API m?c ??nh result=contacted v? ch?p nh?n needs r?ng. B?m G?i b?ng ACTION_DIAL t?o Interaction contacted t? ??ng; server g?n contacted_at theo D11.
+- **Reason:** Gi?m l?a ch?n b?t bu?c, gi?p telesales nh?p nhanh v? ghi nh?n th?ng tin khai th?c th?nh nhi?u l?a ch?n r? r?ng.
+- **Consequences:** Nhu c?u h? s? v? nhu c?u c?a t?ng Interaction l? hai d? li?u ri?ng; notification ph?i c? t?n, s? ?i?n tho?i, ghi ch? tr??c ?? v? m? chi ti?t kh?ch.
+- **Recorded by:** User ? 03/11/2026

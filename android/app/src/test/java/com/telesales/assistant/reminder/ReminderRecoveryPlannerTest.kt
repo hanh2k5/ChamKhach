@@ -1,6 +1,8 @@
 package com.telesales.assistant.reminder
 
 import com.telesales.assistant.data.local.ReminderEntity
+import com.telesales.assistant.domain.model.FollowUp
+import com.telesales.assistant.domain.model.FollowUpCustomer
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -26,6 +28,15 @@ class ReminderRecoveryPlannerTest {
 
     @Test fun emptyReminderListProducesNoActions() {
         assertTrue(ReminderRecoveryPlanner.plan(emptyList(), clock).isEmpty())
+    }
+
+    @Test fun followUpNotificationIncludesCustomerPhoneAndPreviousNote() {
+        val coordinator = ReminderCoordinator(FakeReminderStore(emptyList()), FakeScheduler(), clock, copy = FakeCopy(), notifier = ReminderNotifier { })
+        val reminder = coordinator.toReminder(
+            FollowUp(7, Instant.parse("2026-11-04T02:00:00Z"), "pending", "today", FollowUpCustomer(9, "Acme", "Lan", "0901234567"), "Đã hỏi về website"),
+        )
+        assertEquals("Lan - 0901234567", reminder.title)
+        assertEquals("Ghi chú: Đã hỏi về website", reminder.body)
     }
 
     @Test fun alreadyNotifiedReminderIsIgnoredAfterReboot() {
@@ -82,7 +93,7 @@ class ReminderRecoveryPlannerTest {
 
     private class FakeCopy : ReminderCopy {
         override fun notificationTitle(customerName: String) = customerName
-        override fun notificationBody(remindAt: Instant, note: String?, zoneId: ZoneId) = "body"
+        override fun notificationBody(remindAt: Instant, note: String?, zoneId: ZoneId) = "Ghi chú: ${note ?: "Chưa có ghi chú"}"
         override fun debugReminder(atEpochMs: Long) = ReminderEntity(0, 0, "Debug", "Debug", atEpochMs)
         override fun missedBody(body: String) = "Lịch bị lỡ: $body"
     }

@@ -7,6 +7,7 @@ import com.telesales.assistant.data.repository.DashboardResult
 import com.telesales.assistant.domain.model.DashboardSummary
 import com.telesales.assistant.domain.model.FollowUp
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,6 +36,7 @@ class DashboardViewModel(
     private val mutableState = MutableStateFlow(DashboardUiState())
     val state = mutableState.asStateFlow()
     private var requestJob: Job? = null
+    private var syncJob: Job? = null
     private var generation = 0L
 
     init { load() }
@@ -56,7 +58,12 @@ class DashboardViewModel(
             when (result) {
                 is DashboardResult.Success -> {
                     mutableState.value = DashboardUiState(dashboard = result.dashboard, isLoading = false, isRefreshing = false)
-                    if (followUpRepository != null) reminderCoordinator?.sync(followUpRepository)
+                    if (!refreshing && followUpRepository != null) {
+                        syncJob?.cancel()
+                        syncJob = viewModelScope.launch(Dispatchers.IO) {
+                            reminderCoordinator?.sync(followUpRepository)
+                        }
+                    }
                 }
                 DashboardResult.SetupRequired -> fail(DashboardError.SetupRequired)
                 DashboardResult.NetworkError -> fail(DashboardError.Network)

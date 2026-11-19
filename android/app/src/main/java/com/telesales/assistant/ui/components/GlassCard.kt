@@ -15,10 +15,10 @@ fun GlassCard(
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(14.dp),
         color = Color.White.copy(alpha = 0.7f),
         contentColor = Color(0xFF1E293B),
-        shadowElevation = 8.dp,
+        shadowElevation = 3.dp,
         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
         content = content,
     )

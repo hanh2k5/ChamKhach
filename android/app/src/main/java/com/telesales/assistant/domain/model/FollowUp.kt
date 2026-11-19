@@ -14,7 +14,7 @@ data class FollowUp(
     val note: String?,
 ) {
     fun formattedRemindAt(clock: Clock, zoneId: ZoneId): String =
-        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(clock.withZone(zoneId).zone).format(remindAt)
+        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss").withZone(clock.withZone(zoneId).zone).format(remindAt)
 }
 
 data class FollowUpCustomer(

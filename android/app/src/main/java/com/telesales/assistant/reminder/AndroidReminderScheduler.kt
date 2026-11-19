@@ -24,10 +24,16 @@ class AndroidReminderScheduler(
 ) : ReminderScheduler {
     override fun schedule(reminder: ReminderEntity) {
         val pendingIntent = requireNotNull(pendingIntent(reminder.followUpId, PendingIntent.FLAG_UPDATE_CURRENT))
-        if (alarmPrecision(exactAlarmPermission) == AlarmPrecision.Exact) {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, reminder.remindAtEpochMs, pendingIntent)
-        } else {
-            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, reminder.remindAtEpochMs, pendingIntent)
+        try {
+            if (alarmPrecision(exactAlarmPermission) == AlarmPrecision.Exact) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, reminder.remindAtEpochMs, pendingIntent)
+            } else {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, reminder.remindAtEpochMs, pendingIntent)
+            }
+        } catch (_: IllegalStateException) {
+            // Android OS limit (e.g. 500 concurrent alarms) reached
+        } catch (_: SecurityException) {
+            // Exact alarm permission not granted
         }
     }
 

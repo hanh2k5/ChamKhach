@@ -6,7 +6,6 @@ use App\Enums\CallResult;
 use App\Enums\CustomerStatus;
 use App\Enums\FollowUpStatus;
 use App\Enums\NeedType;
-use App\Enums\PotentialLevel;
 use App\Models\Customer;
 use App\Models\FollowUp;
 use App\Models\Interaction;
@@ -32,7 +31,6 @@ class InteractionTest extends TestCase
             'company_name'     => 'Công ty Test',
             'phone'            => '0901234567',
             'phone_normalized' => '0901234567',
-            'potential_level'  => PotentialLevel::Medium,
             'status'           => CustomerStatus::Active,
         ]);
     }
@@ -166,7 +164,7 @@ class InteractionTest extends TestCase
     // -----------------------------------------------------------------------
     // Test 5: needs rỗng → 422
     // -----------------------------------------------------------------------
-    public function test_create_interaction_empty_needs_returns_422(): void
+    public function test_create_interaction_allows_empty_needs(): void
     {
         $response = $this->withHeaders($this->authHeaders())
             ->postJson("/api/v1/customers/{$this->customer->id}/interactions", [
@@ -175,8 +173,17 @@ class InteractionTest extends TestCase
                 'contacted_at' => '2026-10-30T03:00:00+00:00',
             ]);
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['needs']);
+        $response->assertCreated()->assertJsonPath('interaction.needs', []);
+        $this->assertDatabaseCount('interaction_needs', 0);
+    }
+
+    public function test_create_interaction_defaults_missing_result_to_contacted(): void
+    {
+        $this->withHeaders($this->authHeaders())
+            ->postJson("/api/v1/customers/{$this->customer->id}/interactions", ['needs' => []])
+            ->assertCreated()->assertJsonPath('interaction.result', 'contacted');
+
+        $this->assertDatabaseHas('interactions', ['customer_id' => $this->customer->id, 'result' => 'contacted']);
     }
 
     // -----------------------------------------------------------------------

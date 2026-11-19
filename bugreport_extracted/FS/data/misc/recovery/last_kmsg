@@ -1,0 +1,69 @@
+8] R10: 0000000000000000 R11: ffffffff8b128770 R12: 0000000000000000
+[59997.954548] R13: 0000000000000001 R14: 0000000000000000 R15: 0000000000000000
+[59997.954548] FS:  0000000000000000(0000) GS:ffff99fdbba80000(0000) knlGS:0000000000000000
+[59997.954548] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[59997.954548] CR2: 00007f200301baf0 CR3: 00000001024fe004 CR4: 0000000000970eb0
+[59997.954548] Call Trace:
+[59997.954548]  <TASK>
+[59997.954548]  default_idle+0xd/0x20
+[59997.954548]  arch_cpu_idle+0xd/0x20
+[59997.954548]  default_idle_call+0x3f/0x80
+[59997.954548]  cpu_startup_entry+0x106/0x2a0
+[59997.954548]  start_secondary+0xc7/0xe0
+[59997.954548]  common_startup_64+0x13b/0x157
+[59997.954548]  </TASK>
+[59997.961083] rcu: rcu_preempt kthread timer wakeup didn't happen for 15764 jiffies! g152269 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402
+[59997.961083] rcu: 	Possible timer handling issue on cpu=1 timer-softirq=654139
+[59997.961083] rcu: rcu_preempt kthread starved for 15765 jiffies! g152269 f0x0 RCU_GP_WAIT_FQS(5) ->state=0x402 ->cpu=1
+[59997.961083] rcu: 	Unless rcu_preempt kthread gets sufficient CPU time, OOM is now expected behavior.
+[59997.961083] rcu: RCU grace-period kthread stack dump:
+[59997.961083] task:rcu_preempt     state:I stack:0     pid:18    tgid:18    ppid:2      flags:0x00004000
+[59997.961083] Call Trace:
+[59997.961083]  <TASK>
+[59997.961083]  __schedule+0x12d0/0x2920
+[59997.961083]  schedule+0x4b/0x100
+[59997.961083]  schedule_timeout+0x26d/0x940
+[59997.961083]  ? __cfi_process_timeout+0x10/0x10
+[59997.961083]  rcu_gp_fqs_loop+0x125/0x5c0
+[59997.961083]  rcu_gp_kthread+0xdb/0x1e0
+[59997.961083]  kthread+0x15b/0x180
+[59997.961083]  ? __cfi_rcu_gp_kthread+0x10/0x10
+[59997.961083]  ? __cfi_kthread+0x10/0x10
+[59997.961083]  ret_from_fork+0x4e/0x60
+[59997.961083]  ? __cfi_kthread+0x10/0x10
+[59997.961083]  ret_from_fork_asm+0x1a/0x30
+[59997.961083]  </TASK>
+[59998.004284] binder: undelivered death notification, 0000741befa083d0
+[60000.775797] init: Reboot thread timed out
+[60000.777046] init: Trigger crash at last!
+[60000.778075] sysrq: Trigger a crash
+[60000.779051] Kernel panic - not syncing: sysrq triggered crash
+[60000.779434] CPU: 5 UID: 0 PID: 22698 Comm: init Tainted: G           OE      6.12.81-android16-6-g4f69fc7b210c-ab16167562 #1 2ced4842704e9eccaaa25041e34ed54e8262871d
+[60000.779434] Tainted: [O]=OOT_MODULE, [E]=UNSIGNED_MODULE
+[60000.779434] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS rel-1.11.1-0-g0551a4be2c-prebuilt.qemu-project.org 04/01/2014
+[60000.779434] Call Trace:
+[60000.779434]  <TASK>
+[60000.779434]  dump_stack+0x46/0xc0
+[60000.779434]  panic+0x11b/0x2f0
+[60000.779434]  sysrq_handle_crash+0x27/0x40
+[60000.779434]  __handle_sysrq+0x169/0x170
+[60000.779434]  write_sysrq_trigger+0x42/0xa0
+[60000.779434]  proc_reg_write+0x58/0xc0
+[60000.779434]  ksys_write+0x3bd/0x540
+[60000.779434]  ? putname+0x40/0x50
+[60000.779434]  ? do_sys_openat2+0x1b4/0x270
+[60000.779434]  __x64_sys_write+0x1a/0x30
+[60000.779434]  x64_sys_call+0x271c/0x2ee0
+[60000.779434]  do_syscall_64+0x58/0xf0
+[60000.779434]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+[60000.779434] RIP: 0033:0x7f21c330ecc7
+[60000.779434] Code: 00 00 00 b8 00 00 00 00 0f 05 48 3d 01 f0 ff ff 73 01 c3 89 c7 e9 f9 0f 08 00 66 0f 1f 84 00 00 00 00 00 b8 01 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 89 c7 e9 d9 0f 08 00 66 0f 1f 84 00 00
+[60000.779434] RSP: 002b:00007f1f301909c8 EFLAGS: 00000213 ORIG_RAX: 0000000000000001
+[60000.779434] RAX: ffffffffffffffda RBX: 00007f1f30190a40 RCX: 00007f21c330ecc7
+[60000.779434] RDX: 0000000000000001 RSI: 00007f1f30190a59 RDI: 0000000000000017
+[60000.779434] RBP: 00007f1f30190a10 R08: ffffffffffffffff R09: 0000000000000000
+[60000.779434] R10: 00000000000001b6 R11: 0000000000000213 R12: 0000000000000001
+[60000.779434] R13: 00007f1f30190a59 R14: 00007f1f30190a59 R15: 00007f1f30190a41
+[60000.779434]  </TASK>
+[60000.779434] Kernel Offset: 0x9c00000 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffffbfffffff)
+[60000.779434] pstore: backend (ramoops) writing error (-28)

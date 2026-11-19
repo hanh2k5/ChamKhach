@@ -78,6 +78,8 @@ interface ApiService {
     val last_contacted_at: String? = null,
     val last_result: String? = null,
     val next_follow_up: NextFollowUpDto? = null,
+    val active_since: String? = null,
+    val needs: List<String>? = null,
 )
 @Serializable data class DeleteCustomerResponseDto(val data: DeletedCustomerDto)
 @Serializable data class DeletedCustomerDto(val deleted_follow_up_ids: List<Long> = emptyList())
@@ -130,15 +132,17 @@ interface ApiService {
 @Serializable data class DashboardDto(
     val overdue_count: Int,
     val today_count: Int,
-    val potential_count: Int,
     val items: List<FollowUpDto> = emptyList(),
+    val potential_count: Int = 0,
 )
 @Serializable data class CustomerCreateDto(
     val company_name: String?,
     val contact_name: String?,
     val phone: String,
     val address: String?,
+    val active_since: String? = null,
     val industry: String?,
+    val needs: List<String>? = null,
     val source: String?,
     val potential_level: String,
 )
@@ -147,7 +151,9 @@ interface ApiService {
     val contact_name: String?,
     val phone: String,
     val address: String?,
+    val active_since: String? = null,
     val industry: String?,
+    val needs: List<String>? = null,
     val source: String?,
     val potential_level: String,
 )

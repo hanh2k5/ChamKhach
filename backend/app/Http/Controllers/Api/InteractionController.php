@@ -46,7 +46,10 @@ class InteractionController extends Controller
     {
         $customer = Customer::findOrFail($customerId);
 
-        $result = $this->interactionService->record($customer, $request->validated());
+        $data = $request->validated();
+        $data['result'] ??= 'contacted';
+        $data['needs'] ??= [];
+        $result = $this->interactionService->record($customer, $data);
 
         $interaction = $result['interaction'];
         $followUp    = $result['follow_up'];

@@ -32,8 +32,6 @@ private data class NavigationDestination(
 
 private val destinations = listOf(
     NavigationDestination("dashboard", R.string.nav_dashboard, "⌂"),
-    NavigationDestination("customers", R.string.nav_customers, "○"),
-    NavigationDestination("followUps", R.string.nav_followups, "◷"),
     NavigationDestination("settings", R.string.nav_settings, "⋯"),
 )
 

@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\CustomerStatus;
 use App\Enums\FollowUpStatus;
-use App\Enums\PotentialLevel;
 use App\Models\Customer;
 use App\Models\FollowUp;
 use App\Models\User;
@@ -28,7 +27,6 @@ class DashboardTest extends TestCase
             'contact_name'     => 'Trần Văn B',
             'phone'            => '0987654321',
             'phone_normalized' => '0987654321',
-            'potential_level'  => PotentialLevel::High,
             'status'           => CustomerStatus::Active,
         ]);
     }
@@ -103,40 +101,6 @@ class DashboardTest extends TestCase
     }
 
     // -----------------------------------------------------------------------
-    // Test 27: Đếm đúng potential_count (status=active, potential=high hoặc medium)
-    // -----------------------------------------------------------------------
-    public function test_dashboard_counts_potential(): void
-    {
-        // $this->customer đã có potential_level = high (active) => 1
-        Customer::create([
-            'phone'            => '0911000001',
-            'phone_normalized' => '0911000001',
-            'potential_level'  => PotentialLevel::Medium,
-            'status'           => CustomerStatus::Active,
-        ]); // +1 => 2
-
-        Customer::create([
-            'phone'            => '0911000002',
-            'phone_normalized' => '0911000002',
-            'potential_level'  => PotentialLevel::Low,
-            'status'           => CustomerStatus::Active,
-        ]); // không tính
-
-        Customer::create([
-            'phone'            => '0911000003',
-            'phone_normalized' => '0911000003',
-            'potential_level'  => PotentialLevel::High,
-            'status'           => CustomerStatus::Archived,
-        ]); // archived không tính
-
-        $response = $this->withHeaders($this->authHeaders())
-            ->getJson('/api/v1/dashboard');
-
-        $response->assertStatus(200)
-            ->assertJsonPath('potential_count', 2);
-    }
-
-    // -----------------------------------------------------------------------
     // Test 28: Items tối đa 20 bản ghi
     // -----------------------------------------------------------------------
     public function test_dashboard_items_max_20(): void
@@ -194,13 +158,10 @@ class DashboardTest extends TestCase
     }
 
     // -----------------------------------------------------------------------
-    // Test 30: Không có data -> 3 count = 0, items = []
+    // Test 30: Không có data -> các count = 0, items = []
     // -----------------------------------------------------------------------
     public function test_dashboard_counts_all_zero_when_empty(): void
     {
-        // Chuyển customer sang low
-        $this->customer->update(['potential_level' => PotentialLevel::Low]);
-
         $response = $this->withHeaders($this->authHeaders())
             ->getJson('/api/v1/dashboard');
 

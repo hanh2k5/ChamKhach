@@ -7,6 +7,8 @@ import com.telesales.assistant.data.repository.CustomerDetailRepository
 import com.telesales.assistant.data.repository.CustomerDetailResult
 import com.telesales.assistant.data.repository.InteractionPage
 import com.telesales.assistant.data.repository.InteractionPageResult
+import com.telesales.assistant.data.repository.RecordInteractionResult
+import com.telesales.assistant.data.network.InteractionCreateDto
 import com.telesales.assistant.domain.model.CustomerProfile
 import com.telesales.assistant.domain.model.Interaction
 import kotlinx.coroutines.Dispatchers
@@ -99,6 +101,12 @@ class CustomerDetailViewModelTest {
         assertTrue(vm.state.value.isDeleted)
     }
 
+    @Test fun formatsTimelineTimeWithSecondsInVietnamZone() = vmTest {
+        val vm = create(FakeRepository())
+        advanceUntilIdle()
+        assertEquals("03/11/2026 00:30:08", vm.formatTime(java.time.Instant.parse("2026-11-02T17:30:08Z")))
+    }
+
     private fun TestScope.create(repo: FakeRepository) = CustomerDetailViewModel(7, repo).also {
         ViewModelStore().also { store -> store.put("detail-${stores.size}", it); stores += store }
     }
@@ -119,7 +127,7 @@ class CustomerDetailViewModelTest {
     }
 
     companion object {
-        private val customer = CustomerProfile(7, "Công ty", "Lan", "0900000000", null, null, null, "medium", "active")
+        private val customer = CustomerProfile(7, "Công ty", "Lan", "0900000000", null, null, "medium", null, "active")
         private fun success(page: Int, items: List<Interaction>, lastPage: Int = page) =
             InteractionPageResult.Success(InteractionPage(items, page, lastPage))
         private fun interaction(id: Long) = Interaction(id, "interested", listOf("website"), null, java.time.Instant.parse("2026-11-02T00:00:00Z"))

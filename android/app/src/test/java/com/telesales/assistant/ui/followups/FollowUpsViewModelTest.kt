@@ -48,15 +48,19 @@ class FollowUpsViewModelTest {
         assertEquals(listOf(1L, 3L, 2L, 4L), vm.state.value.items.map(FollowUp::id))
     }
 
-    @Test fun paginatesAndIgnoresRepeatedLoadMoreWhileRequestIsRunning() = vmTest {
-        val pending = CompletableDeferred<FollowUpListResult>()
-        val repo = FakeRepository().apply { listAction = { page, _ -> if (page == 2) pending.await() else success(1, listOf(item(1, "today")), 2) } }
+    @Test fun loadsSelectedPaginationPage() = vmTest {
+        val repo = FakeRepository().apply {
+            listAction = { page, _ ->
+                if (page == 1) success(1, listOf(item(1, "today")), 2)
+                else success(2, listOf(item(2, "upcoming")), 2)
+            }
+        }
         val vm = create(repo); advanceUntilIdle()
-        vm.loadMore(); vm.loadMore(); runCurrent()
+        vm.goToPage(2); advanceUntilIdle()
         assertEquals(listOf(1, 2), repo.requestedPages)
-        pending.complete(success(2, listOf(item(2, "upcoming")), 2)); advanceUntilIdle()
-        assertEquals(listOf(1L, 2L), vm.state.value.items.map(FollowUp::id))
-        assertFalse(vm.state.value.hasMore)
+        assertEquals(listOf(2L), vm.state.value.items.map(FollowUp::id))
+        assertEquals(2, vm.state.value.currentPage)
+        assertEquals(2, vm.state.value.lastPage)
     }
 
     @Test fun completeRemovesItemFromPendingList() = vmTest {

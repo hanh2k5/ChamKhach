@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Enums\CustomerStatus;
 use App\Enums\FollowUpStatus;
-use App\Enums\PotentialLevel;
 use App\Exceptions\DuplicatePhoneException;
+use App\Enums\PotentialLevel;
 use App\Models\Customer;
 use App\Models\Interaction;
 use App\Support\PhoneNormalizer;
@@ -43,11 +43,6 @@ class CustomerService
                 'last_result'
             );
 
-        // Lọc theo potential_level
-        if (! empty($filters['potential'])) {
-            $query->where('customers.potential_level', $filters['potential']);
-        }
-
         // Lọc theo last_result
         if (! empty($filters['last_result'])) {
             $query->whereRaw(
@@ -59,6 +54,14 @@ class CustomerService
                     ->toSql() . ') = ?',
                 [$filters['last_result']]
             );
+        }
+
+        if (! empty($filters['potential'])) {
+            $potentialLevels = array_values(array_filter(array_map(
+                static fn (string $level): string => trim($level),
+                explode(',', (string) $filters['potential']),
+            )));
+            $query->whereIn('potential_level', $potentialLevels);
         }
 
         // Tìm kiếm theo q (company_name, contact_name, phone_normalized)
@@ -112,7 +115,9 @@ class CustomerService
             'phone' => $rawPhone,
             'phone_normalized' => $normalizedPhone,
             'address' => $data['address'] ?? null,
+            'active_since' => $data['active_since'] ?? null,
             'industry' => $data['industry'] ?? null,
+            'needs' => $data['needs'] ?? null,
             'source' => $data['source'] ?? null,
             'potential_level' => isset($data['potential_level'])
                 ? PotentialLevel::from($data['potential_level'])
@@ -186,8 +191,14 @@ class CustomerService
         if (array_key_exists('address', $data)) {
             $customer->address = $data['address'];
         }
+        if (array_key_exists('active_since', $data)) {
+            $customer->active_since = $data['active_since'];
+        }
         if (array_key_exists('industry', $data)) {
             $customer->industry = $data['industry'];
+        }
+        if (array_key_exists('needs', $data)) {
+            $customer->needs = $data['needs'];
         }
         if (array_key_exists('source', $data)) {
             $customer->source = $data['source'];
@@ -195,7 +206,6 @@ class CustomerService
         if (isset($data['potential_level'])) {
             $customer->potential_level = PotentialLevel::from($data['potential_level']);
         }
-
         $customer->save();
 
         // Nạp lại các trường tổng hợp

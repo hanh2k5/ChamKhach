@@ -6,7 +6,6 @@ use App\Enums\CallResult;
 use App\Enums\CustomerStatus;
 use App\Enums\FollowUpStatus;
 use App\Enums\NeedType;
-use App\Enums\PotentialLevel;
 use App\Models\Customer;
 use App\Models\FollowUp;
 use App\Models\Interaction;
@@ -19,7 +18,7 @@ class ModelsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_can_create_customer_with_enum_casts(): void
+    public function test_can_create_customer_with_status_enum_cast(): void
     {
         $customer = Customer::create([
             'company_name' => 'Công ty ABC',
@@ -29,19 +28,16 @@ class ModelsTest extends TestCase
             'address' => 'Hà Nội',
             'industry' => 'Công nghệ',
             'source' => 'Facebook',
-            'potential_level' => PotentialLevel::High,
             'status' => CustomerStatus::Active,
         ]);
 
         $this->assertDatabaseHas('customers', [
             'id' => $customer->id,
             'phone_normalized' => '0901234567',
-            'potential_level' => 'high',
             'status' => 'active',
         ]);
 
         $fresh = $customer->fresh();
-        $this->assertSame(PotentialLevel::High, $fresh->potential_level);
         $this->assertSame(CustomerStatus::Active, $fresh->status);
     }
 

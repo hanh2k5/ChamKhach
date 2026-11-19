@@ -1,0 +1,171 @@
+5587 5586 254:5 / / ro,nodev,relatime master:1 - erofs /dev/block/dm-5 ro,seclabel,user_xattr,acl,cache_strategy=readaround
+5588 5587 0:19 / /dev rw,nosuid,relatime master:2 - tmpfs tmpfs rw,seclabel,mode=755
+5589 5588 0:20 / /dev/pts rw,relatime master:3 - devpts devpts rw,seclabel,mode=600,ptmxmode=000
+5590 5588 0:26 / /dev/blkio rw,nosuid,nodev,noexec,relatime master:15 - cgroup none rw,blkio
+5591 5588 0:28 / /dev/cpuctl rw,nosuid,nodev,noexec,relatime master:17 - cgroup none rw,cpu
+5592 5588 0:29 / /dev/cpuset rw,nosuid,nodev,noexec,relatime master:18 - cgroup none rw,cpuset,noprefix,cpuset_v2_mode
+5593 5588 0:34 / /dev/binderfs rw,relatime master:23 - binder binder rw,max=1048576,stats=global
+5594 5587 0:21 / /proc rw,relatime master:4 - proc proc rw,gid=3009,hidepid=invisible
+5595 5594 0:33 / /proc/sys/fs/binfmt_misc rw,relatime master:21 - binfmt_misc binfmt_misc rw
+5596 5587 0:22 / /sys rw,relatime master:5 - sysfs sysfs rw,seclabel
+5597 5596 0:17 / /sys/fs/selinux rw,relatime master:6 - selinuxfs selinuxfs rw
+5598 5596 0:27 / /sys/fs/cgroup rw,nosuid,nodev,noexec,relatime master:16 - cgroup2 none rw,memory_recursiveprot
+5599 5596 0:12 / /sys/kernel/tracing rw,relatime master:19 - tracefs tracefs rw,seclabel,gid=3012
+5600 5596 0:35 / /sys/fs/fuse/connections rw,relatime master:24 - fusectl none rw
+5601 5596 0:36 / /sys/fs/bpf rw,nosuid,nodev,noexec,relatime master:25 - bpf bpf rw
+5602 5596 0:37 / /sys/fs/pstore rw,nosuid,nodev,noexec,relatime master:26 - pstore pstore rw,seclabel
+5603 5596 0:6 / /sys/kernel/security rw,relatime master:30 - securityfs securityfs rw
+5604 5587 0:23 / /mnt rw,nosuid,nodev,noexec,relatime master:7 - tmpfs tmpfs rw,seclabel,mode=755,gid=1000
+5605 5604 0:23 /user /mnt/installer rw,nosuid,nodev,noexec,relatime master:13 - tmpfs tmpfs rw,seclabel,mode=755,gid=1000
+5606 5605 0:85 / /mnt/installer/0/emulated rw,nosuid,nodev,noexec,noatime master:33 - fuse /dev/fuse rw,lazytime,user_id=0,group_id=0,allow_other
+5607 5605 0:131 / /mnt/installer/0/0000-0000 rw,nosuid,nodev,noexec,noatime master:37 - fuse /dev/fuse rw,lazytime,user_id=0,group_id=0,allow_other
+5608 5604 0:23 /user /mnt/androidwritable rw,nosuid,nodev,noexec,relatime master:14 - tmpfs tmpfs rw,seclabel,mode=755,gid=1000
+5609 5608 0:85 / /mnt/androidwritable/0/emulated rw,nosuid,nodev,noexec,noatime master:32 - fuse /dev/fuse rw,lazytime,user_id=0,group_id=0,allow_other
+5610 5608 0:131 / /mnt/androidwritable/0/0000-0000 rw,nosuid,nodev,noexec,noatime master:36 - fuse /dev/fuse rw,lazytime,user_id=0,group_id=0,allow_other
+5611 5604 0:38 / /mnt/vm rw,nosuid,nodev,noexec,relatime master:27 - tmpfs tmpfs rw,seclabel
+5612 5604 0:85 / /mnt/user/0/emulated rw,nosuid,nodev,noexec,noatime master:31 - fuse /dev/fuse rw,lazytime,user_id=0,group_id=0,allow_other
+5613 5604 254:6 /media /mnt/pass_through/0/emulated rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5614 5604 253:80 / /mnt/media_rw/0000-0000 rw,nosuid,nodev,noexec,noatime master:34 - vfat /dev/block/vold/public:253,80 rw,dirsync,gid=1023,fmask=0007,dmask=0007,allow_utime=0020,codepage=437,iocharset=iso8859-1,shortname=mixed,utf8,time_offset=420,errors=remount-ro
+5615 5604 0:131 / /mnt/user/0/0000-0000 rw,nosuid,nodev,noexec,noatime master:35 - fuse /dev/fuse rw,lazytime,user_id=0,group_id=0,allow_other
+5616 5604 253:80 / /mnt/pass_through/0/0000-0000 rw,nosuid,nodev,noexec,noatime master:34 - vfat /dev/block/vold/public:253,80 rw,dirsync,gid=1023,fmask=0007,dmask=0007,allow_utime=0020,codepage=437,iocharset=iso8859-1,shortname=mixed,utf8,time_offset=420,errors=remount-ro
+5617 5587 253:49 / /metadata rw,nosuid,nodev,noatime master:8 - ext4 /dev/block/vdd1 rw,seclabel
+5618 5587 254:1 / /vendor ro,relatime master:9 - erofs /dev/block/dm-1 ro,seclabel,user_xattr,acl,cache_strategy=readaround
+5619 5587 254:3 / /product ro,relatime master:10 - erofs /dev/block/dm-3 ro,seclabel,user_xattr,acl,cache_strategy=readaround
+5620 5587 254:4 / /system_dlkm ro,relatime master:11 - erofs /dev/block/dm-4 ro,seclabel,user_xattr,acl,cache_strategy=readaround
+5621 5587 254:2 / /system_ext ro,relatime master:12 - erofs /dev/block/dm-2 ro,seclabel,user_xattr,acl,cache_strategy=readaround
+5622 5587 0:24 / /apex rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,seclabel,mode=755
+5623 5622 7:32 / /apex/com.android.hardware.thermal@1 ro,nodev,noatime - ext4 /dev/block/loop4 ro,dirsync,seclabel
+5624 5622 7:48 / /apex/com.android.hardware.power@1 ro,nodev,noatime - ext4 /dev/block/loop6 ro,dirsync,seclabel
+5625 5622 7:8 / /apex/com.android.hardware.uwb@1 ro,nodev,noatime - ext4 /dev/block/loop1 ro,dirsync,seclabel
+5626 5622 7:40 / /apex/com.android.hardware.rebootescrow@1 ro,nodev,noatime - ext4 /dev/block/loop5 ro,dirsync,seclabel
+5627 5622 7:80 / /apex/com.android.hardware.dumpstate@1 ro,nodev,noatime - ext4 /dev/block/loop10 ro,dirsync,seclabel
+5628 5622 0:30 / /apex/com.android.virt@370399999 ro,nodev,noatime - erofs /system/apex/com.android.virt.apex ro,dirsync,seclabel,user_xattr,acl,cache_strategy=readaround,fsoffset=16384
+5629 5622 7:72 / /apex/com.android.hardware.gatekeeper@1 ro,nodev,noatime - ext4 /dev/block/loop9 ro,dirsync,seclabel
+5630 5622 7:88 / /apex/com.android.hardware.contexthub@1 ro,nodev,noatime - ext4 /dev/block/loop11 ro,dirsync,seclabel
+5631 5622 7:32 / /apex/com.android.hardware.thermal ro,nodev,noatime - ext4 /dev/block/loop4 ro,dirsync,seclabel
+5632 5622 7:64 / /apex/com.android.os.statsd@370546200 ro,nodev,noatime - ext4 /dev/block/loop8 ro,dirsync,seclabel
+5633 5622 7:80 / /apex/com.android.hardware.dumpstate ro,nodev,noatime - ext4 /dev/block/loop10 ro,dirsync,seclabel
+5634 5622 7:40 / /apex/com.android.hardware.rebootescrow ro,nodev,noatime - ext4 /dev/block/loop5 ro,dirsync,seclabel
+5635 5622 0:31 / /apex/com.google.android.gmssystem@13 ro,nodev,noatime - erofs /product/apex/com.google.android.gmssystem.prodvic.apex ro,dirsync,seclabel,user_xattr,acl,cache_strategy=readaround,fsoffset=16384
+5636 5622 7:72 / /apex/com.android.hardware.gatekeeper ro,nodev,noatime - ext4 /dev/block/loop9 ro,dirsync,seclabel
+5637 5622 7:48 / /apex/com.android.hardware.power ro,nodev,noatime - ext4 /dev/block/loop6 ro,dirsync,seclabel
+5638 5622 7:88 / /apex/com.android.hardware.contexthub ro,nodev,noatime - ext4 /dev/block/loop11 ro,dirsync,seclabel
+5639 5622 7:8 / /apex/com.android.hardware.uwb ro,nodev,noatime - ext4 /dev/block/loop1 ro,dirsync,seclabel
+5640 5622 7:64 / /apex/com.android.os.statsd ro,nodev,noatime - ext4 /dev/block/loop8 ro,dirsync,seclabel
+5641 5622 0:30 / /apex/com.android.virt ro,nodev,noatime - erofs /system/apex/com.android.virt.apex ro,dirsync,seclabel,user_xattr,acl,cache_strategy=readaround,fsoffset=16384
+5642 5622 7:120 / /apex/com.android.runtime@1 ro,nodev,noatime - ext4 /dev/block/loop15 ro,dirsync,seclabel
+5643 5622 7:0 / /apex/com.google.android.widevine@190260313 ro,nodev,noatime - ext4 /dev/block/loop0 ro,dirsync,seclabel
+5644 5622 7:0 / /apex/com.google.android.widevine ro,nodev,noatime - ext4 /dev/block/loop0 ro,dirsync,seclabel
+5645 5622 7:120 / /apex/com.android.runtime ro,nodev,noatime - ext4 /dev/block/loop15 ro,dirsync,seclabel
+5646 5622 0:31 / /apex/com.google.android.gmssystem ro,nodev,noatime - erofs /product/apex/com.google.android.gmssystem.prodvic.apex ro,dirsync,seclabel,user_xattr,acl,cache_strategy=readaround,fsoffset=16384
+5647 5622 7:200 / /apex/com.android.neuralnetworks@370546200 ro,nodev,noatime - ext4 /dev/block/loop25 ro,dirsync,seclabel
+5648 5622 7:200 / /apex/com.android.neuralnetworks ro,nodev,noatime - ext4 /dev/block/loop25 ro,dirsync,seclabel
+5649 5622 7:288 / /apex/com.android.configinfrastructure@370546200 ro,nodev,noatime - ext4 /dev/block/loop36 ro,dirsync,seclabel
+5650 5622 7:288 / /apex/com.android.configinfrastructure ro,nodev,noatime - ext4 /dev/block/loop36 ro,dirsync,seclabel
+5651 5622 7:384 / /apex/com.android.tzdata@370546200 ro,nodev,noatime - ext4 /dev/block/loop48 ro,dirsync,seclabel
+5652 5622 7:384 / /apex/com.android.tzdata ro,nodev,noatime - ext4 /dev/block/loop48 ro,dirsync,seclabel
+5653 5622 7:376 / /apex/com.android.crashrecovery@370546200 ro,nodev,noatime - ext4 /dev/block/loop47 ro,dirsync,seclabel
+5654 5622 7:376 / /apex/com.android.crashrecovery ro,nodev,noatime - ext4 /dev/block/loop47 ro,dirsync,seclabel
+5655 5622 7:104 / /apex/com.android.wifi@370546200 ro,nodev,noatime - ext4 /dev/block/loop13 ro,dirsync,seclabel
+5656 5622 7:104 / /apex/com.android.wifi ro,nodev,noatime - ext4 /dev/block/loop13 ro,dirsync,seclabel
+5657 5622 7:232 / /apex/com.android.uprobestats@370546200 ro,nodev,noatime - ext4 /dev/block/loop29 ro,dirsync,seclabel
+5658 5622 7:416 / /apex/com.android.profiling@370546200 ro,nodev,noatime - ext4 /dev/block/loop52 ro,dirsync,seclabel
+5659 5622 7:184 / /apex/com.android.permission@370546220 ro,nodev,noatime - ext4 /dev/block/loop23 ro,dirsync,seclabel
+5660 5622 7:232 / /apex/com.android.uprobestats ro,nodev,noatime - ext4 /dev/block/loop29 ro,dirsync,seclabel
+5661 5622 7:416 / /apex/com.android.profiling ro,nodev,noatime - ext4 /dev/block/loop52 ro,dirsync,seclabel
+5662 5622 7:352 / /apex/com.android.adservices@370546200 ro,nodev,noatime - ext4 /dev/block/loop44 ro,dirsync,seclabel
+5663 5622 7:184 / /apex/com.android.permission ro,nodev,noatime - ext4 /dev/block/loop23 ro,dirsync,seclabel
+5664 5622 7:352 / /apex/com.android.adservices ro,nodev,noatime - ext4 /dev/block/loop44 ro,dirsync,seclabel
+5665 5622 7:240 / /apex/com.android.adbd@370546200 ro,nodev,noatime - ext4 /dev/block/loop30 ro,dirsync,seclabel
+5666 5622 7:160 / /apex/com.android.compos@370399999 ro,nodev,noatime - ext4 /dev/block/loop20 ro,dirsync,seclabel
+5667 5622 7:240 / /apex/com.android.adbd ro,nodev,noatime - ext4 /dev/block/loop30 ro,dirsync,seclabel
+5668 5622 7:368 / /apex/com.android.healthfitness@370546200 ro,nodev,noatime - ext4 /dev/block/loop46 ro,dirsync,seclabel
+5669 5622 7:400 / /apex/com.android.i18n@1 ro,nodev,noatime - ext4 /dev/block/loop50 ro,dirsync,seclabel
+5670 5622 7:128 / /apex/com.android.tethering@370546200 ro,nodev,noatime - ext4 /dev/block/loop16 ro,dirsync,seclabel
+5671 5622 7:368 / /apex/com.android.healthfitness ro,nodev,noatime - ext4 /dev/block/loop46 ro,dirsync,seclabel
+5672 5622 7:160 / /apex/com.android.compos ro,nodev,noatime - ext4 /dev/block/loop20 ro,dirsync,seclabel
+5673 5622 7:128 / /apex/com.android.tethering ro,nodev,noatime - ext4 /dev/block/loop16 ro,dirsync,seclabel
+5674 5622 7:400 / /apex/com.android.i18n ro,nodev,noatime - ext4 /dev/block/loop50 ro,dirsync,seclabel
+5675 5622 7:24 / /apex/com.android.hardware.threadnetwork@1 ro,nodev,noatime - ext4 /dev/block/loop3 ro,dirsync,seclabel
+5676 5622 7:320 / /apex/com.android.bt@370546200 ro,nodev,noatime - ext4 /dev/block/loop40 ro,dirsync,seclabel
+5677 5622 7:24 / /apex/com.android.hardware.threadnetwork ro,nodev,noatime - ext4 /dev/block/loop3 ro,dirsync,seclabel
+5678 5622 7:168 / /apex/com.android.apex.cts.shim@1 ro,nodev,noatime - ext4 /dev/block/loop21 ro,dirsync,seclabel
+5679 5622 7:320 / /apex/com.android.bt ro,nodev,noatime - ext4 /dev/block/loop40 ro,dirsync,seclabel
+5680 5622 7:208 / /apex/com.android.ondevicepersonalization@370546200 ro,nodev,noatime - ext4 /dev/block/loop26 ro,dirsync,seclabel
+5681 5622 7:304 / /apex/com.android.extservices@370546203 ro,nodev,noatime - ext4 /dev/block/loop38 ro,dirsync,seclabel
+5682 5622 7:168 / /apex/com.android.apex.cts.shim ro,nodev,noatime - ext4 /dev/block/loop21 ro,dirsync,seclabel
+5683 5622 7:192 / /apex/com.android.uwb@370546220 ro,nodev,noatime - ext4 /dev/block/loop24 ro,dirsync,seclabel
+5684 5622 7:304 / /apex/com.android.extservices ro,nodev,noatime - ext4 /dev/block/loop38 ro,dirsync,seclabel
+5685 5622 7:192 / /apex/com.android.uwb ro,nodev,noatime - ext4 /dev/block/loop24 ro,dirsync,seclabel
+5686 5622 7:408 / /apex/com.android.conscrypt@370546200 ro,nodev,noatime - ext4 /dev/block/loop51 ro,dirsync,seclabel
+5687 5622 7:208 / /apex/com.android.ondevicepersonalization ro,nodev,noatime - ext4 /dev/block/loop26 ro,dirsync,seclabel
+5688 5622 7:216 / /apex/com.android.nfcservices@370546220 ro,nodev,noatime - ext4 /dev/block/loop27 ro,dirsync,seclabel
+5689 5622 7:280 / /apex/com.android.ipsec@370546200 ro,nodev,noatime - ext4 /dev/block/loop35 ro,dirsync,seclabel
+5690 5622 7:408 / /apex/com.android.conscrypt ro,nodev,noatime - ext4 /dev/block/loop51 ro,dirsync,seclabel
+5691 5622 7:280 / /apex/com.android.ipsec ro,nodev,noatime - ext4 /dev/block/loop35 ro,dirsync,seclabel
+5692 5622 7:272 / /apex/com.android.media@370546200 ro,nodev,noatime - ext4 /dev/block/loop34 ro,dirsync,seclabel
+5693 5622 7:328 / /apex/com.android.hardware.authsecret@1 ro,nodev,noatime - ext4 /dev/block/loop41 ro,dirsync,seclabel
+5694 5622 7:328 / /apex/com.android.hardware.authsecret ro,nodev,noatime - ext4 /dev/block/loop41 ro,dirsync,seclabel
+5695 5622 7:216 / /apex/com.android.nfcservices ro,nodev,noatime - ext4 /dev/block/loop27 ro,dirsync,seclabel
+5696 5622 7:360 / /apex/com.android.hardware.biometrics.fingerprint.virtual@1 ro,nodev,noatime - ext4 /dev/block/loop45 ro,dirsync,seclabel
+5697 5622 7:272 / /apex/com.android.media ro,nodev,noatime - ext4 /dev/block/loop34 ro,dirsync,seclabel
+5698 5622 7:144 / /apex/com.android.scheduling@370546200 ro,nodev,noatime - ext4 /dev/block/loop18 ro,dirsync,seclabel
+5699 5622 7:144 / /apex/com.android.scheduling ro,nodev,noatime - ext4 /dev/block/loop18 ro,dirsync,seclabel
+5700 5622 7:360 / /apex/com.android.hardware.biometrics.fingerprint.virtual ro,nodev,noatime - ext4 /dev/block/loop45 ro,dirsync,seclabel
+5701 5622 7:152 / /apex/com.android.resolv@370546200 ro,nodev,noatime - ext4 /dev/block/loop19 ro,dirsync,seclabel
+5702 5622 7:152 / /apex/com.android.resolv ro,nodev,noatime - ext4 /dev/block/loop19 ro,dirsync,seclabel
+5703 5622 7:392 / /apex/com.android.npumanager@370399999 ro,nodev,noatime - ext4 /dev/block/loop49 ro,dirsync,seclabel
+5704 5622 7:16 / /apex/com.android.hardware.vibrator@1 ro,nodev,noatime - ext4 /dev/block/loop2 ro,dirsync,seclabel
+5705 5622 7:392 / /apex/com.android.npumanager ro,nodev,noatime - ext4 /dev/block/loop49 ro,dirsync,seclabel
+5706 5622 7:16 / /apex/com.android.hardware.vibrator ro,nodev,noatime - ext4 /dev/block/loop2 ro,dirsync,seclabel
+5707 5622 7:264 / /apex/com.android.rkpd@370546200 ro,nodev,noatime - ext4 /dev/block/loop33 ro,dirsync,seclabel
+5708 5622 7:264 / /apex/com.android.rkpd ro,nodev,noatime - ext4 /dev/block/loop33 ro,dirsync,seclabel
+5709 5622 7:256 / /apex/com.android.hardware.cas@1 ro,nodev,noatime - ext4 /dev/block/loop32 ro,dirsync,seclabel
+5710 5622 7:256 / /apex/com.android.hardware.cas ro,nodev,noatime - ext4 /dev/block/loop32 ro,dirsync,seclabel
+5711 5622 7:112 / /apex/com.android.webapp@370399999 ro,nodev,noatime - ext4 /dev/block/loop14 ro,dirsync,seclabel
+5712 5622 7:176 / /apex/com.android.media.swcodec@370546200 ro,nodev,noatime - ext4 /dev/block/loop22 ro,dirsync,seclabel
+5713 5622 7:296 / /apex/com.android.telephonycore@370546200 ro,nodev,noatime - ext4 /dev/block/loop37 ro,dirsync,seclabel
+5714 5622 7:344 / /apex/com.android.devicelock@1 ro,nodev,noatime - ext4 /dev/block/loop43 ro,dirsync,seclabel
+5715 5622 7:176 / /apex/com.android.media.swcodec ro,nodev,noatime - ext4 /dev/block/loop22 ro,dirsync,seclabel
+5716 5622 7:296 / /apex/com.android.telephonycore ro,nodev,noatime - ext4 /dev/block/loop37 ro,dirsync,seclabel
+5717 5622 7:344 / /apex/com.android.devicelock ro,nodev,noatime - ext4 /dev/block/loop43 ro,dirsync,seclabel
+5718 5622 7:312 / /apex/com.android.art@370546200 ro,nodev,noatime - ext4 /dev/block/loop39 ro,dirsync,seclabel
+5719 5622 7:312 / /apex/com.android.art ro,nodev,noatime - ext4 /dev/block/loop39 ro,dirsync,seclabel
+5720 5622 7:112 / /apex/com.android.webapp ro,nodev,noatime - ext4 /dev/block/loop14 ro,dirsync,seclabel
+5721 5622 7:136 / /apex/com.android.sdkext@370546200 ro,nodev,noatime - ext4 /dev/block/loop17 ro,dirsync,seclabel
+5722 5622 7:336 / /apex/com.android.appsearch@370546200 ro,nodev,noatime - ext4 /dev/block/loop42 ro,dirsync,seclabel
+5723 5622 7:136 / /apex/com.android.sdkext ro,nodev,noatime - ext4 /dev/block/loop17 ro,dirsync,seclabel
+5724 5622 7:336 / /apex/com.android.appsearch ro,nodev,noatime - ext4 /dev/block/loop42 ro,dirsync,seclabel
+5725 5622 7:248 / /apex/com.android.mediaprovider@370546200 ro,nodev,noatime - ext4 /dev/block/loop31 ro,dirsync,seclabel
+5726 5622 7:248 / /apex/com.android.mediaprovider ro,nodev,noatime - ext4 /dev/block/loop31 ro,dirsync,seclabel
+5727 5622 7:224 / /apex/com.android.cellbroadcast@370546200 ro,nodev,noatime - ext4 /dev/block/loop28 ro,dirsync,seclabel
+5728 5622 7:224 / /apex/com.android.cellbroadcast ro,nodev,noatime - ext4 /dev/block/loop28 ro,dirsync,seclabel
+5729 5587 0:25 / /linkerconfig rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,seclabel,mode=755
+5730 5729 0:25 /bootstrap /linkerconfig rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,seclabel,mode=755
+5731 5587 0:32 / /tmp rw,relatime master:20 - tmpfs tmpfs rw,seclabel
+5732 5587 0:18 / /config rw,nosuid,nodev,noexec,relatime master:22 - configfs none rw
+5733 5587 254:6 / /data rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5734 5733 254:6 /data /data/user/0 rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5735 5587 0:39 / /data_mirror rw,nosuid,nodev,noexec,relatime master:29 - tmpfs tmpfs rw,seclabel,mode=700,gid=1000
+5736 5735 254:6 /user /data_mirror/data_ce/null rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5737 5736 254:6 /data /data_mirror/data_ce/null/0 rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5738 5735 254:6 /user_de /data_mirror/data_de/null rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5739 5735 254:6 /misc_ce /data_mirror/misc_ce/null rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5740 5735 254:6 /misc_de /data_mirror/misc_de/null rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5741 5735 254:6 /storage_area /data_mirror/storage_area rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5742 5735 254:6 /misc/profiles/cur /data_mirror/cur_profiles rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5743 5735 254:6 /misc/profiles/ref /data_mirror/ref_profiles rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5744 5587 0:23 /user/0 /storage rw,nosuid,nodev,noexec,relatime master:7 - tmpfs tmpfs rw,seclabel,mode=755,gid=1000
+5745 5744 0:85 / /storage/emulated rw,nosuid,nodev,noexec,noatime master:31 - fuse /dev/fuse rw,lazytime,user_id=0,group_id=0,allow_other
+5746 5744 0:131 / /storage/0000-0000 rw,nosuid,nodev,noexec,noatime master:35 - fuse /dev/fuse rw,lazytime,user_id=0,group_id=0,allow_other
+5747 5733 0:152 / /data/data rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,seclabel,mode=751
+5748 5733 0:153 / /data/user rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,seclabel,mode=751
+5749 5733 0:154 / /data/user_de rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,seclabel,mode=751
+5750 5749 254:6 /user_de/0/com.google.android.dialer /data/user_de/0/com.google.android.dialer rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5751 5747 254:6 /data/com.google.android.dialer /data/data/com.google.android.dialer rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5752 5749 254:6 /user_de/0/com.google.android.gms /data/user_de/0/com.google.android.gms rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5753 5747 254:6 /data/com.google.android.gms /data/data/com.google.android.gms rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5754 5733 0:155 / /data/misc/profiles/cur rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,seclabel,mode=751
+5755 5733 0:156 / /data/misc/profiles/ref rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,seclabel,mode=751
+5756 5754 254:6 /misc/profiles/cur/0/com.google.android.dialer /data/misc/profiles/cur/0/com.google.android.dialer rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic
+5757 5755 254:6 /misc/profiles/ref/com.google.android.dialer /data/misc/profiles/ref/com.google.android.dialer rw,nosuid,nodev,noatime master:28 - ext4 /dev/block/dm-6 rw,seclabel,resgid=1065,errors=panic

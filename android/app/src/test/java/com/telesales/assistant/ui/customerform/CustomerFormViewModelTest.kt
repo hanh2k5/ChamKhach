@@ -1,8 +1,10 @@
 package com.telesales.assistant.ui.customerform
 
 import androidx.lifecycle.ViewModelStore
+import com.telesales.assistant.data.network.InteractionCreateDto
 import com.telesales.assistant.data.repository.CustomerFormRepository
 import com.telesales.assistant.data.repository.CustomerFormResult
+import com.telesales.assistant.data.repository.RecordInteractionResult
 import com.telesales.assistant.domain.model.CustomerProfile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,12 +17,23 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneOffset
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class CustomerFormViewModelTest {
     private val stores = mutableListOf<ViewModelStore>()
+
+    @Test fun defaultFollowUpTimeUsesCurrentVietnamTime() = formTest {
+        val vm = create(FakeRepository(saveAction = { _, profile -> success(profile) }))
+        assertEquals(LocalTime.of(7, 0), vm.currentLocalTime())
+    }
 
     @Test fun createSavesOptionalFieldsAndReturnsCreatedId() = formTest {
         val repository = FakeRepository(saveAction = { _, profile -> success(profile.copy(id = 14)) })
@@ -33,6 +46,97 @@ class CustomerFormViewModelTest {
         assertEquals(14L, vm.state.value.savedCustomerId)
         assertEquals(null, repository.savedCustomer?.address)
         assertEquals(null, repository.lastSavedId)
+        assertEquals("contacted", repository.interactionRequests.single().result)
+        assertNull(repository.interactionRequests.single().follow_up)
+        assertFalse(vm.state.value.initialInteractionPending)
+    }
+
+    @Test fun createSendsInitialCallNoteAndLimitsItToFiveHundredCharacters() = formTest {
+        val repository = FakeRepository(saveAction = { _, profile -> success(profile.copy(id = 21)) })
+        val vm = create(repository)
+        vm.onPhoneChanged("0901234567")
+        vm.onInitialNoteChanged("  Trao đổi về website  ")
+        vm.save()
+        advanceUntilIdle()
+
+        assertEquals("Trao đổi về website", repository.interactionRequests.single().note)
+        vm.onInitialNoteChanged("x".repeat(501))
+        assertEquals(500, vm.state.value.initialNote.length)
+    }
+
+    @Test fun customerNeedsAreMultiSelectAndActiveSinceIsSaved() = formTest {
+        val repository = FakeRepository(saveAction = { _, profile -> success(profile.copy(id = 15)) })
+        val vm = create(repository)
+        vm.onPhoneChanged("0901234567")
+        vm.onActiveSinceChanged("5 năm")
+        vm.toggleNeed("website")
+        vm.toggleNeed("ads")
+        vm.save()
+        advanceUntilIdle()
+        assertEquals("5 năm", repository.savedCustomer?.activeSince)
+        assertEquals(setOf("website", "ads"), repository.savedCustomer?.needs?.toSet())
+    }
+
+    @Test fun createCanRecordTodayAndScheduleOptionalFutureFollowUp() = formTest {
+        val repository = FakeRepository(saveAction = { _, profile -> success(profile.copy(id = 17)) })
+        val vm = create(repository)
+        vm.onPhoneChanged("0901234567")
+        vm.setFollowUpDate(LocalDate.of(2026, 11, 3))
+        vm.setFollowUpTime(LocalTime.of(9, 45))
+        vm.save()
+        advanceUntilIdle()
+
+        assertEquals(17L, vm.state.value.savedCustomerId)
+        assertEquals(1, repository.saveCalls)
+        assertEquals("contacted", repository.interactionRequests.single().result)
+        assertEquals("2026-11-03T02:45:00+00:00", repository.interactionRequests.single().follow_up?.remind_at)
+    }
+
+    @Test fun failedInitialInteractionRetryDoesNotCreateCustomerAgain() = formTest {
+        var fail = true
+        val repository = FakeRepository(
+            saveAction = { _, profile -> success(profile.copy(id = 18)) },
+            recordAction = { if (fail) RecordInteractionResult.NetworkError else RecordInteractionResult.Success(null, null, emptyList()) },
+        )
+        val vm = create(repository)
+        vm.onPhoneChanged("0901234567")
+        vm.save()
+        advanceUntilIdle()
+        assertEquals(18L, vm.state.value.customerId)
+        assertTrue(vm.state.value.initialInteractionPending)
+        assertEquals(1, repository.saveCalls)
+
+        fail = false
+        vm.save()
+        advanceUntilIdle()
+        assertEquals(18L, vm.state.value.savedCustomerId)
+        assertEquals(1, repository.saveCalls)
+        assertEquals(2, repository.interactionRequests.size)
+    }
+
+    @Test fun invalidInitialFollowUpDoesNotCreateCustomer() = formTest {
+        val repository = FakeRepository(saveAction = { _, profile -> success(profile.copy(id = 19)) })
+        val vm = create(repository)
+        vm.onPhoneChanged("0901234567")
+        vm.setFollowUpDate(LocalDate.of(2026, 11, 3))
+        vm.save()
+        advanceUntilIdle()
+        assertEquals("incomplete_schedule", vm.state.value.formError)
+        assertEquals(0, repository.saveCalls)
+        assertTrue(repository.interactionRequests.isEmpty())
+    }
+
+    @Test fun pastInitialFollowUpDoesNotCreateCustomer() = formTest {
+        val repository = FakeRepository(saveAction = { _, profile -> success(profile.copy(id = 20)) })
+        val vm = create(repository)
+        vm.onPhoneChanged("0901234567")
+        vm.setFollowUpDate(LocalDate.of(2026, 11, 2))
+        vm.setFollowUpTime(LocalTime.of(6, 59))
+        vm.save()
+        advanceUntilIdle()
+        assertEquals("past_schedule", vm.state.value.formError)
+        assertEquals(0, repository.saveCalls)
+        assertTrue(repository.interactionRequests.isEmpty())
     }
 
     @Test fun editLoadsProfileAndSavesWithPatchId() = formTest {
@@ -83,7 +187,7 @@ class CustomerFormViewModelTest {
     }
 
     private fun TestScope.create(repository: FakeRepository, customerId: Long? = null) =
-        CustomerFormViewModel(repository, customerId).also { viewModel ->
+        CustomerFormViewModel(repository, customerId, Clock.fixed(Instant.parse("2026-11-02T00:00:00Z"), ZoneOffset.UTC)).also { viewModel ->
             ViewModelStore().also { store -> store.put("form-${stores.size}", viewModel); stores += store }
         }
 
@@ -95,10 +199,12 @@ class CustomerFormViewModelTest {
     private class FakeRepository(
         private val loadAction: suspend (Long) -> CustomerFormResult = { CustomerFormResult.NotFound },
         private val saveAction: suspend (Long?, CustomerProfile) -> CustomerFormResult,
+        var recordAction: suspend () -> RecordInteractionResult = { RecordInteractionResult.Success(null, null, emptyList()) },
     ) : CustomerFormRepository {
         var saveCalls = 0
         var savedCustomer: CustomerProfile? = null
         var lastSavedId: Long? = null
+        val interactionRequests = mutableListOf<InteractionCreateDto>()
         override suspend fun getCustomer(id: Long) = loadAction(id)
         override suspend fun saveCustomer(id: Long?, customer: CustomerProfile): CustomerFormResult {
             saveCalls++
@@ -106,8 +212,12 @@ class CustomerFormViewModelTest {
             lastSavedId = id
             return saveAction(id, customer)
         }
+        override suspend fun recordInteraction(id: Long, request: InteractionCreateDto): RecordInteractionResult {
+            interactionRequests += request
+            return recordAction()
+        }
     }
 
     private fun success(customer: CustomerProfile) = CustomerFormResult.Success(customer)
-    private fun profile(id: Long) = CustomerProfile(id, "Acme", "Lan", "0912345678", null, null, null, "unrated", "active")
+    private fun profile(id: Long) = CustomerProfile(id, "Acme", "Lan", "0912345678", null, null, "medium", null, "active")
 }

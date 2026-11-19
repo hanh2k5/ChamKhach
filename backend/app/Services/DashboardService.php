@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Enums\CustomerStatus;
 use App\Enums\FollowUpStatus;
+use App\Enums\CustomerStatus;
 use App\Enums\PotentialLevel;
 use App\Models\Customer;
 use App\Models\FollowUp;
@@ -38,10 +38,7 @@ class DashboardService
             ->count();
 
         $potentialCount = Customer::where('status', CustomerStatus::Active)
-            ->whereIn('potential_level', [
-                PotentialLevel::High->value,
-                PotentialLevel::Medium->value,
-            ])
+            ->whereIn('potential_level', [PotentialLevel::High->value, PotentialLevel::Medium->value])
             ->count();
 
         $items = FollowUp::where('status', FollowUpStatus::Pending)

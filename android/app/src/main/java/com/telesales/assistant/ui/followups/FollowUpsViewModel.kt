@@ -7,6 +7,7 @@ import com.telesales.assistant.data.repository.FollowUpListResult
 import com.telesales.assistant.data.repository.FollowUpRepository
 import com.telesales.assistant.domain.model.FollowUp
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,8 +28,8 @@ data class FollowUpsUiState(
     val items: List<FollowUp> = emptyList(),
     val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
-    val isLoadingMore: Boolean = false,
-    val hasMore: Boolean = false,
+    val currentPage: Int = 1,
+    val lastPage: Int = 1,
     val error: FollowUpsError? = null,
     val busyIds: Set<Long> = emptySet(),
     val actionError: FollowUpsError? = null,
@@ -45,37 +46,41 @@ class FollowUpsViewModel(
     private val clock: Clock = Clock.systemUTC(),
     private val businessZone: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh"),
     private val reminderCoordinator: ReminderCoordinator? = null,
+    private val initialGroup: String = "all",
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(FollowUpsUiState())
     val state = mutableState.asStateFlow()
     private var listJob: Job? = null
+    private var syncJob: Job? = null
     private var generation = 0L
     private var page = 1
+    private var initialLoaded = false
 
     init { load() }
     fun retry() = load()
     fun refresh() = load(refreshing = true)
     fun dismissNotice() { mutableState.value = mutableState.value.copy(notice = null) }
 
-    fun loadMore() {
+    fun goToPage(targetPage: Int) {
         val current = mutableState.value
-        if (current.isLoading || current.isRefreshing || current.isLoadingMore || !current.hasMore || listJob?.isActive == true) return
-        val nextPage = page + 1
+        if (targetPage !in 1..current.lastPage || current.isLoading || current.isRefreshing) return
         val requestGeneration = generation
-        mutableState.value = current.copy(isLoadingMore = true)
+        mutableState.value = current.copy(items = emptyList(), isLoading = true, error = null)
         listJob = viewModelScope.launch {
-            val result = try { repository.getFollowUps(nextPage) } catch (cancelled: CancellationException) { throw cancelled }
+            val result = try { repository.getFollowUps(targetPage, initialGroup) } catch (cancelled: CancellationException) { throw cancelled }
             if (generation != requestGeneration) return@launch
             when (result) {
                 is FollowUpListResult.Success -> {
                     page = result.page.currentPage
                     mutableState.value = mutableState.value.copy(
-                        items = sortByServerGroup(mutableState.value.items + result.page.items),
-                        hasMore = result.page.currentPage < result.page.lastPage,
-                        isLoadingMore = false,
+                        items = sortByServerGroup(result.page.items),
+                        currentPage = result.page.currentPage,
+                        lastPage = result.page.lastPage,
+                        isLoading = false,
+                        error = null,
                     )
                 }
-                else -> applyListError(result, append = true)
+                else -> applyListError(result)
             }
         }
     }
@@ -151,21 +156,24 @@ class FollowUpsViewModel(
 
     private fun load(refreshing: Boolean = false, keepNotice: Boolean = false) {
         listJob?.cancel()
+        syncJob?.cancel()
         generation++
         page = 1
         val requestGeneration = generation
         val notice = if (keepNotice) mutableState.value.notice else null
         val visibleItems = if (refreshing) mutableState.value.items else emptyList()
-        val visibleHasMore = refreshing && mutableState.value.hasMore
+        val visiblePage = if (refreshing) mutableState.value.currentPage else 1
+        val visibleLastPage = if (refreshing) mutableState.value.lastPage else 1
         mutableState.value = FollowUpsUiState(
             items = visibleItems,
             isLoading = !refreshing,
             isRefreshing = refreshing,
-            hasMore = visibleHasMore,
+            currentPage = visiblePage,
+            lastPage = visibleLastPage,
             notice = notice,
         )
         listJob = viewModelScope.launch {
-            val result = try { repository.getFollowUps(1) } catch (cancelled: CancellationException) { throw cancelled }
+            val result = try { repository.getFollowUps(visiblePage, initialGroup) } catch (cancelled: CancellationException) { throw cancelled }
             if (generation != requestGeneration) return@launch
             when (result) {
                 is FollowUpListResult.Success -> {
@@ -174,17 +182,24 @@ class FollowUpsViewModel(
                         items = sortByServerGroup(result.page.items),
                         isLoading = false,
                         isRefreshing = false,
-                        hasMore = result.page.currentPage < result.page.lastPage,
+                        currentPage = result.page.currentPage,
+                        lastPage = result.page.lastPage,
                         error = null,
                     )
-                    reminderCoordinator?.sync(repository)
+                    // Chỉ sync lần đầu load, không sync khi refresh để tránh chậm UI
+                    if (!initialLoaded) {
+                        initialLoaded = true
+                        syncJob = viewModelScope.launch(Dispatchers.IO) {
+                            reminderCoordinator?.sync(repository)
+                        }
+                    }
                 }
                 else -> applyListError(result)
             }
         }
     }
 
-    private fun applyListError(result: FollowUpListResult, append: Boolean = false) {
+    private fun applyListError(result: FollowUpListResult) {
         val error = when (result) {
             FollowUpListResult.SetupRequired -> FollowUpsError.SetupRequired
             FollowUpListResult.NetworkError -> FollowUpsError.Network
@@ -195,9 +210,8 @@ class FollowUpsViewModel(
         mutableState.value = mutableState.value.copy(
             isLoading = false,
             isRefreshing = false,
-            isLoadingMore = false,
             error = error,
-            items = if (append) mutableState.value.items else emptyList(),
+            items = emptyList(),
         )
     }
 

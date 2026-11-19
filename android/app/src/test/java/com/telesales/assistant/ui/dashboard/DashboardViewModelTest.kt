@@ -29,23 +29,21 @@ class DashboardViewModelTest {
         val pending = CompletableDeferred<DashboardResult>()
         val vm = create(FakeRepository { pending.await() })
         assertTrue(vm.state.value.isLoading)
-        pending.complete(DashboardResult.Success(summary(7, 4, 12, listOf(item(1, "overdue"), item(2, "today")))))
+        pending.complete(DashboardResult.Success(summary(7, 4, listOf(item(1, "overdue"), item(2, "today")))))
         advanceUntilIdle()
         assertEquals(7, vm.state.value.dashboard?.overdueCount)
         assertEquals(4, vm.state.value.dashboard?.todayCount)
-        assertEquals(12, vm.state.value.dashboard?.potentialCount)
         assertEquals(listOf(1L, 2L), vm.state.value.dashboard?.items?.map(FollowUp::id))
         assertFalse(vm.state.value.isLoading)
     }
 
-    @Test fun emptyItemsStillKeepTheThreeServerCounters() = vmTest {
-        val vm = create(FakeRepository { DashboardResult.Success(summary(2, 0, 9, emptyList())) })
+    @Test fun emptyItemsStillKeepTheServerCounters() = vmTest {
+        val vm = create(FakeRepository { DashboardResult.Success(summary(2, 0, emptyList())) })
         advanceUntilIdle()
         assertNotNull(vm.state.value.dashboard)
         assertTrue(vm.state.value.dashboard!!.items.isEmpty())
         assertEquals(2, vm.state.value.dashboard!!.overdueCount)
         assertEquals(0, vm.state.value.dashboard!!.todayCount)
-        assertEquals(9, vm.state.value.dashboard!!.potentialCount)
     }
 
     @Test fun errorCanBeRetriedAndRefreshUpdatesCounts() = vmTest {
@@ -53,15 +51,14 @@ class DashboardViewModelTest {
         val repository = FakeRepository { result }
         val vm = create(repository); advanceUntilIdle()
         assertEquals(DashboardError.Network, vm.state.value.error)
-        result = DashboardResult.Success(summary(3, 5, 8, emptyList()))
+        result = DashboardResult.Success(summary(3, 5, emptyList()))
         vm.retry(); advanceUntilIdle()
         assertNull(vm.state.value.error)
         assertEquals(3, vm.state.value.dashboard?.overdueCount)
-        result = DashboardResult.Success(summary(1, 6, 10, emptyList()))
+        result = DashboardResult.Success(summary(1, 6, emptyList()))
         vm.refresh(); advanceUntilIdle()
         assertEquals(1, vm.state.value.dashboard?.overdueCount)
         assertEquals(6, vm.state.value.dashboard?.todayCount)
-        assertEquals(10, vm.state.value.dashboard?.potentialCount)
     }
 
     @Test fun missingConfigurationShowsSetupError() = vmTest {
@@ -86,7 +83,7 @@ class DashboardViewModelTest {
     }
 
     companion object {
-        private fun summary(overdue: Int, today: Int, potential: Int, items: List<FollowUp>) = DashboardSummary(overdue, today, potential, items)
+        private fun summary(overdue: Int, today: Int, items: List<FollowUp>) = DashboardSummary(overdue, today, 0, items)
         private fun item(id: Long, group: String) = FollowUp(
             id, Instant.parse("2026-11-02T01:00:00Z"), "pending", group,
             FollowUpCustomer(10, "Công ty", null, "0900000000"), null,

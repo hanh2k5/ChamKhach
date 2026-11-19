@@ -17,6 +17,7 @@ import com.telesales.assistant.ui.customers.CustomersRoute
 import com.telesales.assistant.ui.customerform.CustomerFormRoute
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -48,7 +49,7 @@ import com.telesales.assistant.ui.navigation.AdaptiveNavigationShell
 import com.telesales.assistant.ui.components.GlassCard
 
 class MainActivity : ComponentActivity() {
-    private var reminderNavController: androidx.navigation.NavHostController? = null
+    private var onNotificationClick: ((Long) -> Unit)? = null
     @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,11 +63,32 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 val navController = rememberNavController()
-                reminderNavController = navController
                 val windowSizeClass = calculateWindowSizeClass(this@MainActivity)
                 val compact = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact
                 val initialCustomerId = intent.getLongExtra(com.telesales.assistant.reminder.NotificationHelper.EXTRA_CUSTOMER_ID, 0L)
                 var selectedCustomerId by rememberSaveable { mutableStateOf(initialCustomerId.takeIf { it > 0 }) }
+                var pendingCustomerId by rememberSaveable { mutableStateOf(initialCustomerId.takeIf { it > 0 }) }
+
+                DisposableEffect(Unit) {
+                    onNotificationClick = { id -> pendingCustomerId = id }
+                    onDispose { onNotificationClick = null }
+                }
+
+                LaunchedEffect(pendingCustomerId) {
+                    val targetId = pendingCustomerId ?: return@LaunchedEffect
+                    if (compact) {
+                        navController.navigate("customerDetail/$targetId") {
+                            launchSingleTop = true
+                        }
+                    } else {
+                        selectedCustomerId = targetId
+                        navController.navigate("customers") {
+                            launchSingleTop = true
+                        }
+                    }
+                    pendingCustomerId = null
+                }
+
                 val backStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = backStackEntry?.destination?.route
                 LaunchedEffect(initialCustomerId) {
@@ -78,46 +100,56 @@ class MainActivity : ComponentActivity() {
                 AdaptiveNavigationShell(
                     windowSizeClass = windowSizeClass,
                     selectedRoute = currentRoute,
-                    visible = currentRoute in setOf("dashboard", "customers", "followUps", "settings"),
+                    visible = currentRoute in setOf("dashboard", "settings"),
                     onNavigate = { route -> if (route != currentRoute) navController.navigate(route) { launchSingleTop = true } },
                 ) { navigationContentModifier ->
                 NavHost(
                     navController = navController,
                     modifier = navigationContentModifier,
-                    startDestination = when {
-                        initialCustomerId <= 0 -> "dashboard"
-                        compact -> "customerDetail/$initialCustomerId"
-                        else -> "customers"
-                    },
+                    startDestination = "dashboard",
                 ) {
                     composable("dashboard") {
+                        val dashboardEntry = navController.getBackStackEntry("dashboard")
+                        val shouldRefresh by dashboardEntry.savedStateHandle
+                            .getStateFlow("refreshDashboard", false)
+                            .collectAsState()
                         DashboardRoute(
                             repository = container.dashboardRepository,
-                            onSettings = { navController.navigate("settings") },
-                            onAddCustomer = { navController.navigate("customerForm/new") },
-                            onCustomers = { navController.navigate("customers") },
-                            onFollowUps = { navController.navigate("followUps") },
-                            onCustomer = { customerId ->
-                                if (compact) navController.navigate("customerDetail/$customerId")
-                                else { selectedCustomerId = customerId; navController.navigate("customers") }
-                            },
-                            onCall = { phone -> startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${Uri.encode(phone)}"))) },
                             followUpRepository = container.followUpRepository,
+                            onSettings = { navController.navigate("settings") },
+                            onOpenOverdue = { navController.navigate("followUps?group=overdue") },
+                            onOpenToday = { navController.navigate("followUps?group=today") },
+                            onOpenPotential = { navController.navigate("customers?potential=high,medium") },
+                            onAddPotential = { navController.navigate("customerForm/new") },
+                            shouldRefresh = shouldRefresh,
+                            onRefreshConsumed = { dashboardEntry.savedStateHandle["refreshDashboard"] = false },
                             reminderCoordinator = container.reminderCoordinator,
                         )
                     }
-                    composable("customers") { entry ->
+                    composable(
+                        route = "customers?potential={potential}",
+                        arguments = listOf(navArgument("potential") { nullable = true }),
+                    ) { entry ->
+                        val initialPotential = entry.arguments?.getString("potential")
+                            ?.takeUnless { it == "all" || it == "null" || it.isBlank() }
                         val shouldRefresh by entry.savedStateHandle.getStateFlow("refreshCustomers", false).collectAsState()
                         val shouldRefreshDetailPane by entry.savedStateHandle.getStateFlow("refreshCustomerDetailPane", false).collectAsState()
                         Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(if (compact) 0.dp else 12.dp)) {
                             CustomersRoute(
                                 repository = container.customerRepository,
+                                initialPotential = initialPotential,
                                 onSettings = { navController.navigate("settings") },
-                                onDashboard = { navController.popBackStack("dashboard", inclusive = false) },
+                                onDashboard = {
+                                    navController.getBackStackEntry("dashboard")
+                                        .savedStateHandle["refreshDashboard"] = true
+                                    navController.popBackStack("dashboard", inclusive = false)
+                                },
                                 onEditCustomer = { customerId ->
                                     if (compact) navController.navigate("customerDetail/$customerId")
                                     else selectedCustomerId = customerId
                                 },
+                                onCall = { phone -> startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${Uri.encode(phone)}"))) },
+                                onAddCustomer = { navController.navigate("customerForm/new") },
                                 shouldRefresh = shouldRefresh,
                                 onRefreshConsumed = { entry.savedStateHandle["refreshCustomers"] = false },
                                 modifier = Modifier.weight(if (compact) 1f else 0.44f),
@@ -168,14 +200,19 @@ class MainActivity : ComponentActivity() {
                         CustomerFormRoute(
                             repository = container.customerFormRepository,
                             customerId = customerId,
-                            onBack = { navController.popBackStack() },
+                            reminderCoordinator = container.reminderCoordinator,
+                            onBack = {
+                                runCatching { navController.getBackStackEntry("dashboard").savedStateHandle["refreshDashboard"] = true }
+                                navController.popBackStack()
+                            },
                             onOpenCustomer = { existingId ->
                                 navController.navigate("customerDetail/$existingId") {
                                     popUpTo("customers") { inclusive = false }
                                 }
                             },
                             onSettings = { navController.navigate("settings") },
-                            onSaved = {
+                            onSaved = { _ ->
+                                runCatching { navController.getBackStackEntry("dashboard").savedStateHandle["refreshDashboard"] = true }
                                 val previous = navController.previousBackStackEntry
                                 if (previous?.destination?.route?.startsWith("customerDetail/") == true) {
                                     previous.savedStateHandle["refreshCustomerDetail"] = true
@@ -220,10 +257,20 @@ class MainActivity : ComponentActivity() {
                             repository = container.callLogRepository,
                             onBack = { navController.popBackStack() },
                             onSaved = {
+                                // Dashboard tự refresh qua ON_RESUME khi user quay về — không cần set thêm
+                                // Chỉ set refreshDashboard nếu previous KHÔNG phải followUps (tức là quay thẳng về dashboard)
                                 val previous = navController.previousBackStackEntry
-                                if (previous?.destination?.route == "customers" && selectedCustomerId != null) {
-                                    previous.savedStateHandle["refreshCustomers"] = true
-                                    previous.savedStateHandle["refreshCustomerDetailPane"] = true
+                                val prevRoute = previous?.destination?.route ?: ""
+                                if (!prevRoute.startsWith("followUps") && prevRoute != "customers") {
+                                    runCatching {
+                                        navController.getBackStackEntry("dashboard").savedStateHandle["refreshDashboard"] = true
+                                    }
+                                }
+                                if (prevRoute.startsWith("followUps")) {
+                                    previous?.savedStateHandle?.set("refreshFollowUps", true)
+                                } else if (prevRoute == "customers" && selectedCustomerId != null) {
+                                    previous?.savedStateHandle?.set("refreshCustomers", true)
+                                    previous?.savedStateHandle?.set("refreshCustomerDetailPane", true)
                                 } else {
                                     previous?.savedStateHandle?.set("refreshCustomerDetail", true)
                                 }
@@ -232,24 +279,42 @@ class MainActivity : ComponentActivity() {
                             reminderCoordinator = container.reminderCoordinator,
                         )
                     }
-                    composable("followUps") {
+                    composable(
+                        route = "followUps?group={group}",
+                        arguments = listOf(navArgument("group") { defaultValue = "all" }),
+                    ) { entry ->
+                        val initialGroup = entry.arguments?.getString("group") ?: "all"
+                        val shouldRefresh by entry.savedStateHandle
+                            .getStateFlow("refreshFollowUps", false)
+                            .collectAsState()
                         FollowUpsRoute(
                             repository = container.followUpRepository,
                             onSettings = { navController.navigate("settings") },
-                            onBack = { navController.popBackStack() },
+                            onBack = {
+                                navController.getBackStackEntry("dashboard")
+                                    .savedStateHandle["refreshDashboard"] = true
+                                navController.popBackStack()
+                            },
                             onCall = { phone -> startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${Uri.encode(phone)}"))) },
+                            onCallLog = { customerId -> navController.navigate("callLog/$customerId") },
                             onCustomer = { customerId ->
                                 if (compact) navController.navigate("customerDetail/$customerId")
                                 else { selectedCustomerId = customerId; navController.navigate("customers") }
                             },
                             reminderCoordinator = container.reminderCoordinator,
+                            initialGroup = initialGroup,
+                            shouldRefresh = shouldRefresh,
+                            onRefreshConsumed = { entry.savedStateHandle["refreshFollowUps"] = false },
                         )
                     }
                     composable("settings") {
                         SettingsRoute(
                             settingsStore = container.settingsStore,
                             apiServiceFactory = container.apiServiceFactory,
-                            onBack = { navController.popBackStack() },
+                            onBack = {
+                                runCatching { navController.getBackStackEntry("dashboard").savedStateHandle["refreshDashboard"] = true }
+                                navController.popBackStack()
+                            },
                             permissionStateProvider = com.telesales.assistant.ui.settings.AndroidReminderPermissionStateProvider(this@MainActivity),
                             reminderCoordinator = container.reminderCoordinator,
                             debugBuild = (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0,
@@ -265,7 +330,8 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         val customerId = intent.getLongExtra(com.telesales.assistant.reminder.NotificationHelper.EXTRA_CUSTOMER_ID, 0L)
-        if (customerId > 0) reminderNavController?.navigate("customerDetail/$customerId")
+        if (customerId > 0) {
+            onNotificationClick?.invoke(customerId)
+        }
     }
 }
-

@@ -17,8 +17,8 @@ D5	Xóa khách	Xóa cứng qua DELETE /api/v1/customers/{id}; xóa vĩnh viễn 
 D6	Mỗi khách có tối đa 1 follow-up pending	Khi lưu cuộc gọi mới: (a) follow-up pending cũ của khách đó tự chuyển completed (vì vừa gọi xong); (b) nếu cuộc gọi có lịch mới thì tạo follow-up pending mới. Backend đảm bảo bằng transaction + khóa hàng (lockForUpdate) ở service.
 D7	"Đã xử lý" = completed; "Dời lịch" = cập nhật remind_at trên cùng một dòng, trạng thái vẫn pending; "Hủy" = cancelled.	
 D8	Nhóm lịch	overdue = pending và remind_at < now. today = pending và now ≤ remind_at ≤ cuối ngày theo Asia/Ho_Chi_Minh. upcoming = pending và sau cuối ngày hôm nay.
-D9	"Khách tiềm năng" (dashboard)	Số khách status=active có potential_level là high hoặc medium. Nhãn do người dùng chọn thủ công.
-D10	Bộ lọc danh sách khách	Lọc theo kết quả cuộc gọi gần nhất (last_result) và potential_level. Khách đã xóa không còn trong hệ thống.
+D9	"Khách tiềm năng"	Khách có mức tiềm năng `high`, `medium`, `low` hoặc `unrated`; form cho phép chọn `high` hoặc `medium`. Danh sách khách không hiển thị bộ lọc tiềm năng.
+D10	Bộ lọc danh sách khách	Lọc theo kết quả cuộc gọi gần nhất (last_result). Khách đã xóa không còn trong hệ thống.
 D11	Ngày giờ gọi (contacted_at)	Do server gán bằng thời điểm nhận request (đúng SRS). Không cho client gửi.
 D12	Kết quả "Hẹn gọi lại" mà không chọn giờ	App hiện hộp thoại: "Chọn lịch" hoặc "Lưu không có lịch". Backend vẫn chấp nhận (không bắt buộc có lịch).
 D13	Thời gian	DB và API dùng UTC. Giao diện hiển thị và "hôm nay" tính theo Asia/Ho_Chi_Minh.
@@ -87,7 +87,7 @@ telesales-assistant/
 │   └── VERSIONS.md        # phiên bản đã ghim
 ├── backend/               # Laravel
 │   ├── app/
-│   │   ├── Enums/         # CallResult, NeedType, PotentialLevel, CustomerStatus, FollowUpStatus
+│   │   ├── Enums/         # CallResult, NeedType, CustomerStatus, FollowUpStatus
 │   │   ├── Http/
 │   │   │   ├── Controllers/Api/
 │   │   │   ├── Requests/
@@ -136,8 +136,7 @@ NeedType	website	Website
 	software	Phần mềm
 	ads	Ads
 	other	Chưa xác định/Khác
-PotentialLevel	high / medium / low / unrated	Cao / Vừa / Thấp / Chưa đánh giá
-Customer	Không có trạng thái lưu trữ; xóa khách bằng thao tác xóa cứng
+Customer	Trường `potential_level` (high / medium / low / unrated); không có trạng thái lưu trữ; xóa khách bằng thao tác xóa cứng
 FollowUpStatus	pending / completed / cancelled	—
 5.2 Chuẩn hóa số điện thoại (PhoneNormalizer)
 Cắt khoảng trắng; bỏ mọi ký tự không phải số, trừ dấu + ở đầu.
@@ -153,7 +152,7 @@ Tính khi truy vấn (withCount, withMax, subquery), KHÔNG lưu cột tổng h�
 Sửa hồ sơ khách không bao giờ làm đổi/xóa interaction.
 5.4 Interaction
 Bất biến: không có API sửa/xóa interaction trong MVP.
-needs: mảng 0..5 giá trị NeedType, không trùng. Nếu để trống, app mặc định chọn other trước khi gửi (backend vẫn chấp nhận mảng rỗng thì lưu rỗng). Quyết định: backend yêu cầu ít nhất 1 giá trị (422 nếu rỗng) cho khớp "Chưa xác định/Khác".
+needs: Interaction nhu c?u l? m?ng 0..5 gi? tr? NeedType. M?ng r?ng ho?c kh?ng g?i ???c ch?p nh?n v? l?u r?ng; k?t qu? kh?ng g?i s? m?c ??nh l? contacted.
 note: tối đa 500 ký tự, tùy chọn.
 5.5 Follow-up — máy trạng thái
 (create) → pending ──complete──▶ completed
@@ -182,7 +181,6 @@ phone_normalized	varchar(16)	UNIQUE
 address	varchar(500) null	
 industry	varchar(255) null	
 source	varchar(255) null	
-potential_level	varchar(16) default unrated	enum
 status	varchar(16) default active	enum, index
 created_at, updated_at	datetime	
 
@@ -234,8 +232,9 @@ Lỗi (định dạng thống nhất):
 422: { "message": "...", "errors": { "phone": ["..."] } }
 500: { "message": "Server error." } (không lộ stacktrace; APP_DEBUG=false ở production)
 7.1 Customers
+H? s? kh?ch c? `active_since` (string nullable), `industry` (string nullable, c?t ?? t?n t?i) v? `needs` (m?ng gi? tr? NeedType nullable, l?u JSON trong c?t TEXT). `needs` h? s? l? nhu c?u ?? khai th?c; kh?c v?i `interaction_needs` c?a t?ng cu?c g?i.
 
-GET /api/v1/customers?q=&potential=&last_result=&page=&per_page=
+GET /api/v1/customers?q=&last_result=&page=&per_page=
 
 q: tìm theo company_name, contact_name (LIKE, escape % _) và phone_normalized (nếu q chứa số thì chuẩn hóa nhẹ rồi LIKE).
 Sắp xếp: last_contacted_at giảm dần (null cuối), rồi id giảm dần.
@@ -247,7 +246,6 @@ json
   "contact_name": "Chị Lan",
   "phone": "0912 345 678",
   "industry": "Thời trang",
-  "potential_level": "medium",
   "status": "active",
   "interaction_count": 3,
   "last_contacted_at": "2026-10-29T03:15:00+00:00",
@@ -258,12 +256,12 @@ POST /api/v1/customers → 201
 
 json
 { "company_name": "...", "contact_name": "...", "phone": "0912345678",
-  "address": "...", "industry": "...", "source": "...", "potential_level": "unrated" }
+  "address": "...", "active_since": "...", "industry": "...", "needs": ["website", "ads"], "source": "..." }
 Chỉ phone bắt buộc. Trùng phone_normalized → 409 DUPLICATE_PHONE kèm existing_customer_id.
 
 GET /api/v1/customers/{id} → chi tiết = đầy đủ trường hồ sơ + interaction_count, last_contacted_at, last_result, next_follow_up (follow-up pending hoặc null: {id, remind_at}).
 
-PATCH /api/v1/customers/{id} → cập nhật một phần các trường hồ sơ và potential_level.
+PATCH /api/v1/customers/{id} → cập nhật một phần các trường hồ sơ.
 
 Đổi phone trùng người khác → 409.
 DELETE /api/v1/customers/{id} → xóa vĩnh viễn khách và toàn bộ interactions, interaction_needs, follow_ups liên quan trong cùng transaction (khóa ngoại cascade). Trả deleted_follow_up_ids để app hủy báo thức cục bộ. Không thể hoàn tác.
@@ -283,7 +281,7 @@ json
   "note": "Hẹn gọi lại chiều mai",
   "follow_up": { "remind_at": "2026-10-31T07:00:00+00:00" }
 }
-follow_up tùy chọn (bỏ hẳn hoặc null nếu không có lịch).
+`result` may be omitted and defaults to `contacted`; `needs` may be omitted or empty and defaults to `[]`. `follow_up` is optional (omit or null when no schedule).
 Khách không tồn tại (đã bị xóa) → 404.
 Response:
 json
@@ -319,7 +317,7 @@ Trả follow-up sau cập nhật. reschedule yêu cầu remind_at tương lai (D
 GET /api/v1/dashboard
 
 json
-{ "overdue_count": 2, "today_count": 5, "potential_count": 8,
+{ "overdue_count": 2, "today_count": 5,
   "items": [ /* tối đa 20 follow-up pending: quá hạn trước, sau đó theo remind_at, cùng cấu trúc item follow-up */ ] }
 7.5 Ghi chú bảo mật
 Chỉ HTTPS ở môi trường thật; không log token/số điện thoại ở mức info trên production.
@@ -349,19 +347,19 @@ DTO (@Serializable) tách khỏi domain model; mapper rõ ràng. Json { ignoreUn
 Thời gian: dùng java.time (Instant, ZonedDateTime, ZoneId.of("Asia/Ho_Chi_Minh")). Bọc Clock để test.
 9.2 Màn hình (khớp SRS S-01..S-05 + Cài đặt)
 Màn	Nội dung chính	Ghi chú
-Dashboard	3 thẻ (Quá hạn, Hôm nay, Tiềm năng), danh sách việc, nút thêm khách và mở danh sách khách	Pull-to-refresh
-Danh sách khách	Tên công ty, người liên hệ, SĐT, ngành, ngày gọi gần nhất; ô tìm kiếm (debounce 300ms); bộ lọc	Tải thêm khi cuộn hết (page++)
+Dashboard	Trang chủ tối giản, hiển thị biểu đồ Quá hạn và Hôm nay; chạm mỗi cột để mở thẳng chức năng tương ứng	Pull-to-refresh cập nhật tổng quan; điều hướng chính Dashboard và Cài đặt
+Danh sách khách	Mở từ các luồng công việc; tên, SĐT, ô tìm kiếm (debounce 300ms), bộ lọc và tải thêm khi cuộn	Bấm khách mở Chi tiết
 Chi tiết khách	Hồ sơ, tổng hợp, timeline, nút Gọi (ACTION_DIAL), nút Ghi nhận cuộc gọi, sửa, xóa vĩnh viễn	Xóa cần xác nhận rõ không thể hoàn tác
 Form khách	Thêm/sửa; khi gặp 409 hiện hộp thoại "Số này đã có — Mở hồ sơ cũ / Sửa lại"	Chỉ SĐT bắt buộc
-Ghi nhận cuộc gọi	Tên + SĐT hiển thị sẵn, nút chọn nhanh kết quả (1 lựa chọn), chip nhu cầu (nhiều lựa chọn), ghi chú 1 dòng, chọn ngày giờ gọi lại tùy chọn, nút Lưu lớn	Mục tiêu 10–15 giây; khóa nút Lưu khi đang gửi (chống bấm đúp)
-Lịch cần gọi	Nhóm Quá hạn / Hôm nay-Sắp tới; mỗi mục có Gọi, Đã xử lý, Dời lịch	
+Ghi nh?n cu?c g?i	T?n + S?T, ghi ch? v? l?ch g?i l?i t?y ch?n; kh?ng y?u c?u ch?n k?t qu? hay nhu c?u.
+Lịch cần gọi	Mở thẳng từ ô Quá hạn hoặc Hôm nay, nhóm Quá hạn / Hôm nay-Sắp tới; mỗi mục có Gọi, Đã xử lý, Dời lịch	
 Cài đặt	Base URL, Token, kiểm tra kết nối, trạng thái quyền thông báo và báo thức chính xác (nút đi tới cài đặt hệ thống)	
 
 Tất cả danh sách/chi tiết phải có đủ 4 trạng thái: loading, empty, error, retry (dùng component dùng chung).
 
 9.3 Mở trình gọi
 
-Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + Uri.encode(phone))) — không cần quyền CALL_PHONE. Người dùng tự bấm gọi.
+ACTION_DIAL only opens the phone app with the customer's number. The user records the call and its note afterward through Ghi nhận cuộc gọi; this avoids logging a call before it is actually completed. The Interaction API assigns contacted_at on the server under D11.
 
 9.4 Cấu hình mạng
 Emulator truy cập máy host qua http://10.0.2.2:<port>. Điện thoại thật: dùng IP LAN của máy chạy backend (php artisan serve --host=0.0.0.0) hoặc adb reverse tcp:8000 tcp:8000 rồi dùng http://127.0.0.1:8000.
@@ -382,7 +380,7 @@ Không dùng USE_EXACT_ALARM (chỉ dành cho app báo thức/lịch theo chính
 Nếu chưa có quyền báo thức chính xác: dùng setAndAllowWhileIdle (không chính xác tuyệt đối) và hiện cảnh báo + nút dẫn tới Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM ở màn Cài đặt.
 Nếu người dùng tắt thông báo: app vẫn lưu lịch bình thường, hiện banner giải thích và nút mở cài đặt thông báo.
 10.2 Thành phần
-NotificationHelper: tạo notification channel (reminders, importance HIGH) khi app khởi động; dựng notification (tiêu đề "Gọi lại: <tên khách>", nội dung giờ hẹn + ghi chú, nhấn mở thẳng chi tiết khách).
+NotificationHelper: title "G?i l?i: <customer name> - <phone>", body "Ghi ch?: <note from previous call>"; tapping opens that customer detail and its timeline.
 ReminderScheduler (interface + bản triển khai dùng AlarmManager): schedule(reminder), cancel(followUpId). requestCode = followUpId (đảm bảo đặt lại cùng id thì thay thế, không nhân đôi). PendingIntent dùng FLAG_IMMUTABLE | FLAG_UPDATE_CURRENT.
 ReminderReceiver: nhận alarm → kiểm tra trong Room còn tồn tại và chưa notified → hiện notification → đánh dấu notified.
 BootReceiver: sau BOOT_COMPLETED/MY_PACKAGE_REPLACED đọc Room, đặt lại các báo thức tương lai; báo thức đã quá giờ mà chưa notified → hiện notification ngay một lần ("Lịch bị lỡ").
@@ -403,7 +401,7 @@ Backend (PHPUnit/Pest, DB MySQL riêng telesales_test, RefreshDatabase)
 Unit: PhoneNormalizer (nhiều trường hợp), BusinessTime (ranh giới 00:00 và 23:59 Asia/Ho_Chi_Minh, đổi sang UTC đúng).
 Feature:
 Customers: tạo thành công; thiếu phone → 422; trùng phone (kể cả viết khác dạng +84…) → 409 + existing_customer_id; sửa thành phone trùng → 409; tìm kiếm theo tên và SĐT; lọc; DELETE xóa customer, interactions, interaction_needs, follow_ups và trả 404 khi truy cập lại.
-Interactions: tạo → interaction_count tăng đúng 1, last_contacted_at cập nhật; bản ghi cũ không đổi; thứ tự mới nhất trước; needs rỗng → 422; khách đã xóa → 404; remind_at quá khứ → 422; tạo mới tự hoàn thành follow-up cũ (D6); lỗi giữa chừng → rollback toàn bộ.
+Interactions: empty needs arrays are accepted and stored empty; omitted result defaults to contacted; customer is 404 if deleted; remind_at in the past is 422; D6 completes old pending follow-ups.
 Follow-ups: complete/cancel/reschedule; thao tác lên follow-up đã kết thúc → 409; phân nhóm overdue/today/upcoming đúng ở ranh giới (dùng Carbon::setTestNow).
 Dashboard: đếm đúng ba số liệu.
 Auth: thiếu/sai token → 401 JSON (kể cả thiếu header Accept).
@@ -602,3 +600,9 @@ Mẫu docs/PROGRESS.md
 16. Hàng rào phạm vi (để agent không tự mở rộng)
 
 Không làm trong MVP (trừ khi người dùng yêu cầu bằng văn bản): AI/chatbot, tự nhận diện cuộc gọi, đọc nhật ký cuộc gọi, ghi âm, chuyển giọng nói thành văn bản, đồng bộ nhiều nhân viên/phân quyền, Zalo/SMS/email/tổng đài, báo cáo doanh thu/KPI, offline sync, nhiều số điện thoại/khách, sửa/xóa interaction, nhắc lặp lại, widget, dark-mode tinh chỉnh, đa ngôn ngữ.
+
+## UI visual hierarchy update (2026-11-03)
+
+- Dashboard uses a compact two-series bar chart for overdue and due-today follow-ups.
+- Customer detail emphasizes contact summary and interaction count; customer form groups profile fields and needs; call logging separates the customer identity, note, and reminder; Settings presents permission status as two clear badges and groups connection controls.
+- These are presentation-only changes. API calls, state transitions, and navigation behavior remain unchanged.

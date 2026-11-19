@@ -1,0 +1,716 @@
+Subject: Input dispatching timed out (50f5180 com.telesales.assistant/com.telesales.assistant.MainActivity is not responding. Waited 5001ms for FocusEvent(hasFocus=true)).
+Timeout: 5001
+TimeoutStart: 58538414
+RssHwmKb: 204640
+RssKb: 202204
+RssAnonKb: 94744
+RssShmemKb: 12616
+VmSwapKb: 0
+BaseFsVerity: false
+
+
+--- CriticalEventLog ---
+capacity: 20
+events <
+  timestamp_ms: 58319050
+  native_crash <
+    pid: 21319
+    process: "com.google.android.bluetooth"
+    process_class: 2
+    uid: 1002
+  >
+>
+events <
+  timestamp_ms: 58329011
+  anr <
+    pid: 1106
+    process: "com.android.systemui"
+    process_class: 2
+    subject: "Input dispatching timed out ([Gesture Monitor] edge-swipe is not responding. Waited 5002ms for MotionEvent)."
+    uid: 10199
+  >
+>
+events <
+  timestamp_ms: 58345704
+  native_crash <
+    pid: 3590
+    process: "com.google.android.dialer"
+    process_class: 2
+    uid: 10151
+  >
+>
+events <
+  timestamp_ms: 58389968
+  anr <
+    pid: 21292
+    process: "com.telesales.assistant"
+    process_class: 1
+    subject: "Broadcast of Intent { act=android.intent.action.BOOT_COMPLETED flg=0x9000030 pkg=com.telesales.assistant cmp=com.telesales.assistant/.reminder.BootReceiver (has extras) }"
+    uid: 10235
+  >
+>
+timestamp_ms: 58543439
+window_ms: 300000
+
+----- dumping pid: 21688 at 58543423
+libdebuggerd_client: tombstoned reported failure: 
+
+----- Waiting Channels: pid 21688 at 2026-11-10 11:54:48.346866900+0700 -----
+Cmd line: com.telesales.assistant
+
+sysTid=21688     futex_wait
+sysTid=21690     do_sigtimedwait
+sysTid=21691     pipe_read
+sysTid=21692     do_sys_poll
+sysTid=21694     futex_wait
+sysTid=21695     futex_wait
+sysTid=21696     futex_wait
+sysTid=21697     futex_wait
+sysTid=21698     futex_wait
+sysTid=21699     binder_ioctl_write_read
+sysTid=21700     binder_ioctl_write_read
+sysTid=21701     binder_ioctl_write_read
+sysTid=21702     get_unused_fd_flags
+sysTid=21703     futex_wait
+sysTid=21704     futex_wait
+sysTid=21705     futex_wait
+sysTid=21706     __wait_rcu_gp
+sysTid=21707     do_sys_poll
+sysTid=21709     futex_wait
+sysTid=21710     futex_wait
+sysTid=21711     futex_wait
+sysTid=21712     futex_wait
+sysTid=21714     do_epoll_wait
+
+----- end 21688 -----
+
+libdebuggerd_client: failed to read status response from tombstoned: Try again
+
+----- Waiting Channels: pid 21688 at 2026-11-10 11:54:58.443199700+0700 -----
+Cmd line: com.telesales.assistant
+
+sysTid=21688     futex_wait
+sysTid=21690     get_unused_fd_flags
+sysTid=21691     pipe_read
+sysTid=21692     do_sys_poll
+sysTid=21694     futex_wait
+sysTid=21695     futex_wait
+sysTid=21696     futex_wait
+sysTid=21697     futex_wait
+sysTid=21698     futex_wait
+sysTid=21699     binder_ioctl_write_read
+sysTid=21700     binder_ioctl_write_read
+sysTid=21701     binder_ioctl_write_read
+sysTid=21702     get_unused_fd_flags
+sysTid=21703     futex_wait
+sysTid=21704     futex_wait
+sysTid=21705     futex_wait
+sysTid=21706     __wait_rcu_gp
+sysTid=21707     do_sys_poll
+sysTid=21709     futex_wait
+sysTid=21710     futex_wait
+sysTid=21711     futex_wait
+sysTid=21712     futex_wait
+sysTid=21714     do_epoll_wait
+
+----- end 21688 -----
+
+DurationsV5: 58543420,1,1,1,24,24,3,349,2,0,0,0,0,0,0,1,13115,1,1,13090,4,1,0,0,3
+
+----- dumping pid: 755 at 58556539
+proc 755
+context hwbinder
+  buffer 12510: 8 size 8:0:0 delivered
+  buffer 14811: 18 size 8:0:0 delivered
+  buffer 142739: 20 size 1884:272:1816 delivered
+libdebuggerd_client: failed to read status response from tombstoned: Try again
+
+----- Waiting Channels: pid 755 at 2026-11-10 11:55:01.463451700+0700 -----
+Cmd line: system_server
+
+sysTid=755       do_epoll_wait
+sysTid=769       do_sigtimedwait
+sysTid=770       pipe_read
+sysTid=771       futex_wait
+sysTid=772       futex_wait
+sysTid=774       futex_wait
+sysTid=775       futex_wait
+sysTid=776       futex_wait
+sysTid=778       binder_ioctl_write_read
+sysTid=779       futex_wait
+sysTid=780       do_sys_poll
+sysTid=783       do_epoll_wait
+sysTid=784       do_epoll_wait
+sysTid=785       do_epoll_wait
+sysTid=786       do_epoll_wait
+sysTid=787       do_epoll_wait
+sysTid=788       do_epoll_wait
+sysTid=789       do_epoll_wait
+sysTid=790       futex_wait
+sysTid=793       do_epoll_wait
+sysTid=794       do_epoll_wait
+sysTid=795       do_epoll_wait
+sysTid=796       do_epoll_wait
+sysTid=797       do_epoll_wait
+sysTid=799       do_epoll_wait
+sysTid=800       do_epoll_wait
+sysTid=801       do_epoll_wait
+sysTid=802       do_epoll_wait
+sysTid=803       do_wait_intr_irq
+sysTid=804       do_epoll_wait
+sysTid=805       futex_wait
+sysTid=806       futex_wait
+sysTid=807       do_epoll_wait
+sysTid=808       do_epoll_wait
+sysTid=809       do_epoll_wait
+sysTid=810       wait_woken
+sysTid=813       futex_wait
+sysTid=814       do_epoll_wait
+sysTid=815       do_epoll_wait
+sysTid=816       futex_wait
+sysTid=817       futex_wait
+sysTid=818       futex_wait
+sysTid=819       do_epoll_wait
+sysTid=820       do_epoll_wait
+sysTid=821       futex_wait
+sysTid=823       do_epoll_wait
+sysTid=824       do_epoll_wait
+sysTid=825       do_epoll_wait
+sysTid=827       do_epoll_wait
+sysTid=862       do_epoll_wait
+sysTid=865       do_epoll_wait
+sysTid=867       binder_ioctl_write_read
+sysTid=868       binder_ioctl_write_read
+sysTid=871       do_epoll_wait
+sysTid=883       futex_wait
+sysTid=888       do_epoll_wait
+sysTid=889       do_epoll_wait
+sysTid=890       futex_wait
+sysTid=891       do_epoll_wait
+sysTid=892       do_epoll_wait
+sysTid=895       do_epoll_wait
+sysTid=896       do_epoll_wait
+sysTid=897       futex_wait
+sysTid=900       do_epoll_wait
+sysTid=903       do_epoll_wait
+sysTid=906       do_epoll_wait
+sysTid=907       do_epoll_wait
+sysTid=908       do_epoll_wait
+sysTid=909       do_epoll_wait
+sysTid=910       futex_wait
+sysTid=911       do_epoll_wait
+sysTid=913       do_epoll_wait
+sysTid=914       futex_wait
+sysTid=916       do_epoll_wait
+sysTid=917       do_epoll_wait
+sysTid=918       do_epoll_wait
+sysTid=919       binder_ioctl_write_read
+sysTid=920       binder_ioctl_write_read
+sysTid=923       do_epoll_wait
+sysTid=924       do_epoll_wait
+sysTid=925       do_epoll_wait
+sysTid=926       futex_wait
+sysTid=927       do_epoll_wait
+sysTid=928       do_epoll_wait
+sysTid=929       do_epoll_wait
+sysTid=932       futex_wait
+sysTid=933       do_epoll_wait
+sysTid=934       do_epoll_wait
+sysTid=935       do_epoll_wait
+sysTid=938       do_epoll_wait
+sysTid=942       do_epoll_wait
+sysTid=944       do_epoll_wait
+sysTid=949       do_epoll_wait
+sysTid=959       do_epoll_wait
+sysTid=969       do_epoll_wait
+sysTid=970       do_epoll_wait
+sysTid=971       do_epoll_wait
+sysTid=976       do_epoll_wait
+sysTid=977       do_epoll_wait
+sysTid=978       binder_ioctl_write_read
+sysTid=979       do_epoll_wait
+sysTid=980       do_epoll_wait
+sysTid=981       do_epoll_wait
+sysTid=986       do_epoll_wait
+sysTid=989       do_epoll_wait
+sysTid=990       do_epoll_wait
+sysTid=991       do_epoll_wait
+sysTid=992       do_epoll_wait
+sysTid=993       do_epoll_wait
+sysTid=994       do_epoll_wait
+sysTid=995       do_epoll_wait
+sysTid=996       do_epoll_wait
+sysTid=997       do_epoll_wait
+sysTid=998       do_epoll_wait
+sysTid=999       do_epoll_wait
+sysTid=1000      do_epoll_wait
+sysTid=1001      do_epoll_wait
+sysTid=1006      futex_wait
+sysTid=1007      do_epoll_wait
+sysTid=1008      do_epoll_wait
+sysTid=1010      do_epoll_wait
+sysTid=1011      do_epoll_wait
+sysTid=1012      do_epoll_wait
+sysTid=1014      do_epoll_wait
+sysTid=1015      do_epoll_wait
+sysTid=1016      futex_wait
+sysTid=1017      futex_wait
+sysTid=1018      do_epoll_wait
+sysTid=1019      do_epoll_wait
+sysTid=1020      do_sys_poll
+sysTid=1023      do_epoll_wait
+sysTid=1025      do_epoll_wait
+sysTid=1026      do_epoll_wait
+sysTid=1027      do_epoll_wait
+sysTid=1028      do_epoll_wait
+sysTid=1029      do_epoll_wait
+sysTid=1032      futex_wait
+sysTid=1033      futex_wait
+sysTid=1034      do_epoll_wait
+sysTid=1035      do_epoll_wait
+sysTid=1036      do_epoll_wait
+sysTid=1038      do_epoll_wait
+sysTid=1045      do_epoll_wait
+sysTid=1049      do_epoll_wait
+sysTid=1050      do_epoll_wait
+sysTid=1051      do_epoll_wait
+sysTid=1052      do_epoll_wait
+sysTid=1054      do_epoll_wait
+sysTid=1055      do_epoll_wait
+sysTid=1056      do_epoll_wait
+sysTid=1057      do_epoll_wait
+sysTid=1058      do_epoll_wait
+sysTid=1059      do_epoll_wait
+sysTid=1060      do_epoll_wait
+sysTid=1061      do_epoll_wait
+sysTid=1062      futex_wait
+sysTid=1064      do_epoll_wait
+sysTid=1065      vsock_connectible_wait_data
+sysTid=1066      do_epoll_wait
+sysTid=1067      futex_wait
+sysTid=1068      binder_ioctl_write_read
+sysTid=1069      do_epoll_wait
+sysTid=1072      futex_wait
+sysTid=1078      futex_wait
+sysTid=1081      do_epoll_wait
+sysTid=1083      do_epoll_wait
+sysTid=1087      do_epoll_wait
+sysTid=1089      do_epoll_wait
+sysTid=1090      do_epoll_wait
+sysTid=1092      do_epoll_wait
+sysTid=1094      futex_wait
+sysTid=1095      do_epoll_wait
+sysTid=1096      do_epoll_wait
+sysTid=1102      futex_wait
+sysTid=1104      do_epoll_wait
+sysTid=1105      futex_wait
+sysTid=1120      skb_recv_datagram
+sysTid=1123      do_epoll_wait
+sysTid=1145      futex_wait
+sysTid=1148      futex_wait
+sysTid=1155      futex_wait
+sysTid=1156      futex_wait
+sysTid=1194      binder_ioctl_write_read
+sysTid=1201      do_epoll_wait
+sysTid=1241      binder_ioctl_write_read
+sysTid=1244      __wait_rcu_gp
+sysTid=1245      binder_ioctl_write_read
+sysTid=1246      binder_ioctl_write_read
+sysTid=1355      binder_ioctl_write_read
+sysTid=1369      do_epoll_wait
+sysTid=1376      do_epoll_wait
+sysTid=1377      do_epoll_wait
+sysTid=1378      do_epoll_wait
+sysTid=1379      do_epoll_wait
+sysTid=1380      do_epoll_wait
+sysTid=1381      do_epoll_wait
+sysTid=1382      do_epoll_wait
+sysTid=1387      do_epoll_wait
+sysTid=1404      binder_ioctl_write_read
+sysTid=1407      binder_ioctl_write_read
+sysTid=1545      futex_wait
+sysTid=1613      binder_ioctl_write_read
+sysTid=1637      futex_wait
+sysTid=1643      do_epoll_wait
+sysTid=1647      __skb_wait_for_more_packets
+sysTid=1650      futex_wait
+sysTid=1651      futex_wait
+sysTid=1652      futex_wait
+sysTid=1653      do_epoll_wait
+sysTid=1660      futex_wait
+sysTid=1661      futex_wait
+sysTid=1662      futex_wait
+sysTid=1663      futex_wait
+sysTid=1664      do_epoll_wait
+sysTid=1665      futex_wait
+sysTid=1666      do_epoll_wait
+sysTid=1714      do_epoll_wait
+sysTid=1774      do_epoll_wait
+sysTid=1788      binder_ioctl_write_read
+sysTid=1791      futex_wait
+sysTid=1792      futex_wait
+sysTid=1802      futex_wait
+sysTid=1803      futex_wait
+sysTid=1804      futex_wait
+sysTid=1826      futex_wait
+sysTid=1830      futex_wait
+sysTid=1831      futex_wait
+sysTid=1833      futex_wait
+sysTid=1834      futex_wait
+sysTid=1835      futex_wait
+sysTid=1836      futex_wait
+sysTid=1872      do_epoll_wait
+sysTid=1918      futex_wait
+sysTid=1948      futex_wait
+sysTid=1949      binder_ioctl_write_read
+sysTid=1975      binder_ioctl_write_read
+sysTid=2104      binder_ioctl_write_read
+sysTid=2143      futex_wait
+sysTid=2146      do_epoll_wait
+sysTid=2149      do_epoll_wait
+sysTid=2156      binder_ioctl_write_read
+sysTid=2157      binder_ioctl_write_read
+sysTid=2158      binder_ioctl_write_read
+sysTid=2159      binder_ioctl_write_read
+sysTid=2161      binder_ioctl_write_read
+sysTid=2162      binder_ioctl_write_read
+sysTid=2163      binder_ioctl_write_read
+sysTid=2202      do_epoll_wait
+sysTid=2251      binder_ioctl_write_read
+sysTid=2291      binder_ioctl_write_read
+sysTid=2294      binder_ioctl_write_read
+sysTid=2295      binder_ioctl_write_read
+sysTid=2296      binder_ioctl_write_read
+sysTid=2297      binder_ioctl_write_read
+sysTid=2384      futex_wait
+sysTid=2395      futex_wait
+sysTid=2944      futex_wait
+sysTid=4637      binder_ioctl_write_read
+sysTid=4864      futex_wait
+sysTid=5218      futex_wait
+sysTid=5227      futex_wait
+sysTid=5228      futex_wait
+sysTid=5229      futex_wait
+sysTid=5230      futex_wait
+sysTid=5236      futex_wait
+sysTid=7695      binder_ioctl_write_read
+sysTid=8419      futex_wait
+sysTid=4669      futex_wait
+sysTid=4670      futex_wait
+sysTid=4715      futex_wait
+sysTid=5180      futex_wait
+sysTid=8138      futex_wait
+sysTid=8444      futex_wait
+sysTid=17747     futex_wait
+sysTid=17748     do_epoll_wait
+sysTid=17749     futex_wait
+sysTid=17772     futex_wait
+sysTid=17774     futex_wait
+sysTid=17775     futex_wait
+sysTid=17888     futex_wait
+sysTid=20803     futex_wait
+sysTid=20804     futex_wait
+sysTid=20805     do_epoll_wait
+sysTid=21720     futex_wait
+sysTid=21721     0
+
+----- end 755 -----
+
+proc 755
+context hwbinder
+  buffer 12510: 8 size 8:0:0 delivered
+  buffer 14811: 18 size 8:0:0 delivered
+  buffer 142739: 20 size 1884:272:1816 delivered
+libdebuggerd_client: failed to read status response from tombstoned: Try again
+
+----- Waiting Channels: pid 755 at 2026-11-10 11:55:07.996836600+0700 -----
+Cmd line: system_server
+
+sysTid=755       do_epoll_wait
+sysTid=769       __se_sys_nanosleep
+sysTid=770       pipe_read
+sysTid=771       futex_wait
+sysTid=772       futex_wait
+sysTid=774       futex_wait
+sysTid=775       futex_wait
+sysTid=776       futex_wait
+sysTid=778       binder_ioctl_write_read
+sysTid=779       futex_wait
+sysTid=780       do_sys_poll
+sysTid=783       do_epoll_wait
+sysTid=784       do_epoll_wait
+sysTid=785       do_epoll_wait
+sysTid=786       do_epoll_wait
+sysTid=787       do_epoll_wait
+sysTid=788       do_epoll_wait
+sysTid=789       do_epoll_wait
+sysTid=790       futex_wait
+sysTid=793       do_epoll_wait
+sysTid=794       do_epoll_wait
+sysTid=795       do_epoll_wait
+sysTid=796       do_epoll_wait
+sysTid=797       do_epoll_wait
+sysTid=799       do_epoll_wait
+sysTid=800       do_epoll_wait
+sysTid=801       do_epoll_wait
+sysTid=802       do_epoll_wait
+sysTid=803       do_wait_intr_irq
+sysTid=804       do_epoll_wait
+sysTid=805       futex_wait
+sysTid=806       futex_wait
+sysTid=807       do_epoll_wait
+sysTid=808       do_epoll_wait
+sysTid=809       do_epoll_wait
+sysTid=810       wait_woken
+sysTid=813       futex_wait
+sysTid=814       do_epoll_wait
+sysTid=815       do_epoll_wait
+sysTid=816       futex_wait
+sysTid=817       futex_wait
+sysTid=818       futex_wait
+sysTid=819       do_epoll_wait
+sysTid=820       do_epoll_wait
+sysTid=821       futex_wait
+sysTid=823       do_epoll_wait
+sysTid=824       do_epoll_wait
+sysTid=825       do_epoll_wait
+sysTid=827       do_epoll_wait
+sysTid=862       do_epoll_wait
+sysTid=865       do_epoll_wait
+sysTid=867       binder_ioctl_write_read
+sysTid=868       binder_ioctl_write_read
+sysTid=871       do_epoll_wait
+sysTid=883       futex_wait
+sysTid=888       do_epoll_wait
+sysTid=889       do_epoll_wait
+sysTid=890       futex_wait
+sysTid=891       do_epoll_wait
+sysTid=892       do_epoll_wait
+sysTid=895       do_epoll_wait
+sysTid=896       do_epoll_wait
+sysTid=897       futex_wait
+sysTid=900       do_epoll_wait
+sysTid=903       do_epoll_wait
+sysTid=906       do_epoll_wait
+sysTid=907       do_epoll_wait
+sysTid=908       do_epoll_wait
+sysTid=909       do_epoll_wait
+sysTid=910       futex_wait
+sysTid=911       do_epoll_wait
+sysTid=913       do_epoll_wait
+sysTid=914       futex_wait
+sysTid=916       do_epoll_wait
+sysTid=917       do_epoll_wait
+sysTid=918       do_epoll_wait
+sysTid=919       binder_ioctl_write_read
+sysTid=920       binder_ioctl_write_read
+sysTid=923       do_epoll_wait
+sysTid=924       do_epoll_wait
+sysTid=925       do_epoll_wait
+sysTid=926       futex_wait
+sysTid=927       do_epoll_wait
+sysTid=928       do_epoll_wait
+sysTid=929       do_epoll_wait
+sysTid=932       futex_wait
+sysTid=933       do_epoll_wait
+sysTid=934       do_epoll_wait
+sysTid=935       do_epoll_wait
+sysTid=938       do_epoll_wait
+sysTid=942       do_epoll_wait
+sysTid=944       do_epoll_wait
+sysTid=949       do_epoll_wait
+sysTid=959       do_epoll_wait
+sysTid=969       do_epoll_wait
+sysTid=970       do_epoll_wait
+sysTid=971       futex_wait
+sysTid=976       do_epoll_wait
+sysTid=977       do_epoll_wait
+sysTid=978       binder_ioctl_write_read
+sysTid=979       do_epoll_wait
+sysTid=980       do_epoll_wait
+sysTid=981       do_epoll_wait
+sysTid=986       do_epoll_wait
+sysTid=989       do_epoll_wait
+sysTid=990       do_epoll_wait
+sysTid=991       do_epoll_wait
+sysTid=992       do_epoll_wait
+sysTid=993       do_epoll_wait
+sysTid=994       do_epoll_wait
+sysTid=995       do_epoll_wait
+sysTid=996       do_epoll_wait
+sysTid=997       do_epoll_wait
+sysTid=998       do_epoll_wait
+sysTid=999       do_epoll_wait
+sysTid=1000      do_epoll_wait
+sysTid=1001      do_epoll_wait
+sysTid=1006      futex_wait
+sysTid=1007      do_epoll_wait
+sysTid=1008      do_epoll_wait
+sysTid=1010      do_epoll_wait
+sysTid=1011      do_epoll_wait
+sysTid=1012      do_epoll_wait
+sysTid=1014      do_epoll_wait
+sysTid=1015      do_epoll_wait
+sysTid=1016      futex_wait
+sysTid=1017      futex_wait
+sysTid=1018      do_epoll_wait
+sysTid=1019      do_epoll_wait
+sysTid=1020      do_sys_poll
+sysTid=1023      do_epoll_wait
+sysTid=1025      do_epoll_wait
+sysTid=1026      do_epoll_wait
+sysTid=1027      do_epoll_wait
+sysTid=1028      do_epoll_wait
+sysTid=1029      do_epoll_wait
+sysTid=1032      futex_wait
+sysTid=1033      futex_wait
+sysTid=1034      do_epoll_wait
+sysTid=1035      do_epoll_wait
+sysTid=1036      do_epoll_wait
+sysTid=1038      do_epoll_wait
+sysTid=1045      do_epoll_wait
+sysTid=1049      do_epoll_wait
+sysTid=1050      do_epoll_wait
+sysTid=1051      do_epoll_wait
+sysTid=1052      do_epoll_wait
+sysTid=1054      do_epoll_wait
+sysTid=1055      do_epoll_wait
+sysTid=1056      do_epoll_wait
+sysTid=1057      do_epoll_wait
+sysTid=1058      do_epoll_wait
+sysTid=1059      do_epoll_wait
+sysTid=1060      do_epoll_wait
+sysTid=1061      do_epoll_wait
+sysTid=1062      futex_wait
+sysTid=1064      do_epoll_wait
+sysTid=1065      vsock_connectible_wait_data
+sysTid=1066      do_epoll_wait
+sysTid=1067      futex_wait
+sysTid=1068      binder_ioctl_write_read
+sysTid=1069      do_epoll_wait
+sysTid=1072      futex_wait
+sysTid=1078      futex_wait
+sysTid=1081      do_epoll_wait
+sysTid=1083      do_epoll_wait
+sysTid=1087      do_epoll_wait
+sysTid=1089      do_epoll_wait
+sysTid=1090      do_epoll_wait
+sysTid=1092      do_epoll_wait
+sysTid=1094      futex_wait
+sysTid=1095      do_epoll_wait
+sysTid=1096      do_epoll_wait
+sysTid=1102      futex_wait
+sysTid=1104      do_epoll_wait
+sysTid=1105      futex_wait
+sysTid=1120      skb_recv_datagram
+sysTid=1123      do_epoll_wait
+sysTid=1145      futex_wait
+sysTid=1148      futex_wait
+sysTid=1155      futex_wait
+sysTid=1156      futex_wait
+sysTid=1194      binder_ioctl_write_read
+sysTid=1201      do_epoll_wait
+sysTid=1241      binder_ioctl_write_read
+sysTid=1244      __wait_rcu_gp
+sysTid=1245      binder_ioctl_write_read
+sysTid=1246      binder_ioctl_write_read
+sysTid=1355      binder_ioctl_write_read
+sysTid=1369      do_epoll_wait
+sysTid=1376      do_epoll_wait
+sysTid=1377      do_epoll_wait
+sysTid=1378      do_epoll_wait
+sysTid=1379      do_epoll_wait
+sysTid=1380      do_epoll_wait
+sysTid=1381      do_epoll_wait
+sysTid=1382      do_epoll_wait
+sysTid=1387      do_epoll_wait
+sysTid=1404      binder_ioctl_write_read
+sysTid=1407      binder_ioctl_write_read
+sysTid=1545      futex_wait
+sysTid=1613      binder_ioctl_write_read
+sysTid=1637      futex_wait
+sysTid=1643      do_epoll_wait
+sysTid=1647      __skb_wait_for_more_packets
+sysTid=1650      futex_wait
+sysTid=1651      futex_wait
+sysTid=1652      futex_wait
+sysTid=1653      do_epoll_wait
+sysTid=1660      futex_wait
+sysTid=1661      futex_wait
+sysTid=1662      futex_wait
+sysTid=1663      futex_wait
+sysTid=1664      do_epoll_wait
+sysTid=1665      futex_wait
+sysTid=1666      do_epoll_wait
+sysTid=1714      do_epoll_wait
+sysTid=1774      do_epoll_wait
+sysTid=1788      binder_ioctl_write_read
+sysTid=1791      futex_wait
+sysTid=1792      futex_wait
+sysTid=1802      futex_wait
+sysTid=1803      futex_wait
+sysTid=1804      futex_wait
+sysTid=1826      futex_wait
+sysTid=1830      futex_wait
+sysTid=1831      futex_wait
+sysTid=1833      futex_wait
+sysTid=1834      futex_wait
+sysTid=1835      futex_wait
+sysTid=1836      futex_wait
+sysTid=1872      do_epoll_wait
+sysTid=1918      futex_wait
+sysTid=1948      futex_wait
+sysTid=1949      binder_ioctl_write_read
+sysTid=1975      binder_ioctl_write_read
+sysTid=2104      binder_ioctl_write_read
+sysTid=2143      futex_wait
+sysTid=2146      do_epoll_wait
+sysTid=2149      do_epoll_wait
+sysTid=2156      binder_ioctl_write_read
+sysTid=2157      binder_ioctl_write_read
+sysTid=2158      binder_ioctl_write_read
+sysTid=2159      binder_ioctl_write_read
+sysTid=2161      binder_ioctl_write_read
+sysTid=2162      binder_ioctl_write_read
+sysTid=2163      binder_ioctl_write_read
+sysTid=2202      do_epoll_wait
+sysTid=2251      binder_ioctl_write_read
+sysTid=2291      binder_ioctl_write_read
+sysTid=2294      binder_ioctl_write_read
+sysTid=2295      binder_ioctl_write_read
+sysTid=2296      binder_ioctl_write_read
+sysTid=2297      binder_ioctl_write_read
+sysTid=2384      futex_wait
+sysTid=2395      futex_wait
+sysTid=2944      futex_wait
+sysTid=4637      binder_ioctl_write_read
+sysTid=4864      futex_wait
+sysTid=5218      futex_wait
+sysTid=5227      futex_wait
+sysTid=5228      futex_wait
+sysTid=5229      futex_wait
+sysTid=5230      futex_wait
+sysTid=5236      futex_wait
+sysTid=7695      binder_ioctl_write_read
+sysTid=8419      futex_wait
+sysTid=4669      futex_wait
+sysTid=4670      futex_wait
+sysTid=4715      futex_wait
+sysTid=5180      futex_wait
+sysTid=8138      futex_wait
+sysTid=8444      futex_wait
+sysTid=17747     futex_wait
+sysTid=17748     do_epoll_wait
+sysTid=17749     futex_wait
+sysTid=17772     futex_wait
+sysTid=17774     futex_wait
+sysTid=17775     futex_wait
+sysTid=17888     futex_wait
+sysTid=20803     futex_wait
+sysTid=20804     futex_wait
+sysTid=20805     do_epoll_wait
+sysTid=21720     futex_wait
+sysTid=21721     0
+
+----- end 755 -----
+

@@ -3,12 +3,15 @@ package com.telesales.assistant.ui.customerdetail
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
@@ -133,35 +136,83 @@ private fun DetailContent(
     modifier: Modifier,
 ) {
     val listState = rememberLazyListState()
-    LazyColumn(modifier.fillMaxSize().padding(horizontal = 16.dp), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        state = listState,
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         item {
             GlassCard(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(customer.companyName ?: customer.contactName ?: customer.phone)
-                    detailField(R.string.detail_contact, customer.contactName)
-                    detailField(R.string.detail_phone, customer.phone)
-                    detailField(R.string.detail_address, customer.address)
-                    detailField(R.string.detail_industry, customer.industry)
-                    detailField(R.string.detail_source, customer.source)
-                    Text(stringResource(R.string.detail_interaction_count, customer.interactionCount))
-                    Text(stringResource(R.string.customers_last_contact, customer.lastContactedAt?.let(vm::formatTime) ?: stringResource(R.string.customers_not_contacted)))
-                    Text(stringResource(R.string.customers_last_result, resultLabel(customer.lastResult)))
-                    Text(stringResource(R.string.detail_potential, potentialLabel(customer.potentialLevel)))
-                    customer.nextFollowUp?.let { Text(stringResource(R.string.detail_next_follow_up, vm.formatTime(it.remindAt))) }
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(stringResource(R.string.label_customer_name_company), style = androidx.compose.material3.MaterialTheme.typography.titleSmall)
+                    detailRow(R.string.label_contact_name, customer.contactName, R.string.detail_unknown)
+                    detailRow(R.string.label_company_name, customer.companyName, R.string.detail_unknown)
+                    detailRow(R.string.label_phone, customer.phone)
+                    detailRow(R.string.label_address, customer.address, R.string.detail_unknown)
+                    detailRow(R.string.label_active_since, customer.activeSince, R.string.detail_unknown)
+                    detailRow(R.string.label_industry, customer.industry, R.string.detail_unknown)
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = if (customer.needs.isEmpty()) androidx.compose.ui.Alignment.Top else androidx.compose.ui.Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            stringResource(R.string.label_needs),
+                            modifier = Modifier.weight(0.42f),
+                            style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                        )
+                        if (customer.needs.isEmpty()) {
+                            Text(
+                                stringResource(R.string.detail_needs_unknown),
+                                modifier = Modifier.weight(0.58f),
+                                style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
+                            )
+                        } else {
+                            LazyRow(
+                                modifier = Modifier.weight(0.58f),
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            ) {
+                                items(customer.needs) { need ->
+                                    androidx.compose.material3.AssistChip(
+                                        onClick = {},
+                                        label = { Text(needLabel(need), maxLines = 1) },
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    androidx.compose.material3.HorizontalDivider()
+                    androidx.compose.material3.Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(14.dp),
+                    ) {
+                        Column(
+                            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(stringResource(R.string.detail_interaction_count, customer.interactionCount), style = androidx.compose.material3.MaterialTheme.typography.labelLarge)
+                            Text(stringResource(R.string.detail_potential, potentialLabel(customer.potentialLevel)), style = androidx.compose.material3.MaterialTheme.typography.labelLarge)
+                            Text(stringResource(R.string.customers_last_contact, customer.lastContactedAt?.let(vm::formatTime) ?: stringResource(R.string.customers_not_contacted)), style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+                            customer.nextFollowUp?.let { Text(stringResource(R.string.detail_next_follow_up, vm.formatTime(it.remindAt)), style = androidx.compose.material3.MaterialTheme.typography.bodySmall) }
+                        }
+                    }
+                    androidx.compose.material3.HorizontalDivider()
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         Button(onClick = { onCall(customer.phone) }, modifier = Modifier.weight(1f)) {
                             Text(stringResource(R.string.detail_call), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
-                        TextButton(onClick = { onCallLog(customer.id) }, modifier = Modifier.weight(1f)) {
+                        androidx.compose.material3.OutlinedButton(onClick = { onCallLog(customer.id) }, modifier = Modifier.weight(1f)) {
                             Text(stringResource(R.string.call_log_title), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = onEdit, modifier = Modifier.weight(1f)) {
+                        androidx.compose.material3.OutlinedButton(onClick = onEdit, modifier = Modifier.weight(1f)) {
                             Text(stringResource(R.string.customer_form_edit_title), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                         TextButton(onClick = vm::showDeleteConfirmation, modifier = Modifier.weight(1f)) {
-                            Text(stringResource(R.string.detail_delete), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(stringResource(R.string.detail_delete), maxLines = 1, overflow = TextOverflow.Ellipsis, color = androidx.compose.material3.MaterialTheme.colorScheme.error)
                         }
                     }
                     if (state.deleteError != null) {
@@ -194,8 +245,29 @@ private fun DetailContent(
 }
 
 @Composable
-private fun detailField(label: Int, value: String?) {
-    if (!value.isNullOrBlank()) Text(stringResource(label, value))
+private fun potentialLabel(value: String): String = when (value) {
+    "high" -> stringResource(R.string.potential_high)
+    "medium" -> stringResource(R.string.potential_medium)
+    "low" -> stringResource(R.string.potential_low)
+    "unrated" -> stringResource(R.string.potential_unrated)
+    else -> value
+}
+
+@Composable
+private fun detailRow(label: Int, value: String?, fallback: Int? = null) {
+    val displayedValue = value?.takeIf(String::isNotBlank) ?: fallback?.let { stringResource(it) } ?: return
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(label), modifier = Modifier.weight(0.42f), style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+        Text(displayedValue, modifier = Modifier.weight(0.58f), style = androidx.compose.material3.MaterialTheme.typography.bodyMedium)
+    }
+}
+
+@Composable
+private fun needLabel(value: String): String = when (value) {
+    "website" -> stringResource(R.string.need_website)
+    "software" -> stringResource(R.string.need_software)
+     else ->  stringResource(R.string.need_ads)
+
 }
 
 @Composable
@@ -215,24 +287,17 @@ private fun resultLabel(value: String?): String = when (value) {
     "no_answer" -> stringResource(R.string.result_no_answer)
     "callback" -> stringResource(R.string.result_callback)
     "rejected" -> stringResource(R.string.result_rejected)
+    "contacted" -> stringResource(R.string.result_contacted)
     else -> stringResource(R.string.customers_not_contacted)
 }
 
 @Composable
-private fun potentialLabel(value: String): String = when (value) {
-    "high" -> stringResource(R.string.potential_high)
-    "low" -> stringResource(R.string.potential_low)
-    else -> stringResource(R.string.potential_unrated)
-}
-
-@Composable
 private fun needLabels(values: List<String>): String {
+    val displayedValues = if (values.any { it != "other" }) values.filter { it != "other" } else values
     val labels = buildList {
-        if ("website" in values) add(stringResource(R.string.need_website))
-        if ("web_app" in values) add(stringResource(R.string.need_web_app))
-        if ("software" in values) add(stringResource(R.string.need_software))
-        if ("ads" in values) add(stringResource(R.string.need_ads))
-        if ("other" in values) add(stringResource(R.string.need_other))
+        if ("website" in displayedValues) add(stringResource(R.string.need_website))
+        if ("software" in displayedValues) add(stringResource(R.string.need_software))
+        if ("ads" in displayedValues) add(stringResource(R.string.need_ads))
     }
     return labels.joinToString()
 }

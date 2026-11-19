@@ -36,6 +36,7 @@ sealed interface FollowUpActionResult {
 
 interface FollowUpRepository {
     suspend fun getFollowUps(page: Int): FollowUpListResult
+    suspend fun getFollowUps(page: Int, group: String): FollowUpListResult = getFollowUps(page)
     suspend fun applyAction(id: Long, action: String, remindAt: String? = null): FollowUpActionResult
 }
 
@@ -44,11 +45,15 @@ class ApiFollowUpRepository(
     private val apiServiceProvider: ApiServiceProvider,
 ) : FollowUpRepository {
     override suspend fun getFollowUps(page: Int): FollowUpListResult {
+        return getFollowUps(page, "all")
+    }
+
+    override suspend fun getFollowUps(page: Int, group: String): FollowUpListResult {
         val settings = settingsStore.settings.first()
         if (settings.baseUrl.isBlank() || settings.token.isBlank()) return FollowUpListResult.SetupRequired
         return try {
             val response = apiServiceProvider.create(settings.baseUrl, settings.token)
-                .followUps(status = "pending", group = "all", page = page, perPage = 20)
+                .followUps(status = "pending", group = group, page = page, perPage = 20)
             FollowUpListResult.Success(FollowUpPage(response.data.map(FollowUpDto::toDomain), response.meta.current_page, response.meta.last_page))
         } catch (error: HttpException) {
             when (error.code()) {

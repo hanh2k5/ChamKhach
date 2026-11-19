@@ -20,7 +20,9 @@ class Customer extends Model
         'phone',
         'phone_normalized',
         'address',
+        'active_since',
         'industry',
+        'needs',
         'source',
         'potential_level',
         'status',
@@ -29,8 +31,9 @@ class Customer extends Model
     protected function casts(): array
     {
         return [
-            'potential_level' => PotentialLevel::class,
             'status' => CustomerStatus::class,
+            'potential_level' => PotentialLevel::class,
+            'needs' => 'array',
         ];
     }
 

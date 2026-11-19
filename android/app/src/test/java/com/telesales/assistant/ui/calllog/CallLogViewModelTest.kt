@@ -29,12 +29,19 @@ import java.time.ZoneOffset
 class CallLogViewModelTest {
     private val stores = mutableListOf<ViewModelStore>()
 
-    @Test fun resultIsRequiredAndNeedsDefaultAndCannotBecomeEmpty() = vmTest {
+    @Test fun callLogDefaultsToContactedWithNoNeedsAndNoSchedule() = vmTest {
         val repo = FakeRepository(); val vm = create(repo); advanceUntilIdle()
-        vm.save(); assertEquals("result", vm.state.value.formError); assertTrue(repo.requests.isEmpty())
-        assertEquals(setOf("other"), vm.state.value.needs)
-        vm.toggleNeed("other"); assertEquals(setOf("other"), vm.state.value.needs)
-        vm.toggleNeed("website"); vm.toggleNeed("other"); assertEquals(setOf("website"), vm.state.value.needs)
+        vm.save(); advanceUntilIdle()
+        assertEquals("contacted", repo.requests.single().result)
+        assertTrue(repo.requests.single().needs.isEmpty())
+        assertNull(repo.requests.single().follow_up)
+    }
+
+    @Test fun defaultScheduleDateAndTimeUseCurrentVietnamTime() = vmTest {
+        val clock = Clock.fixed(Instant.parse("2026-11-02T18:45:39Z"), ZoneOffset.UTC)
+        val vm = create(FakeRepository(), clock)
+        assertEquals(LocalDate.of(2026, 11, 3), vm.currentLocalDate())
+        assertEquals(LocalTime.of(1, 45), vm.currentLocalTime())
     }
 
     @Test fun noteIsLimitedToFiveHundredCharacters() = vmTest {
@@ -42,41 +49,34 @@ class CallLogViewModelTest {
         assertEquals(500, vm.state.value.note.length)
     }
 
-    @Test fun callbackWithoutScheduleShowsDialogThenCanSaveWithoutFollowUp() = vmTest {
-        val repo = FakeRepository(); val vm = create(repo); advanceUntilIdle(); vm.chooseResult("callback"); vm.save()
-        assertTrue(vm.state.value.missingScheduleDialog); assertTrue(repo.requests.isEmpty())
-        vm.saveWithoutSchedule(); advanceUntilIdle()
-        assertNull(repo.requests.single().follow_up); assertTrue(vm.state.value.saved)
-    }
-
     @Test fun pastScheduleIsBlockedWithoutNetworkCall() = vmTest {
         val repo = FakeRepository(); val vm = create(repo, Clock.fixed(Instant.parse("2026-11-02T18:00:00Z"), ZoneOffset.UTC)); advanceUntilIdle()
-        vm.chooseResult("interested"); vm.setDate(LocalDate.of(2026, 11, 3)); vm.setTime(LocalTime.of(0, 30)); vm.save()
+        vm.setDate(LocalDate.of(2026, 11, 3)); vm.setTime(LocalTime.of(0, 30)); vm.save()
         assertEquals("past_schedule", vm.state.value.formError); assertTrue(repo.requests.isEmpty())
     }
 
     @Test fun doubleTapCreatesOnlyOneRequest() = vmTest {
         val gate = CompletableDeferred<RecordInteractionResult>()
         val repo = FakeRepository().apply { action = { gate.await() } }; val vm = create(repo); advanceUntilIdle()
-        vm.chooseResult("interested"); vm.save(); vm.save(); runCurrent()
+        vm.save(); vm.save(); runCurrent()
         assertEquals(1, repo.requests.size); assertTrue(vm.state.value.isSaving)
         gate.complete(RecordInteractionResult.Success(null, null, emptyList())); advanceUntilIdle(); assertTrue(vm.state.value.saved)
     }
 
     @Test fun validationErrorsAreKeptByFieldIncludingFollowUpRemindAt() = vmTest {
         val repo = FakeRepository().apply { action = { RecordInteractionResult.ValidationError(mapOf("follow_up.remind_at" to listOf("invalid"))) } }
-        val vm = create(repo); advanceUntilIdle(); vm.chooseResult("callback"); vm.setDate(LocalDate.of(2026, 11, 4)); vm.setTime(LocalTime.of(9, 0)); vm.save(); advanceUntilIdle()
+        val vm = create(repo); advanceUntilIdle(); vm.setDate(LocalDate.of(2026, 11, 4)); vm.setTime(LocalTime.of(9, 0)); vm.save(); advanceUntilIdle()
         assertEquals(listOf("invalid"), vm.state.value.validationErrors["follow_up.remind_at"])
     }
 
     @Test fun vietnamTimeConvertsToUtcAcrossMidnight() = vmTest {
-        val repo = FakeRepository(); val vm = create(repo); advanceUntilIdle(); vm.chooseResult("interested")
+        val repo = FakeRepository(); val vm = create(repo); advanceUntilIdle()
         vm.setDate(LocalDate.of(2026, 11, 3)); vm.setTime(LocalTime.of(0, 30)); vm.save(); advanceUntilIdle()
         assertEquals("2026-11-02T17:30:00+00:00", repo.requests.single().follow_up?.remind_at)
     }
 
     @Test fun nullFollowUpIsOmittedByRequestJson() {
-        val dto = InteractionCreateDto("interested", listOf("other"), follow_up = null)
+        val dto = InteractionCreateDto("contacted", emptyList(), follow_up = null)
         val json = kotlinx.serialization.json.Json { explicitNulls = false }.encodeToString(InteractionCreateDto.serializer(), dto)
         assertFalse(json.contains("follow_up"))
         assertFalse(json.contains("contacted_at"))
@@ -96,6 +96,6 @@ class CallLogViewModelTest {
         override suspend fun recordInteraction(id: Long, request: InteractionCreateDto): RecordInteractionResult { requests += request; return action() }
     }
     companion object {
-        private val customer = CustomerProfile(7, "Công ty", "Lan", "0900000000", null, null, null, "medium", "active")
+        private val customer = CustomerProfile(7, "Công ty", "Lan", "0900000000", null, null, "medium", null, "active")
     }
 }

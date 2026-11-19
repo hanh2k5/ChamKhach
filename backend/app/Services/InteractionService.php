@@ -41,13 +41,13 @@ class InteractionService
             // Bước 3: Tạo interaction
             $interaction = Interaction::create([
                 'customer_id'  => $customer->id,
-                'result'       => CallResult::from($dto['result']),
+                'result'       => CallResult::from($dto['result'] ?? 'contacted'),
                 'note'         => $dto['note'] ?? null,
                 'contacted_at' => Carbon::now(),
             ]);
 
             // Tạo interaction_needs
-            foreach ($dto['needs'] as $needValue) {
+            foreach ($dto['needs'] ?? [] as $needValue) {
                 InteractionNeed::create([
                     'interaction_id' => $interaction->id,
                     'need_type'      => NeedType::from($needValue),

@@ -161,7 +161,7 @@ class SettingsViewModelTest {
                 override suspend fun createInteraction(id: Long, interaction: com.telesales.assistant.data.network.InteractionCreateDto) = com.telesales.assistant.data.network.InteractionCreateResponseDto(com.telesales.assistant.data.network.InteractionDto(1, interaction.result, interaction.needs, interaction.note, "2026-11-02T00:00:00+00:00"))
                 override suspend fun followUps(status: String, group: String, page: Int, perPage: Int) = com.telesales.assistant.data.network.FollowUpPageDto()
                 override suspend fun updateFollowUp(id: Long, request: com.telesales.assistant.data.network.FollowUpActionDto) = com.telesales.assistant.data.network.FollowUpResponseDto(com.telesales.assistant.data.network.FollowUpDto(id, "2026-11-02T00:00:00+00:00", "pending", "today", com.telesales.assistant.data.network.FollowUpCustomerDto(1, phone = "0900000000")))
-                override suspend fun dashboard() = com.telesales.assistant.data.network.DashboardDto(0, 0, 0)
+                override suspend fun dashboard() = com.telesales.assistant.data.network.DashboardDto(0, 0)
             }
         }
     }

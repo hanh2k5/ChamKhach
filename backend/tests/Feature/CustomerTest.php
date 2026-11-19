@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Enums\CallResult;
 use App\Enums\CustomerStatus;
 use App\Enums\FollowUpStatus;
-use App\Enums\PotentialLevel;
 use App\Models\Customer;
 use App\Models\FollowUp;
 use App\Models\Interaction;
@@ -45,20 +44,40 @@ class CustomerTest extends TestCase
                 'phone' => '0912 345 678',
             ]);
 
-        $response->assertStatus(201)
-            ->assertJsonPath('data.phone', '0912 345 678')
-            ->assertJsonPath('data.phone_normalized', '0912345678')
-            ->assertJsonPath('data.potential_level', 'unrated')
-            ->assertJsonPath('data.status', 'active')
+        $response        ->assertStatus(201)
+        ->assertJsonPath('data.phone', '0912 345 678')
+        ->assertJsonPath('data.phone_normalized', '0912345678')
+        ->assertJsonPath('data.status', 'active')
             ->assertJsonPath('data.interaction_count', 0)
             ->assertJsonPath('data.last_contacted_at', null)
             ->assertJsonPath('data.last_result', null);
 
         $this->assertDatabaseHas('customers', [
             'phone_normalized' => '0912345678',
-            'potential_level' => 'unrated',
             'status' => 'active',
         ]);
+    }
+
+    public function test_customer_list_filters_potential_customers_and_keeps_descending_order(): void
+    {
+        $customers = collect(range(1, 21))->map(function (int $number): Customer {
+            return Customer::create([
+                'company_name' => 'Khách '.$number,
+                'phone' => '090200'.str_pad((string) $number, 4, '0', STR_PAD_LEFT),
+                'phone_normalized' => '090200'.str_pad((string) $number, 4, '0', STR_PAD_LEFT),
+                'potential_level' => 'high',
+                'status' => CustomerStatus::Active,
+            ]);
+        });
+
+        $response = $this->withHeaders($this->authHeaders())
+            ->getJson('/api/v1/customers?potential=high,medium&per_page=20&page=2');
+
+        $response->assertOk()
+            ->assertJsonPath('meta.current_page', 2)
+            ->assertJsonPath('meta.last_page', 2)
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $customers->first()->id);
     }
 
     public function test_create_customer_success_with_full_fields(): void
@@ -70,7 +89,6 @@ class CustomerTest extends TestCase
             'address' => 'Hà Nội',
             'industry' => 'Công nghệ',
             'source' => 'Google',
-            'potential_level' => 'high',
         ];
 
         $response = $this->withHeaders($this->authHeaders())
@@ -80,8 +98,7 @@ class CustomerTest extends TestCase
             ->assertJsonPath('data.company_name', 'Công ty ABC')
             ->assertJsonPath('data.contact_name', 'Nguyễn Văn B')
             ->assertJsonPath('data.phone', '+84987654321')
-            ->assertJsonPath('data.phone_normalized', '0987654321')
-            ->assertJsonPath('data.potential_level', 'high');
+            ->assertJsonPath('data.phone_normalized', '0987654321');
     }
 
     public function test_create_customer_validation_fails(): void
@@ -103,13 +120,33 @@ class CustomerTest extends TestCase
             ->assertJsonValidationErrors(['phone']);
     }
 
+    public function test_create_and_update_customer_workflow_fields(): void
+    {
+        $created = $this->withHeaders($this->authHeaders())->postJson('/api/v1/customers', [
+            'phone' => '0901234567',
+            'active_since' => '5 năm',
+            'industry' => 'Xây dựng',
+            'needs' => ['website', 'ads'],
+        ])->assertCreated()
+            ->assertJsonPath('data.active_since', '5 năm')
+            ->assertJsonPath('data.industry', 'Xây dựng')
+            ->assertJsonPath('data.needs', ['website', 'ads']);
+
+        $id = $created->json('data.id');
+        $this->withHeaders($this->authHeaders())->patchJson("/api/v1/customers/{$id}", [
+            'needs' => ['software'],
+            'active_since' => null,
+        ])->assertOk()
+            ->assertJsonPath('data.needs', ['software'])
+            ->assertJsonPath('data.active_since', null);
+    }
+
     public function test_create_customer_duplicate_phone_returns_409(): void
     {
         $first = Customer::create([
             'contact_name' => 'Khách cũ',
             'phone' => '0912345678',
             'phone_normalized' => '0912345678',
-            'potential_level' => PotentialLevel::Medium,
             'status' => CustomerStatus::Active,
         ]);
 
@@ -133,7 +170,6 @@ class CustomerTest extends TestCase
             'company_name' => 'Tech Corp',
             'phone' => '0901112233',
             'phone_normalized' => '0901112233',
-            'potential_level' => PotentialLevel::High,
             'status' => CustomerStatus::Active,
         ]);
 
@@ -185,24 +221,20 @@ class CustomerTest extends TestCase
         $customer = Customer::create([
             'phone' => '0901112233',
             'phone_normalized' => '0901112233',
-            'potential_level' => PotentialLevel::Low,
             'status' => CustomerStatus::Active,
         ]);
 
         $response = $this->withHeaders($this->authHeaders())
             ->patchJson("/api/v1/customers/{$customer->id}", [
                 'company_name' => 'Công ty Mới',
-                'potential_level' => 'high',
             ]);
 
         $response->assertStatus(200)
-            ->assertJsonPath('data.company_name', 'Công ty Mới')
-            ->assertJsonPath('data.potential_level', 'high');
+            ->assertJsonPath('data.company_name', 'Công ty Mới');
 
         $this->assertDatabaseHas('customers', [
             'id' => $customer->id,
             'company_name' => 'Công ty Mới',
-            'potential_level' => 'high',
         ]);
     }
 
@@ -211,7 +243,6 @@ class CustomerTest extends TestCase
         $customer = Customer::create([
             'phone' => '0901112233',
             'phone_normalized' => '0901112233',
-            'potential_level' => PotentialLevel::Low,
             'status' => CustomerStatus::Active,
         ]);
 
@@ -229,14 +260,12 @@ class CustomerTest extends TestCase
         $c1 = Customer::create([
             'phone' => '0901111111',
             'phone_normalized' => '0901111111',
-            'potential_level' => PotentialLevel::Low,
             'status' => CustomerStatus::Active,
         ]);
 
         $c2 = Customer::create([
             'phone' => '0902222222',
             'phone_normalized' => '0902222222',
-            'potential_level' => PotentialLevel::Low,
             'status' => CustomerStatus::Active,
         ]);
 
@@ -258,7 +287,6 @@ class CustomerTest extends TestCase
         $customer = Customer::create([
             'phone' => '0901112244',
             'phone_normalized' => '0901112244',
-            'potential_level' => PotentialLevel::Medium,
             'status' => CustomerStatus::Active,
         ]);
         $interaction = Interaction::create([
@@ -295,7 +323,6 @@ class CustomerTest extends TestCase
                 'company_name' => 'Customer '.$index,
                 'phone' => '090100000'.($index + 1),
                 'phone_normalized' => '090100000'.($index + 1),
-                'potential_level' => PotentialLevel::High,
                 'status' => $status,
             ]);
         }
@@ -313,7 +340,6 @@ class CustomerTest extends TestCase
             'contact_name' => 'Lê Văn A',
             'phone' => '0912345678',
             'phone_normalized' => '0912345678',
-            'potential_level' => PotentialLevel::High,
             'status' => CustomerStatus::Active,
         ]);
 
@@ -322,7 +348,6 @@ class CustomerTest extends TestCase
             'contact_name' => 'Trần Thị B',
             'phone' => '0988776655',
             'phone_normalized' => '0988776655',
-            'potential_level' => PotentialLevel::Low,
             'status' => CustomerStatus::Active,
         ]);
 
@@ -338,11 +363,6 @@ class CustomerTest extends TestCase
         $res2->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.company_name', 'Viettel Telecom');
 
-        // Lọc theo potential
-        $res3 = $this->withHeaders($this->authHeaders())
-            ->getJson('/api/v1/customers?potential=high');
-        $res3->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.company_name', 'FPT Software');
     }
 
     public function test_list_customers_sort_order_last_contacted_desc_nulls_last(): void
@@ -351,7 +371,6 @@ class CustomerTest extends TestCase
             'company_name' => 'Chưa gọi',
             'phone' => '0901000001',
             'phone_normalized' => '0901000001',
-            'potential_level' => PotentialLevel::Low,
             'status' => CustomerStatus::Active,
         ]);
 
@@ -359,7 +378,6 @@ class CustomerTest extends TestCase
             'company_name' => 'Gọi cũ',
             'phone' => '0901000002',
             'phone_normalized' => '0901000002',
-            'potential_level' => PotentialLevel::Low,
             'status' => CustomerStatus::Active,
         ]);
         Interaction::create([
@@ -372,7 +390,6 @@ class CustomerTest extends TestCase
             'company_name' => 'Gọi mới',
             'phone' => '0901000003',
             'phone_normalized' => '0901000003',
-            'potential_level' => PotentialLevel::Low,
             'status' => CustomerStatus::Active,
         ]);
         Interaction::create([
@@ -401,7 +418,6 @@ class CustomerTest extends TestCase
                 'company_name' => "Company {$i}",
                 'phone' => "090100000{$i}",
                 'phone_normalized' => "090100000{$i}",
-                'potential_level' => PotentialLevel::Medium,
                 'status' => CustomerStatus::Active,
             ]);
             Interaction::create([
@@ -424,7 +440,6 @@ class CustomerTest extends TestCase
                 'company_name' => "Company {$i}",
                 'phone' => "09010000{$i}",
                 'phone_normalized' => "09010000{$i}",
-                'potential_level' => PotentialLevel::Medium,
                 'status' => CustomerStatus::Active,
             ]);
             Interaction::create([

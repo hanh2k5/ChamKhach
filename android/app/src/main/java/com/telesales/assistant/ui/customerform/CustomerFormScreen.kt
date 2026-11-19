@@ -7,20 +7,26 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,6 +41,18 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.telesales.assistant.R
 import com.telesales.assistant.data.repository.CustomerFormRepository
+import com.telesales.assistant.reminder.ReminderCoordinator
+import com.telesales.assistant.ui.components.GlassCard
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,11 +62,13 @@ fun CustomerFormRoute(
     onBack: () -> Unit,
     onOpenCustomer: (Long) -> Unit,
     onSettings: () -> Unit,
-    onSaved: () -> Unit,
+    onSaved: (Long) -> Unit,
+    reminderCoordinator: ReminderCoordinator? = null,
+    clock: Clock = Clock.systemUTC(),
 ) {
-    val vm: CustomerFormViewModel = viewModel(factory = CustomerFormViewModelFactory(repository, customerId))
+    val vm: CustomerFormViewModel = viewModel(factory = CustomerFormViewModelFactory(repository, customerId, clock, reminderCoordinator))
     val state by vm.state.collectAsState()
-    LaunchedEffect(state.savedCustomerId) { if (state.savedCustomerId != null) onSaved() }
+    LaunchedEffect(state.savedCustomerId) { state.savedCustomerId?.let(onSaved) }
     CustomerFormScreen(
         state = state,
         isEditing = customerId != null,
@@ -59,9 +79,16 @@ fun CustomerFormRoute(
         onContactNameChanged = vm::onContactNameChanged,
         onPhoneChanged = vm::onPhoneChanged,
         onAddressChanged = vm::onAddressChanged,
+        onActiveSinceChanged = vm::onActiveSinceChanged,
         onIndustryChanged = vm::onIndustryChanged,
-        onSourceChanged = vm::onSourceChanged,
+        currentLocalDate = vm::currentLocalDate,
+        currentLocalTime = vm::currentLocalTime,
+        onInitialNoteChanged = vm::onInitialNoteChanged,
         onPotentialLevelChanged = vm::onPotentialLevelChanged,
+        onFollowUpDateChanged = vm::setFollowUpDate,
+        onFollowUpTimeChanged = vm::setFollowUpTime,
+        onClearFollowUp = vm::clearFollowUp,
+        onNeedToggled = vm::toggleNeed,
         onSave = vm::save,
         onRetry = vm::retryLoad,
         onDismissDuplicate = vm::dismissDuplicate,
@@ -80,13 +107,67 @@ private fun CustomerFormScreen(
     onContactNameChanged: (String) -> Unit,
     onPhoneChanged: (String) -> Unit,
     onAddressChanged: (String) -> Unit,
+    onActiveSinceChanged: (String) -> Unit,
     onIndustryChanged: (String) -> Unit,
-    onSourceChanged: (String) -> Unit,
+    currentLocalDate: () -> LocalDate,
+    currentLocalTime: () -> LocalTime,
+    onInitialNoteChanged: (String) -> Unit,
     onPotentialLevelChanged: (String) -> Unit,
+    onFollowUpDateChanged: (LocalDate?) -> Unit,
+    onFollowUpTimeChanged: (LocalTime?) -> Unit,
+    onClearFollowUp: () -> Unit,
+    onNeedToggled: (String) -> Unit,
     onSave: () -> Unit,
     onRetry: () -> Unit,
     onDismissDuplicate: () -> Unit,
 ) {
+    val showDate = remember { mutableStateOf(false) }
+    val showTime = remember { mutableStateOf(false) }
+    val phoneFocusRequester = remember { FocusRequester() }
+    val contactNameFocusRequester = remember { FocusRequester() }
+    val companyNameFocusRequester = remember { FocusRequester() }
+    val addressFocusRequester = remember { FocusRequester() }
+    val activeSinceFocusRequester = remember { FocusRequester() }
+    val industryFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(state.fieldErrors) {
+        if (state.fieldErrors.isNotEmpty()) {
+            when {
+                "phone" in state.fieldErrors -> phoneFocusRequester.requestFocus()
+                "contact_name" in state.fieldErrors -> contactNameFocusRequester.requestFocus()
+                "company_name" in state.fieldErrors -> companyNameFocusRequester.requestFocus()
+                "address" in state.fieldErrors -> addressFocusRequester.requestFocus()
+                "active_since" in state.fieldErrors -> activeSinceFocusRequester.requestFocus()
+                "industry" in state.fieldErrors -> industryFocusRequester.requestFocus()
+            }
+        }
+    }
+    if (showDate.value) {
+        val initialDate = state.followUpDate ?: currentLocalDate()
+        val picker = rememberDatePickerState(initialSelectedDateMillis = initialDate.atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli())
+        DatePickerDialog(
+            onDismissRequest = { showDate.value = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val date = picker.selectedDateMillis?.let { Instant.ofEpochMilli(it).atZone(ZoneId.of("UTC")).toLocalDate() } ?: initialDate
+                    onFollowUpDateChanged(date)
+                    showDate.value = false
+                    showTime.value = true
+                }) { Text(stringResource(R.string.call_log_ok)) }
+            },
+            dismissButton = { TextButton(onClick = { showDate.value = false }) { Text(stringResource(R.string.call_log_cancel)) } },
+        ) { DatePicker(state = picker) }
+    }
+    if (showTime.value) {
+        val initial = state.followUpTime ?: currentLocalTime()
+        val picker = rememberTimePickerState(initial.hour, initial.minute, is24Hour = true)
+        AlertDialog(
+            onDismissRequest = { showTime.value = false },
+            confirmButton = { TextButton(onClick = { onFollowUpTimeChanged(LocalTime.of(picker.hour, picker.minute)); showTime.value = false }) { Text(stringResource(R.string.call_log_ok)) } },
+            dismissButton = { TextButton(onClick = { showTime.value = false }) { Text(stringResource(R.string.call_log_cancel)) } },
+            text = { TimePicker(state = picker) },
+        )
+    }
     if (state.duplicateCustomerId != null) {
         AlertDialog(
             onDismissRequest = onDismissDuplicate,
@@ -118,15 +199,75 @@ private fun CustomerFormScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 if (state.error != null) SaveError(state.error, onSave, onSettings)
-                Field(R.string.customer_form_company, state.companyName, "company_name", state.fieldErrors, onCompanyNameChanged)
-                Field(R.string.customer_form_contact, state.contactName, "contact_name", state.fieldErrors, onContactNameChanged)
-                Field(R.string.customer_form_phone, state.phone, "phone", state.fieldErrors, onPhoneChanged)
-                Field(R.string.customer_form_address, state.address, "address", state.fieldErrors, onAddressChanged)
-                Field(R.string.customer_form_industry, state.industry, "industry", state.fieldErrors, onIndustryChanged)
-                Field(R.string.customer_form_source, state.source, "source", state.fieldErrors, onSourceChanged)
-                EnumMenu(R.string.customer_form_potential, state.potentialLevel, listOf("high", "medium", "low", "unrated"), onPotentialLevelChanged)
+                if (state.initialInteractionPending) Text(stringResource(R.string.customer_form_initial_call_pending), color = androidx.compose.material3.MaterialTheme.colorScheme.error)
+                GlassCard(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.label_customer_name_company), style = androidx.compose.material3.MaterialTheme.typography.titleMedium, color = androidx.compose.material3.MaterialTheme.colorScheme.primary)
+                Field(R.string.label_phone, state.phone, "phone", state.fieldErrors, onPhoneChanged, enabled = !state.initialInteractionPending, focusRequester = phoneFocusRequester)
+                Field(R.string.label_contact_name, state.contactName, "contact_name", state.fieldErrors, onContactNameChanged, enabled = !state.initialInteractionPending, focusRequester = contactNameFocusRequester)
+                Field(R.string.label_company_name, state.companyName, "company_name", state.fieldErrors, onCompanyNameChanged, enabled = !state.initialInteractionPending, focusRequester = companyNameFocusRequester)
+                Field(R.string.label_address, state.address, "address", state.fieldErrors, onAddressChanged, enabled = !state.initialInteractionPending, focusRequester = addressFocusRequester)
+                Field(R.string.label_active_since, state.activeSince, "active_since", state.fieldErrors, onActiveSinceChanged, enabled = !state.initialInteractionPending, focusRequester = activeSinceFocusRequester)
+                Field(R.string.label_industry, state.industry, "industry", state.fieldErrors, onIndustryChanged, enabled = !state.initialInteractionPending, focusRequester = industryFocusRequester)
+                }
+                }
+                if (!isEditing) {
+                    OutlinedTextField(
+                        value = state.initialNote,
+                        onValueChange = onInitialNoteChanged,
+                        label = { Text(stringResource(R.string.call_log_note)) },
+                        supportingText = { Text(stringResource(R.string.call_log_note_counter, state.initialNote.length)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 1,
+                        maxLines = 3,
+                        enabled = !state.initialInteractionPending,
+                    )
+                }
+                Text(stringResource(R.string.label_needs), style = androidx.compose.material3.MaterialTheme.typography.titleSmall)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(listOf("website", "software", "ads")) { need ->
+                        val label = when (need) { "website" -> R.string.need_website; "software" -> R.string.need_software; else -> R.string.need_ads }
+                        androidx.compose.material3.FilterChip(selected = need in state.needs, onClick = { onNeedToggled(need) }, enabled = !state.initialInteractionPending, label = { Text(stringResource(label), maxLines = 1) }, colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(selectedContainerColor = androidx.compose.material3.MaterialTheme.colorScheme.primary, selectedLabelColor = androidx.compose.material3.MaterialTheme.colorScheme.onPrimary))
+                    }
+                }
+                if (!isEditing) {
+                    Text(stringResource(R.string.call_log_schedule_label), style = androidx.compose.material3.MaterialTheme.typography.titleSmall)
+                    androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { showDate.value = true }, modifier = Modifier.weight(1f), enabled = !state.isSaving) {
+                            Text(state.followUpDate?.let { stringResource(R.string.call_log_date_value, it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))) } ?: stringResource(R.string.call_log_select_date), maxLines = 1)
+                        }
+                        OutlinedButton(onClick = { showTime.value = true }, modifier = Modifier.weight(1f), enabled = !state.isSaving) {
+                            Text(state.followUpTime?.let { stringResource(R.string.call_log_time_value, it.toString()) } ?: stringResource(R.string.call_log_select_time), maxLines = 1)
+                        }
+                    }
+                    if (state.followUpDate != null || state.followUpTime != null) {
+                        TextButton(onClick = onClearFollowUp, enabled = !state.isSaving) { Text(stringResource(R.string.call_log_clear_schedule)) }
+                    }
+                    when (state.formError) {
+                        "past_schedule" -> Text(stringResource(R.string.call_log_schedule_past), color = androidx.compose.material3.MaterialTheme.colorScheme.error)
+                        "incomplete_schedule" -> Text(stringResource(R.string.call_log_schedule_incomplete), color = androidx.compose.material3.MaterialTheme.colorScheme.error)
+                    }
+                }
+                if (isEditing || !state.initialInteractionPending) {
+                    Text(stringResource(R.string.customer_form_potential), style = androidx.compose.material3.MaterialTheme.typography.titleSmall)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(listOf("medium" to R.string.potential_medium, "high" to R.string.potential_high)) { (level, label) ->
+                            androidx.compose.material3.FilterChip(
+                                selected = state.potentialLevel == level,
+                                onClick = { onPotentialLevelChanged(level) },
+                                enabled = !state.initialInteractionPending,
+                                label = { Text(stringResource(label), maxLines = 1) },
+                                colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = androidx.compose.material3.MaterialTheme.colorScheme.onPrimary,
+                                ),
+                            )
+                        }
+                    }
+                }
                 Button(onClick = onSave, enabled = !state.isSaving, modifier = Modifier.fillMaxWidth()) {
-                    if (state.isSaving) CircularProgressIndicator() else Text(stringResource(R.string.customer_form_save))
+                    if (state.isSaving) CircularProgressIndicator()
+                    else Text(stringResource(if (state.initialInteractionPending) R.string.customer_form_retry_initial_call else R.string.customer_form_save))
                 }
             }
             }
@@ -135,37 +276,55 @@ private fun CustomerFormScreen(
 }
 
 @Composable
-private fun Field(label: Int, value: String, key: String, errors: Map<String, List<String>>, onValueChange: (String) -> Unit) {
+private fun Field(
+    label: Int,
+    value: String,
+    key: String,
+    errors: Map<String, List<String>>,
+    onValueChange: (String) -> Unit,
+    enabled: Boolean = true,
+    focusRequester: FocusRequester? = null,
+) {
     val hasError = !errors[key].isNullOrEmpty()
+    var textFieldValue by remember(value) {
+        mutableStateOf(
+            TextFieldValue(
+                text = value,
+                selection = if (hasError) TextRange(0, value.length) else TextRange(value.length),
+            ),
+        )
+    }
+
+    LaunchedEffect(hasError) {
+        if (hasError) {
+            textFieldValue = textFieldValue.copy(selection = TextRange(0, textFieldValue.text.length))
+        }
+    }
+
+    val modifier = Modifier
+        .fillMaxWidth()
+        .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
+
     OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        modifier = Modifier.fillMaxWidth(),
+        value = textFieldValue,
+        onValueChange = { newValue ->
+            textFieldValue = newValue
+            if (newValue.text != value) {
+                onValueChange(newValue.text)
+            }
+        },
+        enabled = enabled,
+        modifier = modifier,
         label = { Text(stringResource(label)) },
         isError = hasError,
-        supportingText = if (hasError) ({ Text(stringResource(R.string.customer_form_field_error)) }) else null,
+        supportingText = if (hasError || key == "phone") ({
+            Column {
+                if (key == "phone") Text(stringResource(R.string.customer_form_required))
+                if (hasError) Text(stringResource(R.string.customer_form_field_error))
+            }
+        }) else null,
         singleLine = key != "address",
     )
-}
-
-@Composable
-private fun EnumMenu(label: Int, value: String, options: List<String>, onSelect: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    TextButton(onClick = { expanded = true }) { Text(stringResource(R.string.customer_form_enum_value, stringResource(label), enumLabel(value))) }
-    DropdownMenu(expanded, onDismissRequest = { expanded = false }) {
-        options.forEach { option -> DropdownMenuItem(
-            text = { Text(enumLabel(option)) },
-            onClick = { expanded = false; onSelect(option) },
-        ) }
-    }
-}
-
-@Composable
-private fun enumLabel(value: String): String = when (value) {
-    "high" -> stringResource(R.string.potential_high)
-    "low" -> stringResource(R.string.potential_low)
-    "unrated" -> stringResource(R.string.potential_unrated)
-    else -> stringResource(R.string.potential_unrated)
 }
 
 @Composable

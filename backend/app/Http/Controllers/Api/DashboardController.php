@@ -15,7 +15,7 @@ class DashboardController extends Controller
 
     /**
      * GET /api/v1/dashboard
-     * Dữ liệu tổng quan dashboard gồm 3 chỉ số và tối đa 20 items.
+     * Dữ liệu tổng quan dashboard gồm các chỉ số lịch gọi và tối đa 20 items.
      */
     public function index(): JsonResponse
     {

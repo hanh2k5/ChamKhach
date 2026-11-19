@@ -52,6 +52,8 @@ fun CustomerProfileDto.toDomain(): CustomerProfile = CustomerProfile(
     lastContactedAt = last_contacted_at?.let(Instant::parse),
     lastResult = last_result,
     nextFollowUp = next_follow_up?.toDomain(),
+    activeSince = active_since,
+    needs = needs.orEmpty(),
 )
 
 fun NextFollowUpDto.toDomain() = NextFollowUp(id, Instant.parse(remind_at))
@@ -77,7 +79,9 @@ fun CustomerProfile.toCreateDto(): CustomerCreateDto = CustomerCreateDto(
     contact_name = contactName,
     phone = phone,
     address = address,
+    active_since = activeSince,
     industry = industry,
+    needs = needs,
     source = source,
     potential_level = potentialLevel,
 )
@@ -87,7 +91,9 @@ fun CustomerProfile.toUpdateDto(): CustomerUpdateDto = CustomerUpdateDto(
     contact_name = contactName,
     phone = phone,
     address = address,
+    active_since = activeSince,
     industry = industry,
+    needs = needs,
     source = source,
     potential_level = potentialLevel,
 )

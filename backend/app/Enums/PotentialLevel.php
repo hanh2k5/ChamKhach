@@ -8,14 +8,4 @@ enum PotentialLevel: string
     case Medium = 'medium';
     case Low = 'low';
     case Unrated = 'unrated';
-
-    public function label(): string
-    {
-        return match ($this) {
-            self::High => 'Cao',
-            self::Medium => 'Vừa',
-            self::Low => 'Thấp',
-            self::Unrated => 'Chưa đánh giá',
-        };
-    }
 }

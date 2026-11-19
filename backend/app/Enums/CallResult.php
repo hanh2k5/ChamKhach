@@ -4,6 +4,7 @@ namespace App\Enums;
 
 enum CallResult: string
 {
+    case Contacted = 'contacted';
     case Interested = 'interested';
     case NoAnswer = 'no_answer';
     case Callback = 'callback';
@@ -12,6 +13,7 @@ enum CallResult: string
     public function label(): string
     {
         return match ($this) {
+            self::Contacted => 'Đã liên hệ',
             self::Interested => 'Quan tâm',
             self::NoAnswer => 'Không nghe máy',
             self::Callback => 'Hẹn gọi lại',

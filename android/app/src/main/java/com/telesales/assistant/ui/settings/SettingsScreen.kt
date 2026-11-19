@@ -3,9 +3,11 @@ package com.telesales.assistant.ui.settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -35,6 +37,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.telesales.assistant.R
 import com.telesales.assistant.data.network.ApiServiceProvider
 import com.telesales.assistant.data.settings.SettingsStore
+import com.telesales.assistant.ui.components.GlassCard
 
 @Composable
 fun SettingsRoute(settingsStore: SettingsStore, apiServiceFactory: ApiServiceProvider, onBack: (() -> Unit)? = null, permissionStateProvider: ReminderPermissionStateProvider? = null, reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator? = null, debugBuild: Boolean = false) {
@@ -79,71 +82,98 @@ private fun SettingsScreen(
                 .fillMaxWidth()
                 .widthIn(max = 720.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             if (onBack != null) {
-                androidx.compose.material3.TextButton(onClick = onBack) {
+                androidx.compose.material3.TextButton(
+                    onClick = onBack,
+                    modifier = Modifier.offset(x = (-8).dp),
+                ) {
                     Text(stringResource(R.string.settings_back))
                 }
             }
-            Text(text = stringResource(R.string.settings_title))
-            Text(text = stringResource(R.string.reminder_settings_title))
-            Text(text = stringResource(if (state.notificationsGranted) R.string.reminder_notifications_enabled else R.string.reminder_notifications_disabled))
-            Text(text = stringResource(if (state.exactAlarmsGranted) R.string.reminder_exact_enabled else R.string.reminder_exact_disabled))
-            if (!state.notificationsGranted) Text(stringResource(R.string.reminder_notifications_explanation), color = androidx.compose.material3.MaterialTheme.colorScheme.error)
-            if (!state.exactAlarmsGranted) Text(stringResource(R.string.reminder_exact_explanation), color = androidx.compose.material3.MaterialTheme.colorScheme.error)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                Button(onClick = {
-                    context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")))
-                }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.reminder_open_exact_settings)) }
+            Text(text = stringResource(R.string.settings_title), style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+            GlassCard(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(text = stringResource(R.string.reminder_settings_title), style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        androidx.compose.material3.Surface(
+                            modifier = Modifier.weight(1f),
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.run { if (state.notificationsGranted) secondaryContainer else errorContainer },
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+                        ) {
+                            Text(text = stringResource(if (state.notificationsGranted) R.string.settings_notification_status_on else R.string.settings_notification_status_off), modifier = Modifier.padding(9.dp), style = androidx.compose.material3.MaterialTheme.typography.labelSmall, maxLines = 1, softWrap = false)
+                        }
+                        androidx.compose.material3.Surface(
+                            modifier = Modifier.weight(1f),
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.run { if (state.exactAlarmsGranted) secondaryContainer else errorContainer },
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
+                        ) {
+                            Text(text = stringResource(if (state.exactAlarmsGranted) R.string.settings_alarm_status_on else R.string.settings_alarm_status_off), modifier = Modifier.padding(9.dp), style = androidx.compose.material3.MaterialTheme.typography.labelSmall, maxLines = 1, softWrap = false)
+                        }
+                    }
+                    if (!state.notificationsGranted) Text(stringResource(R.string.reminder_notifications_explanation), color = androidx.compose.material3.MaterialTheme.colorScheme.error, style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+                    if (!state.exactAlarmsGranted) Text(stringResource(R.string.reminder_exact_explanation), color = androidx.compose.material3.MaterialTheme.colorScheme.error, style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            Button(onClick = {
+                                context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName))
+                            }, modifier = Modifier.weight(1f)) {
+                                Text(stringResource(R.string.settings_open_notifications), maxLines = 1, softWrap = false, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                            }
+                            Button(onClick = {
+                                context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")))
+                            }, modifier = Modifier.weight(1f)) {
+                                Text(stringResource(R.string.settings_open_alarm), maxLines = 1, softWrap = false, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                            }
+                        }
+
+                    }
+
+                }
             }
-            Button(onClick = {
-                context.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName))
-            }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.reminder_open_notification_settings)) }
-            if (debugBuild) Button(onClick = onDebugReminder, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.reminder_debug_schedule))
+            GlassCard(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(stringResource(R.string.settings_title), style = androidx.compose.material3.MaterialTheme.typography.titleMedium, color = androidx.compose.material3.MaterialTheme.colorScheme.primary)
+                    OutlinedTextField(
+                        value = state.baseUrl,
+                        onValueChange = onBaseUrlChanged,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = state.isLoaded && !state.isChecking,
+                        label = { Text(stringResource(R.string.settings_base_url)) },
+                        placeholder = { Text(stringResource(R.string.settings_base_url_hint)) },
+                        isError = state.baseUrlInvalid,
+                        supportingText = if (state.baseUrlInvalid) {
+                            { Text(stringResource(R.string.settings_base_url_error)) }
+                        } else null,
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = state.token,
+                        onValueChange = onTokenChanged,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = state.isLoaded && !state.isChecking,
+                        label = { Text(stringResource(R.string.settings_token)) },
+                        visualTransformation = PasswordVisualTransformation(),
+                        singleLine = true,
+                    )
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = onSave, enabled = state.isLoaded && !state.isChecking, modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.settings_save), maxLines = 1, softWrap = false)
+                        }
+                        Button(onClick = onCheckConnection, enabled = state.isLoaded && !state.isChecking, modifier = Modifier.weight(1f)) {
+                            Text(stringResource(R.string.settings_check_short), maxLines = 1, softWrap = false)
+                        }
+                    }
+                    if (state.isChecking) {
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterStart) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    StatusText(state.status)
+                }
             }
-            OutlinedTextField(
-                value = state.baseUrl,
-                onValueChange = onBaseUrlChanged,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = state.isLoaded && !state.isChecking,
-                label = { Text(stringResource(R.string.settings_base_url)) },
-                placeholder = { Text(stringResource(R.string.settings_base_url_hint)) },
-                isError = state.baseUrlInvalid,
-                supportingText = if (state.baseUrlInvalid) {
-                    { Text(stringResource(R.string.settings_base_url_error)) }
-                } else null,
-                singleLine = true,
-            )
-            OutlinedTextField(
-                value = state.token,
-                onValueChange = onTokenChanged,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = state.isLoaded && !state.isChecking,
-                label = { Text(stringResource(R.string.settings_token)) },
-                visualTransformation = PasswordVisualTransformation(),
-                singleLine = true,
-            )
-            Button(
-                onClick = onSave,
-                enabled = state.isLoaded && !state.isChecking,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.settings_save))
-            }
-            Button(
-                onClick = onCheckConnection,
-                enabled = state.isLoaded && !state.isChecking,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.settings_check_connection))
-            }
-            if (state.isChecking) {
-                CircularProgressIndicator()
-            }
-            StatusText(state.status)
         }
         }
     }
@@ -164,5 +194,12 @@ private fun StatusText(status: SettingsStatus) {
         SettingsStatus.ServerError -> stringResource(R.string.settings_server_error)
         SettingsStatus.StorageError -> stringResource(R.string.settings_storage_error)
     }
-    message?.let { Text(text = it) }
+    message?.let {
+        Text(
+            text = it,
+            modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+            style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+        )
+    }
 }

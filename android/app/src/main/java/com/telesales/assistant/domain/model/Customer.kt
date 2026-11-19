@@ -18,7 +18,7 @@ data class Customer(
     val lastResult: String?,
 ) {
     fun formattedLastContactedAt(clock: Clock, zoneId: ZoneId): String? = lastContactedAt?.let {
-        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(clock.withZone(zoneId).zone).format(it)
+        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss").withZone(clock.withZone(zoneId).zone).format(it)
     }
 }
 
@@ -29,13 +29,15 @@ data class CustomerProfile(
     val phone: String,
     val address: String?,
     val industry: String?,
-    val source: String?,
     val potentialLevel: String,
+    val source: String?,
     val status: String,
     val interactionCount: Int = 0,
     val lastContactedAt: Instant? = null,
     val lastResult: String? = null,
     val nextFollowUp: NextFollowUp? = null,
+    val activeSince: String? = null,
+    val needs: List<String> = emptyList(),
 )
 
 data class NextFollowUp(val id: Long, val remindAt: Instant)

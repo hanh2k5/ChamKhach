@@ -7,6 +7,16 @@
 
 ## Trạng thái
 
+- **10/11/2026 (4):** Thiết kế lại nút bấm và thanh phân trang theo phong cách Apple / Facebook: thay nút chữ Trước/Sau cồng kềnh bằng icon `‹` và `›` 32dp nhỏ gọn bo góc 8dp; bổ sung thanh nhảy trang nhanh trực tiếp `Đến trang [ 95 ] / 100 [ Đi ]` tự động clamp và nhảy trang; thiết kế lại 3 nút hành động `Gọi`, `Xong`, `Dời` trong mỗi thẻ khách hàng theo style iOS/FB compact (chiều cao 34dp, bo góc 8dp, tông màu hiện đại, `Xong` nổi bật). Chạy unit tests xanh, đóng gói và cài đặt thành công lên emulator.
+- **10/11/2026 (3):** Sửa triệt để lỗi crash / ANR do vượt hạn mức 500 báo thức của Android (`IllegalStateException: Maximum limit of concurrent alarms 500 reached`): thêm giới hạn `MAX_SCHEDULED_ALARMS = 100` trong `ReminderCoordinator.recoverAfterBoot()`, bọc `try-catch` an toàn trong `AndroidReminderScheduler.schedule()`. Cài đặt và xác nhận trên emulator: app hiển thị và tương tác mượt mà (`mCurrentFocus=MainActivity`).
+- **10/11/2026 (2):** Sửa lỗi ứng dụng không phản hồi (ANR) khi mở app với nhiều dữ liệu: chuyển `ReminderCoordinator.sync`, `recoverAfterBoot`, `apply` sang chạy trên `Dispatchers.IO`, tách sync trong `DashboardViewModel` và `FollowUpsViewModel` ra `syncJob` riêng không block UI; giới hạn `MAX_SYNC_PAGES = 5` và `MAX_MISSED_NOTIFICATIONS = 5` chống quá tải IPC AlarmManager/NotificationManager. Unit tests xanh, `assembleDebug` BUILD SUCCESSFUL.
+- **10/11/2026:** Nâng cấp UI phân trang thông minh với component `PaginationBar` chung cho cả `FollowUpsScreen` và `CustomersScreen`: luôn neo trang 1 và trang cuối kèm dấu `…`, cho phép nhảy nhanh đến đầu hoặc cuối danh sách khi có nhiều trang (ví dụ 50 trang). Thêm unit test `PaginationBarTest`, chạy toàn bộ test suite và `assembleDebug` BUILD SUCCESSFUL.
+- **09/11/2026 (2):** Sửa phân trang FollowUpsScreen bị block — tách `reminderCoordinator.sync()` ra `syncJob` riêng, bỏ guard `listJob?.isActive` trong `goToPage()`. Tests (27 tests) xanh, `assembleDebug` BUILD SUCCESSFUL.
+- **09/11/2026:** Căn trái toàn bộ phần Tương tác và Tiềm năng trong màn Chi tiết khách (CustomerDetailScreen), Việt hóa trạng thái 'unrated' thành 'Chưa đánh giá'. Cập nhật seeder DashboardDemoSeeder sinh đúng 1000 lịch quá hạn, 1000 lịch hôm nay và 1000 khách tiềm năng độc lập.
+- **06/11/2026:** Sửa Dashboard chart dùng cùng thang đo, hiện số lượng trên đầu mỗi cột; cập nhật seeder để 100 lịch quá hạn, 100 lịch hôm nay và 100 khách tiềm năng luôn có dữ liệu mẫu.
+- **06/11/2026:** Sửa nút Tiềm năng trên Dashboard truyền đúng bộ lọc `high,medium`; danh sách tiềm năng nay chỉ hiển thị đúng nhóm và phân trang 20 khách/trang.
+- **06/11/2026:** Sửa API lọc danh sách theo `potential`, giữ thứ tự khách mới nhất ở trên (`id DESC`) khi chuyển trang. Thêm test chuyển trang khách tiềm năng.
+- **06/11/2026:** Đã căn chỉnh trạng thái lỗi Dashboard và trạng thái kiểm tra trong Cài đặt để nội dung full-width, thẳng hàng và dễ đọc trên màn hình nhỏ. Test Android liên quan thành công.
 - **Task hiện tại:** A9 hoàn tất code và unit test; `clean testDebugUnitTest assembleDebug` thành công, 72 unit tests xanh trong 18 suites (02/11/2026). Kiểm thử emulator A2–A9 còn nợ. A1 đã được người dùng xác minh build/test và kiểm thử emulator.
 - **Đã xong:**
   - [x] T0: Khởi tạo repo và cài đặt môi trường (commit `b96aa78`, `7b3bf90`, `25dc469`)
@@ -37,7 +47,7 @@
     - Test suite: 54 tests, 184 assertions xanh 100% (PhoneNormalizerTest: 25 tests, CustomerTest: 14 tests)
     - Thử nghiệm curl thật thành công: 201 tạo mới, 409 trùng số, 200 danh sách và chi tiết
   - [x] T4: Interactions API (30/10/2026)
-    - Tạo `StoreInteractionRequest` validate result/needs enum, needs min:1, follow_up.remind_at sau now
+    - Ghi ch? l?ch s? A5: khi tri?n khai ban ??u API y?u c?u ?t nh?t m?t need; quy t?c hi?n t?i ?? ???c thay b?ng ch?p nh?n m?ng r?ng ? workflow m?i b?n d??i.
     - Tạo `InteractionService::record` (DB transaction + lockForUpdate + D6): tạo interaction + needs, hoàn thành follow-up pending cũ, tạo follow-up mới nếu có remind_at
     - Tạo `InteractionResource` format GET list item
     - Tạo `InteractionController` (index + store), đăng ký route GET/POST /api/v1/customers/{id}/interactions
@@ -74,6 +84,7 @@
 - **Backend:** `cd backend && php artisan serve`
 - **Cấp token telesales:** `cd backend && php artisan telesales:issue-token`
 - **Chạy migrations dev:** `cd backend && php artisan migrate`
+- **Tạo dữ liệu mẫu Dashboard:** `php artisan db:seed --class=DashboardDemoSeeder` (thay dữ liệu mẫu Dashboard bằng 100 quá hạn, 100 hôm nay và 100 khách tiềm năng; không xóa dữ liệu thật)
 - **Test backend:** `cd backend && php artisan test`
 - **Test T5 only:** `cd backend && php artisan test tests/Unit/BusinessTimeTest.php tests/Feature/FollowUpTest.php tests/Feature/DashboardTest.php`
 - **Android build:** `cd android && ./gradlew assembleDebug`
@@ -238,3 +249,375 @@ PDO connection  → SUCCESS (telesales & telesales_test DB ready) ✅
 - Updated `TELESALES_SPEC.md` and recorded decision D15 in `DECISIONS.md`.
 - Verification: `DB_CONNECTION=sqlite DB_DATABASE=:memory: php artisan test` passed (102 tests, 280 assertions); `JAVA_HOME=<Android Studio JBR> .\gradlew.bat testDebugUnitTest` passed.
 - MySQL is not running locally; the Laravel suite used isolated in-memory SQLite. Run the suite on configured `telesales_test` when MySQL is available.
+
+## Delete button stuck-state fix (2026-11-03)
+
+- Customer detail deletion now resets `isDeleting` in `finally`; transient IO errors become a retryable network failure.
+- A 404 displays “Khách hàng không còn tồn tại” and closes the detail route. Both dialog actions are disabled only while deletion is in progress.
+- Verification: `JAVA_HOME=<Android Studio JBR> .\gradlew.bat assembleDebug`.
+
+## Default customer potential label fix (2026-11-03)
+
+- New customer forms now default to `medium` so the two-choice UI displays the Vietnamese label “Vừa”, not the unsupported `unrated` value.
+- Existing stored customer values are not migrated.
+- Verification: `JAVA_HOME=<Android Studio JBR> .\gradlew.bat assembleDebug`.
+
+## Source and interaction need display fix (2026-11-03)
+
+- Customer details translate `personal`/`business` source codes to Vietnamese labels.
+- Choosing the first concrete need now replaces the default `other`; detail history suppresses a legacy `other` value when a concrete need is also present.
+- Verification: `JAVA_HOME=<Android Studio JBR> .\gradlew.bat assembleDebug`.
+
+## Customer UI labels and potential levels (2026-11-03)
+
+- Kept only High/Medium/Low in potential selectors and added exhaustive fallbacks to the label mappings.
+- Hid latest call result from customer list/detail summaries while preserving it in the data model and call timeline.
+- Verification: `JAVA_HOME=<Android Studio JBR> .\gradlew.bat assembleDebug`.
+- Follow-up clarification: selectors now contain only High and Medium; Low is removed from Android UI strings and mappings.
+
+## Customer source dropdown (2026-11-03)
+
+- Replaced the free-text source field with a Material 3 exposed dropdown for `personal` and `business`; the field remains empty until selected.
+- Added Vietnamese labels in `strings.xml`. Existing detail `when` mappings already have `else` branches.
+- Verification: `JAVA_HOME=<Android Studio JBR> .\gradlew.bat assembleDebug`.
+
+
+## Streamlined Telesales Workflow (completed 2026-11-03)
+
+- Added nullable `customers.active_since` and JSON-array `customers.needs` stored in TEXT; `industry` was already nullable. Customer API/model/resource support these values.
+- Interaction API defaults omitted `result` to `contacted` and accepts empty needs. Android logs an interaction on ACTION_DIAL, streamlines call logging, displays customer need chips, and includes customer name, phone, and note in reminders.
+- Verification: `php artisan migrate` succeeded; backend tests passed (104 tests, 292 assertions) using SQLite in-memory. Android `testDebugUnitTest assembleDebug` passed (75 tests). APK: `android/app/build/outputs/apk/debug/app-debug.apk`.
+
+## Separate customer and company names (2026-11-03)
+
+- Customer create/edit has separate `contact_name` and `company_name` fields. Customer detail renders separate rows and uses the missing-value label when either field is empty.
+- Verification: `cd android && .\gradlew.bat assembleDebug` ? `BUILD SUCCESSFUL`.
+
+## Interest marking and label consistency (2026-11-03)
+
+- Added a "Mark Interested" chip to customer detail and call logging. Detail records an `interested` interaction immediately; call logging sends `interested` when selected and retains `contacted` by default.
+- Standardized customer identity, phone, address, activity duration, industry, and needs labels through shared Android string resources. Contact name and company name remain separate fields.
+- Increased selected needs-chip contrast with the primary color and on-primary text; the required phone field keeps its required hint.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug` - `BUILD SUCCESSFUL` (27s).
+
+
+## Customer potential editing (2026-11-03)
+
+- Added High/Medium selectors to create and edit forms. New customers default to Medium; edits load and preserve the saved choice. Legacy `unrated` values display as Medium and can be changed.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug` - `BUILD SUCCESSFUL` (12s).
+
+
+## Record initial call after customer creation (2026-11-03)
+
+- One Save on a new customer now creates the customer and records one `contacted` interaction with optional future follow-up. The server assigns `contacted_at`; successful follow-ups are scheduled through ReminderCoordinator.
+- If interaction recording fails after customer creation, the form retains the created ID and retries only the interaction, preventing a duplicate customer.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug` - `BUILD SUCCESSFUL` (12s).
+
+
+## Vietnamese timestamp display with seconds (2026-11-03)
+
+- Customer last-contact time, customer interaction timeline, and follow-up/dashboard dates now display in Asia/Ho_Chi_Minh using `dd/MM/yyyy HH:mm:ss`. API timestamps remain UTC.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug` - `BUILD SUCCESSFUL` (17s).
+
+## Remove new interest marking action (2026-11-03)
+
+- Removed the ability to mark a customer as interested from Customer Detail and Call Log. New call logs always record `contacted`.
+- Kept the `interested` result label and display mapping for historical interactions already stored.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## Compact customer list cards (2026-11-03)
+
+- Customer list cards now show the customer's name (or company/phone fallback), phone number, and Call action. Address, industry, and last-call time remain available in customer detail.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## Compact customer detail layout (2026-11-03)
+
+- Grouped customer fields into compact label/value rows, placed call count and potential side by side, and arranged the four actions in two rows. Needs, follow-up, contact time, deletion confirmation, and call history remain available.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## Call schedule defaults to current Vietnam time (2026-11-03)
+
+- The date picker now selects today by default; the time picker starts at the current Vietnam hour and minute instead of a fixed 09:00. Previously selected date/time values are preserved.
+- Added a ViewModel test for the Asia/Ho_Chi_Minh date/time conversion using a fixed Clock.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## Initial customer call note (2026-11-03)
+
+- Added an optional 500-character note field to the new-customer form. The initial `contacted` interaction and any reminder created with it now carry that note; edit-customer form is unchanged.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## New-customer follow-up time default (2026-11-03)
+
+- Fixed the new-customer form's separate time picker: it now starts at the current hour/minute in Asia/Ho_Chi_Minh instead of 09:00. A previously chosen time remains selected.
+- Added a fixed-Clock test for the default local time.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## Manual call logging after dialing (2026-11-03)
+
+- Call buttons in customer list and detail now only open ACTION_DIAL. They no longer create a separate automatic Interaction; notes and follow-ups are saved once through Ghi nhận cuộc gọi.
+- Updated SPEC behavior and removed unused one-tap recording plumbing.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## Compact settings screen (2026-11-03)
+
+- Grouped reminder controls and connection fields into separate GlassCards, reduced page spacing, and placed notification permission and connection actions side by side where supported. Existing status, validation, and permission behavior is unchanged.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## Distinct layouts for core screens (2026-11-03)
+
+- Dashboard uses separate semantic colors for KPI tiles and a short task preview; customer list is a flat contact list with compact call actions; follow-ups use a colored date/time badge and clear overdue/today/upcoming treatment.
+- Interaction, navigation, call, and reminder actions are unchanged.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## Combined Dashboard for customers and follow-ups (2026-11-03)
+
+- Merged follow-up management and the searchable/filterable customer list into the scrolling Dashboard. The main navigation now shows Dashboard and Settings; opening a customer still opens its detail screen.
+- Follow-up call/complete/reschedule and customer call/detail actions continue to use their existing ViewModels and repositories. Pull-to-refresh refreshes dashboard metrics, customers, and follow-ups together.
+- Updated SPEC section 9.2 to match the unified navigation.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## Dashboard chart and focused screen layouts (2026-11-03)
+
+- Added a compact overdue/today bar chart to Dashboard while keeping potential as its own KPI.
+- Added visual grouping to customer details, customer form, call logging, and Settings to make each task area easier to scan and reduce the impression of blank pages. No ViewModel/Repository or API behavior changed.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## Dashboard as a clean home with a work hub (2026-11-03)
+
+- Removed the customer and follow-up lists from the home Dashboard. Dashboard now contains summary metrics/chart and one Công việc entry point.
+- Added a Công việc hub with separate buttons opening the existing customer list and follow-up screens. Existing screen behavior and navigation back paths are preserved.
+- Updated SPEC section 9.2 to describe the home/hub structure.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## Dashboard chart is the work hub entry point (2026-11-03)
+
+- Removed standalone number tiles, the separate work-hub card, and the add-customer floating button from the home screen.
+- The chart now contains overdue, due-today, and potential counts and is the sole work-hub entry point; tapping the chart opens Công việc.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## Dashboard direct feature cards (2026-11-04)
+
+- Replaced the intermediate Công việc screen with three independent Dashboard cards.
+- Quá hạn opens filtered overdue follow-ups, Hôm nay opens filtered today follow-ups, and Khách tiềm năng opens the high-potential customer list directly.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## Dashboard card redesign and potential default filter (2026-11-04)
+
+- Redesigned the three Dashboard entries as separate colored cards with marker, description, count, and direct navigation.
+- Fixed the potential-card route so it opens the customer list with the default Tất cả filter, matching the dashboard count of high and medium potential customers.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug` - `BUILD SUCCESSFUL`.
+
+## Interactive geography-style dashboard chart (2026-11-04)
+
+- Replaced the three dashboard cards with one compact interactive column chart.
+- Added vertical/horizontal axes with arrowheads, dashed guide lines, colored columns, values, and labels.
+- Each chart column remains directly clickable for its corresponding overdue, today, or potential screen.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug` - `BUILD SUCCESSFUL`.
+
+## Add-customer entry point (2026-11-04)
+
+- Added a visible Thêm khách action to the customer-list top bar.
+- Empty customer lists now use Thêm khách as the primary action instead of only retrying.
+- The action opens the existing customer form create route; API and form logic are unchanged.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug` - `BUILD SUCCESSFUL`.
+
+## Compact Facebook-style UI foundation (2026-11-04)
+
+- Applied a compact visual baseline across the app: smaller interactive minimum size, tighter shared card corners, and reduced card shadows.
+- Tightened the Settings screen spacing and status panels while preserving all connection and reminder behavior.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug` - `BUILD SUCCESSFUL`.
+
+## Short single-line settings labels (2026-11-04)
+
+- Shortened settings status and action labels so paired controls stay on one line and remain symmetric on narrow screens.
+- Existing actions and permission behavior are unchanged.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug` - `BUILD SUCCESSFUL`.
+
+## Compact follow-up cards (2026-11-04)
+
+- Simplified follow-up cards by removing repeated group labels, tightening the date badge and spacing, and limiting notes to one line.
+- Equalized the three action buttons with short labels: Gọi, Xong, Dời.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug` - `BUILD SUCCESSFUL`.
+
+## Square vertical dashboard bars (2026-11-04)
+
+- Dashboard bars now rise from the baseline with square corners, while tapping the chart still opens Công việc.
+- No API, ViewModel, Repository, or navigation behavior changed.
+- Verification: `cd android && .\gradlew.bat testDebugUnitTest assembleDebug`.
+
+## Removed customer potential classification (2026-11-04)
+
+- Removed the potential-level field, selectors, customer-list filter, Dashboard potential column, and related navigation from Android.
+- Removed `potential_level` from the backend model, validation, resources, dashboard summary, API DTOs, and added a migration to drop the database column.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+- Backend verification: `cd backend; php artisan test` - 102 tests passed, 276 assertions.
+
+## Restored customer potential classification (2026-11-04)
+
+- Superseded by the later removal requested by the user.
+
+## Vietnamese follow-up date format (2026-11-04)
+
+- Follow-up date buttons now display `dd/MM/yyyy` (for example `04/11/2026`) instead of the ISO format.
+- Stored/API date values and scheduling behavior are unchanged.
+
+## Removed customer list potential filter (2026-11-04)
+
+- Superseded by the complete removal below.
+
+## Customer list filter removed, classification retained (2026-11-04)
+
+- Removed only the visible potential filter row from the customer list.
+- Restored and retained `potential_level` in the customer form, detail screen, Dashboard, Android API models, Laravel API, and database.
+- Migration `2026_11_04_000005_restore_potential_level_for_customer_data.php` restores the data column after the mistaken intermediate removal migration.
+- Verification: backend 102 tests passed; Android `testDebugUnitTest assembleDebug` passed.
+
+## Customer list pagination (2026-11-04)
+
+- Customer list now shows 20 customers per page with compact previous, numbered-page, and next controls.
+- Replaced automatic load-more scrolling; search and existing customer actions remain unchanged.
+
+## Android scroll performance optimization (2026-11-09)
+
+- Reused Dashboard chart `Paint` and dashed `PathEffect` objects instead of allocating them during each Canvas draw.
+- Reduced follow-up row recomposition inputs by passing only each row's busy state and memoized formatted time per follow-up.
+- API, ViewModel, Repository, and visible behavior remain unchanged.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Pull-to-refresh scroll smoothness (2026-11-09)
+
+- Prevented the whole screen from recomposing for every pixel while pulling to refresh; the UI now observes only the pulling/not-pulling state.
+- Pull-to-refresh behavior and refresh threshold remain unchanged.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Call schedule button spacing (2026-11-09)
+
+- Added inner padding to the call schedule card so the date and time buttons fit neatly within the card boundary.
+- Date/time selection behavior remains unchanged.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Follow-up completion flow (2026-11-09)
+
+- The follow-up `Xong` button now opens call recording for the related customer instead of completing the reminder without a call record.
+- Saving the call recording creates the interaction and lets the existing backend workflow complete the old pending follow-up; leaving without saving keeps it pending.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Automatic Dashboard refresh after call logging (2026-11-09)
+
+- Saving a call recording now signals the Dashboard to reload its summary when the user returns home.
+- The chart updates without requiring a manual pull-to-refresh; API and database contracts remain unchanged.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Dashboard refresh after follow-up navigation (2026-11-09)
+
+- Returning from the overdue/today follow-up screen now signals the Dashboard to reload its summary automatically.
+- This keeps the chart current without requiring a manual pull-to-refresh.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Dashboard refresh after potential customer navigation (2026-11-09)
+
+- Returning from the potential customer list now signals the Dashboard to reload its summary automatically.
+- Deleting a potential customer is reflected in the Potential chart without a manual pull-to-refresh.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Dashboard demo data expanded (2026-11-09)
+
+- Replaced the previous Dashboard demo records with 200 marked demo customers.
+- Verified counts: 100 pending overdue follow-ups, 100 pending today follow-ups, and 100 active high/medium-potential customers.
+- Seeder command: `cd backend; php artisan db:seed --class=DashboardDemoSeeder`.
+
+## Dashboard add potential customer button (2026-11-09)
+
+- Restored a `Thêm khách hàng tiềm năng` button below the Dashboard chart.
+- The button opens the existing customer form, which defaults to the supported medium potential level; returning to Dashboard refreshes the chart.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew clean testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Removed customer source label (2026-11-09)
+
+- Removed the `Nguồn` line from the customer detail screen.
+- The source field remains available in the existing model/API data; only its display was removed.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Settings back button alignment (2026-11-09)
+
+- Changed the Settings back label to `Quay lại` and shifted the button 8dp left so it aligns better with the content edge.
+- Navigation behavior is unchanged.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew --no-daemon testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Customer needs compact layout (2026-11-09)
+
+- Displayed `Nhu cầu làm gì` and `Chưa khai thác` on one horizontal row in customer details.
+- Multiple needs remain horizontally scrollable without changing stored data.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew --no-daemon testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Compact Dashboard add-customer action (2026-11-09)
+
+- Replaced the full-width potential-customer button with a compact text action aligned to the bottom-right of the Dashboard chart.
+- The action still opens the existing customer form and preserves the Dashboard refresh flow.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew --no-daemon testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Boxed Dashboard add-customer action (2026-11-09)
+
+- Added a rounded container and light border around the compact add-potential-customer action.
+- The action remains aligned to the chart card's lower-right corner.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew --no-daemon testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Customer detail side spacing (2026-11-09)
+
+- Applied symmetric horizontal content padding to the customer detail list so the profile card and timeline align evenly on both sides.
+- No navigation, API, or data behavior changed.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew --no-daemon testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Follow-up action button consistency (2026-11-09)
+
+- Changed the `Dời` follow-up action from a text-only button to an outlined button, matching the outlined `Gọi` action beside it.
+- Kept `Xong` as the filled primary action; behavior and navigation are unchanged.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew --no-daemon testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Customer needs alignment (2026-11-09)
+
+- Matched the `Nhu cầu làm gì` row to the same 42/58 label-value columns used by the customer detail rows above.
+- The empty value and horizontally scrolling needs chips now start at the same aligned value position.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew --no-daemon testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Notification navigation and debug customer fix (2026-11-09)
+
+- Standardized notification intent handling in `MainActivity` using `pendingCustomerId` and keeping `dashboard` as the base destination, ensuring clean back-stack behavior when returning from customer details.
+- Added explicit action, data URI, and `FLAG_ACTIVITY_SINGLE_TOP` in `NotificationHelper` to ensure distinct PendingIntents and reliable delivery to `onNewIntent`.
+- Assigned default demo customer ID (1L) to debug reminders in `ResourceReminderCopy` so test notifications open customer details with the call button.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew --no-daemon testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Customer detail 2-column alignment (2026-11-09)
+
+- Aligned the `Nhu cầu làm gì` row perfectly with the 6 rows above by unifying the spacing to `8.dp`, matching typography (`bodySmall` for labels, `bodyMedium` for values), and keeping consistent 42/58 column weights.
+- Both columns in the customer profile card are now left-aligned and start at identical horizontal positions across all 7 rows.
+- Verification: `wsl.exe bash -lc "cd /mnt/c/Users/Acer/Documents/ChamKhach/android && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 && ./gradlew --no-daemon testDebugUnitTest assembleDebug"` - `BUILD SUCCESSFUL`.
+
+## Fast FollowUps refresh after CallLog save (2026-11-20)
+
+- **V?n �?:** Sau khi l�u ghi nh?n cu?c g?i (CallLog), m�n h?nh "L?ch c?n g?i" (FollowUps) t?i l?i ch?m.
+- **Nguy�n nh�n:** FollowUpsViewModel.load() g?i eminderCoordinator?.sync(repository) m?i l?n refresh. Sync n�y fetches nhi?u trang t? API v� ghi v�o Room DB, m?t v�i gi�y.
+- **Fix:** Th�m flag initialLoaded trong FollowUpsViewModel. Ch? sync l?n �?u m? m�n h?nh; b? qua khi refresh (gi?ng fix �? �p d?ng cho DashboardViewModel).
+- **File s?a:** FollowUpsViewModel.kt (th�m flag initialLoaded, wrap sync trong if (!initialLoaded))
+- **L?nh ch?y l?i:** $env:JAVA_HOME = "C:\Users\Acer\.jdks\jbr-21.0.11"; cd android; ./gradlew testDebugUnitTest assembleDebug
+- **Verification:** BUILD SUCCESSFUL in 55s, APK installed via adb.
+
+## Fast backend Nginx+php-cgi (2026-11-20)
+Fix Android: bo refreshDashboard thua trong callLog onSaved.
+Fix Backend: Nginx portable + php-cgi 4 workers. 3x nhanh hon artisan serve.
+Lenh: powershell -ExecutionPolicy Bypass -File start-backend.ps1
+
+## Fix HTTP Connection Reuse & ApiService Caching (2026-11-20)
+- Nguyen nhan delay khi tai lai lan 2: ApiServiceFactory tao moi OkHttpClient cho moi request khien socket bi TIME_WAIT va nghen tren ket noi ao 10.0.2.2.
+- Fix: Dung chung ConnectionPool va cache ApiService instance trong ApiServiceFactory.
+- Verification: BUILD SUCCESSFUL in 47s, APK installed.
+
+## A10 — Release Packaging & Verification (2026-11-20)
+- **Tạo release keystore:** Tạo keystore elease.jks tại ndroid/app/release.jks với key alias 	elesales.
+- **Cấu hình signing build.gradle.kts:** Thêm signingConfigs.release, bật isMinifyEnabled = true, isShrinkResources = true.
+- **ProGuard rules:** Bổ sung keep rules cho Room entities/DAOs, Retrofit interfaces, OkHttp, DataStore và Kotlinx Serialization DTOs trong proguard-rules.pro.
+- **Cấu hình mạng:** Thêm 
+etwork_security_config.xml cho phép cleartext với 10.0.2.2 phục vụ test máy ảo và khai báo trong AndroidManifest.xml.
+- **Kết quả build:** ./gradlew testDebugUnitTest assembleRelease --no-daemon - **BUILD SUCCESSFUL in 2m 37s**.
+- **File APK release:** ndroid/app/build/outputs/apk/release/app-release.apk (2.49 MB).
+- **Kiểm chứng chạy thực tế:** Đã gỡ debug build, cài đặt pp-release.apk lên emulator-5554, khởi chạy MainActivity PID 9494 thành công không có crash nào trong logcat. Đã chụp screenshot xác nhận elease_screen.png.

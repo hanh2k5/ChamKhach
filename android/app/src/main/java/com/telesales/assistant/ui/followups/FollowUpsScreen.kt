@@ -3,19 +3,28 @@ package com.telesales.assistant.ui.followups
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
@@ -30,12 +39,12 @@ import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -45,12 +54,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.telesales.assistant.R
 import com.telesales.assistant.data.repository.FollowUpRepository
 import com.telesales.assistant.domain.model.FollowUp
-import com.telesales.assistant.ui.components.FollowUpCard
+import com.telesales.assistant.ui.components.PaginationBar
 import com.telesales.assistant.ui.components.rememberPullToRefreshGesture
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,14 +69,24 @@ fun FollowUpsRoute(
     repository: FollowUpRepository,
     onSettings: () -> Unit,
     onCall: (String) -> Unit,
+    onCallLog: (Long) -> Unit,
     onCustomer: (Long) -> Unit,
     onBack: (() -> Unit)? = null,
     clock: Clock = Clock.systemUTC(),
     businessZone: ZoneId = ZoneId.of("Asia/Ho_Chi_Minh"),
     reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator? = null,
+    initialGroup: String = "all",
+    shouldRefresh: Boolean = false,
+    onRefreshConsumed: () -> Unit = {},
 ) {
-    val vm: FollowUpsViewModel = viewModel(factory = FollowUpsFactory(repository, clock, businessZone, reminderCoordinator))
+    val vm: FollowUpsViewModel = viewModel(factory = FollowUpsViewModelFactory(repository, clock, businessZone, reminderCoordinator, initialGroup))
     val state by vm.state.collectAsState()
+    LaunchedEffect(shouldRefresh) {
+        if (shouldRefresh) {
+            vm.refresh()
+            onRefreshConsumed()
+        }
+    }
     val snackbar = remember { SnackbarHostState() }
     val conflictMessage = stringResource(R.string.followups_conflict)
     LaunchedEffect(state.notice) {
@@ -74,7 +95,7 @@ fun FollowUpsRoute(
             vm.dismissNotice()
         }
     }
-    FollowUpsScreen(state, vm, snackbar, onSettings, onCall, onCustomer, onBack)
+    FollowUpsScreen(state, vm, snackbar, onSettings, onCall, onCallLog, onCustomer, onBack)
 }
 
 @Composable
@@ -85,6 +106,7 @@ private fun FollowUpsScreen(
     snackbar: SnackbarHostState,
     onSettings: () -> Unit,
     onCall: (String) -> Unit,
+    onCallLog: (Long) -> Unit,
     onCustomer: (Long) -> Unit,
     onBack: (() -> Unit)?,
 ) {
@@ -139,47 +161,148 @@ private fun FollowUpsScreen(
                         val upcoming = state.items.filter { it.group == "upcoming" }
                         if (overdue.isNotEmpty()) {
                             item { Text(stringResource(R.string.followups_overdue), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.error) }
-                            items(overdue, key = { it.id }) { item -> FollowUpRow(item, state, vm, onCall, onCustomer) }
+                            items(overdue, key = { it.id }) { item -> FollowUpRow(item, item.id in state.busyIds, vm, onCall, onCallLog, onCustomer) }
                         }
                         if (today.isNotEmpty()) {
                             item { Text(stringResource(R.string.followups_today), style = MaterialTheme.typography.titleLarge) }
-                            items(today, key = { it.id }) { item -> FollowUpRow(item, state, vm, onCall, onCustomer) }
+                            items(today, key = { it.id }) { item -> FollowUpRow(item, item.id in state.busyIds, vm, onCall, onCallLog, onCustomer) }
                         }
                         if (upcoming.isNotEmpty()) {
                             item { Text(stringResource(R.string.followups_upcoming), style = MaterialTheme.typography.titleLarge) }
-                            items(upcoming, key = { it.id }) { item -> FollowUpRow(item, state, vm, onCall, onCustomer) }
+                            items(upcoming, key = { it.id }) { item -> FollowUpRow(item, item.id in state.busyIds, vm, onCall, onCallLog, onCustomer) }
                         }
-                        if (state.isLoadingMore) item { CircularProgressIndicator(Modifier.padding(16.dp)) }
+                        if (state.lastPage > 1) {
+                            item {
+                                PaginationBar(
+                                    currentPage = state.currentPage,
+                                    lastPage = state.lastPage,
+                                    onPageSelected = vm::goToPage,
+                                )
+                            }
+                        }
                     }
                 }
-            }
-            val layout by remember { derivedStateOf { listState.layoutInfo } }
-            LaunchedEffect(layout.visibleItemsInfo.lastOrNull()?.index, state.items.size, state.hasMore, state.isLoadingMore) {
-                if (state.hasMore && state.error == null && layout.visibleItemsInfo.lastOrNull()?.index == layout.totalItemsCount - 1) vm.loadMore()
             }
         }
         }
     }
 }
 
+// Pagination handled by shared PaginationBar in ui/components/PaginationBar.kt
+
 @Composable
-private fun FollowUpRow(item: FollowUp, state: FollowUpsUiState, vm: FollowUpsViewModel, onCall: (String) -> Unit, onCustomer: (Long) -> Unit) {
-    FollowUpCard(item, vm.formatTime(item), { onCall(item.customer.phone) }, { onCustomer(item.customer.id) }, callEnabled = item.id !in state.busyIds) {
-        Button(onClick = { vm.complete(item) }, enabled = item.id !in state.busyIds) {
-            Text(stringResource(if (item.id in state.busyIds) R.string.followups_processing else R.string.followups_complete))
+internal fun FollowUpRow(item: FollowUp, busy: Boolean, vm: FollowUpsViewModel, onCall: (String) -> Unit, onCallLog: (Long) -> Unit, onCustomer: (Long) -> Unit) {
+    val groupColor = when (item.group) {
+        "overdue" -> MaterialTheme.colorScheme.errorContainer
+        "today" -> MaterialTheme.colorScheme.secondaryContainer
+        else -> MaterialTheme.colorScheme.primaryContainer
+    }
+    val groupTextColor = when (item.group) {
+        "overdue" -> MaterialTheme.colorScheme.onErrorContainer
+        "today" -> MaterialTheme.colorScheme.onSecondaryContainer
+        else -> MaterialTheme.colorScheme.onPrimaryContainer
+    }
+    val formattedTime = remember(item.id, item.remindAt) { vm.formatTime(item) }
+    val timeParts = formattedTime.split(" ", limit = 2)
+    Surface(
+        modifier = Modifier.fillMaxWidth().clickable { onCustomer(item.customer.id) },
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(14.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, groupColor.copy(alpha = 0.9f)),
+    ) {
+        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Surface(color = groupColor, shape = RoundedCornerShape(10.dp)) {
+                    Column(Modifier.width(68.dp).padding(horizontal = 5.dp, vertical = 7.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(timeParts.firstOrNull().orEmpty(), style = MaterialTheme.typography.labelSmall, color = groupTextColor, maxLines = 1)
+                        Text(timeParts.getOrElse(1) { "" }.substringBeforeLast(":"), style = MaterialTheme.typography.titleSmall, color = groupTextColor, maxLines = 1)
+                    }
+                }
+                Column(
+                    Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    Text(item.customer.contactName?.takeIf(String::isNotBlank) ?: item.customer.companyName?.takeIf(String::isNotBlank) ?: item.customer.phone, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(item.customer.phone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            item.note?.takeIf(String::isNotBlank)?.let { Text(stringResource(R.string.followups_note, it), style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                // Gọi (Apple/FB sleek secondary style)
+                Surface(
+                    onClick = { onCall(item.customer.phone) },
+                    enabled = !busy,
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                    modifier = Modifier.weight(1f).height(34.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = stringResource(R.string.detail_call_short),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
+
+                // Xong (Apple/FB filled primary style)
+                Surface(
+                    onClick = { onCallLog(item.customer.id) },
+                    enabled = !busy,
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1.15f).height(34.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = stringResource(R.string.followups_complete_short),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                    }
+                }
+
+                // Dời (Apple/FB sleek secondary style)
+                Surface(
+                    onClick = { vm.beginReschedule(item) },
+                    enabled = !busy,
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                    modifier = Modifier.weight(1f).height(34.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = stringResource(R.string.followups_reschedule_short),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
         }
-        TextButton(onClick = { vm.beginReschedule(item) }, enabled = item.id !in state.busyIds) { Text(stringResource(R.string.followups_reschedule)) }
     }
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
-private fun RescheduleDialog(state: FollowUpsUiState, vm: FollowUpsViewModel, showDate: androidx.compose.runtime.MutableState<Boolean>, showTime: androidx.compose.runtime.MutableState<Boolean>, onSettings: () -> Unit) {
+internal fun RescheduleDialog(state: FollowUpsUiState, vm: FollowUpsViewModel, showDate: androidx.compose.runtime.MutableState<Boolean>, showTime: androidx.compose.runtime.MutableState<Boolean>, onSettings: () -> Unit) {
     if (showDate.value) {
-        val picker = rememberDatePickerState(initialSelectedDateMillis = state.rescheduleDate?.atStartOfDay(ZoneId.of("UTC"))?.toInstant()?.toEpochMilli())
+        val initialDate = state.rescheduleDate ?: LocalDate.now(ZoneId.of("Asia/Ho_Chi_Minh"))
+        val picker = rememberDatePickerState(initialSelectedDateMillis = initialDate.atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli())
         DatePickerDialog(onDismissRequest = { showDate.value = false }, confirmButton = {
             TextButton(onClick = {
-                picker.selectedDateMillis?.let { vm.setRescheduleDate(Instant.ofEpochMilli(it).atZone(ZoneId.of("UTC")).toLocalDate()) }
+                val date = picker.selectedDateMillis?.let { Instant.ofEpochMilli(it).atZone(ZoneId.of("UTC")).toLocalDate() } ?: initialDate
+                vm.setRescheduleDate(date)
                 showDate.value = false
             }) { Text(stringResource(R.string.call_log_ok)) }
         }, dismissButton = { TextButton(onClick = { showDate.value = false }) { Text(stringResource(R.string.call_log_cancel)) } }) { DatePicker(picker) }
@@ -195,7 +318,7 @@ private fun RescheduleDialog(state: FollowUpsUiState, vm: FollowUpsViewModel, sh
         onDismissRequest = vm::dismissReschedule,
         title = { Text(stringResource(R.string.followups_reschedule)) },
         text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            TextButton(onClick = { showDate.value = true }) { Text(state.rescheduleDate?.let { stringResource(R.string.call_log_date_value, it.toString()) } ?: stringResource(R.string.call_log_select_date)) }
+            TextButton(onClick = { showDate.value = true }) { Text(state.rescheduleDate?.let { stringResource(R.string.call_log_date_value, it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))) } ?: stringResource(R.string.call_log_select_date)) }
             TextButton(onClick = { showTime.value = true }) { Text(state.rescheduleTime?.toString() ?: stringResource(R.string.call_log_select_time)) }
             state.rescheduleError?.let { Text(stringResource(if (it == "past") R.string.followups_past_time else R.string.followups_schedule_incomplete), color = MaterialTheme.colorScheme.error) }
             state.validationErrors["remind_at"]?.forEach { Text(it, color = MaterialTheme.colorScheme.error) }
@@ -217,9 +340,9 @@ private fun errorText(error: FollowUpsError): String = when (error) {
     FollowUpsError.Server -> stringResource(R.string.customers_server_error)
 }
 
-private class FollowUpsFactory(private val repository: FollowUpRepository, private val clock: Clock, private val zone: ZoneId, private val reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator?) : ViewModelProvider.Factory {
+class FollowUpsViewModelFactory(private val repository: FollowUpRepository, private val clock: Clock, private val zone: ZoneId, private val reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator?, private val initialGroup: String = "all") : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         require(modelClass.isAssignableFrom(FollowUpsViewModel::class.java))
-        return modelClass.cast(FollowUpsViewModel(repository, clock, zone, reminderCoordinator))
+        return modelClass.cast(FollowUpsViewModel(repository, clock, zone, reminderCoordinator, initialGroup))
     }
 }

@@ -5,11 +5,11 @@ import androidx.lifecycle.viewModelScope
 import com.telesales.assistant.data.repository.CustomerLoadResult
 import com.telesales.assistant.data.repository.CustomerQuery
 import com.telesales.assistant.data.repository.CustomerRepository
+import kotlinx.coroutines.CancellationException
 import com.telesales.assistant.domain.model.Customer
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,14 +18,15 @@ enum class CustomerError { SetupRequired, Network, Unauthorized, Server }
 data class CustomersUiState(
     val customers: List<Customer> = emptyList(), val query: String = "",
     val potential: String? = null, val lastResult: String? = null, val isLoading: Boolean = true,
-    val isRefreshing: Boolean = false, val isLoadingMore: Boolean = false, val hasMore: Boolean = false,
+    val isRefreshing: Boolean = false, val currentPage: Int = 1, val lastPage: Int = 1,
     val error: CustomerError? = null,
 )
 
 class CustomersViewModel(
     private val repository: CustomerRepository,
+    initialPotential: String? = null,
 ) : ViewModel() {
-    private val mutableState = MutableStateFlow(CustomersUiState())
+    private val mutableState = MutableStateFlow(CustomersUiState(potential = initialPotential))
     val state: StateFlow<CustomersUiState> = mutableState.asStateFlow()
     private var requestJob: Job? = null
     private var debounceJob: Job? = null
@@ -38,31 +39,29 @@ class CustomersViewModel(
         requestJob?.cancel()
         generation++
         page = 1
-        mutableState.value = mutableState.value.copy(query = value, customers = emptyList(), hasMore = false,
-            error = null, isLoading = true, isRefreshing = false, isLoadingMore = false)
+        mutableState.value = mutableState.value.copy(query = value, customers = emptyList(),
+            error = null, isLoading = true, isRefreshing = false, currentPage = 1, lastPage = 1)
         debounceJob?.cancel()
         debounceJob = viewModelScope.launch { delay(300); loadFirstPage() }
     }
 
-    fun onPotentialChanged(value: String?) = changeFilter { copy(potential = value) }
     fun onLastResultChanged(value: String?) = changeFilter { copy(lastResult = value) }
     fun retry() = resetAndLoad()
     fun refresh() = resetAndLoad(refresh = true)
 
-    fun loadMore() {
+    fun goToPage(targetPage: Int) {
         val current = mutableState.value
-        if (current.isLoading || current.isLoadingMore || !current.hasMore || requestJob?.isActive == true) return
-        val requestedPage = page + 1
+        if (targetPage !in 1..current.lastPage || current.isLoading || requestJob?.isActive == true) return
         val requestGeneration = generation
-        mutableState.value = current.copy(isLoadingMore = true)
+        mutableState.value = current.copy(customers = emptyList(), isLoading = true, error = null)
         requestJob = viewModelScope.launch {
-            when (val result = repository.getCustomers(current.toQuery(), requestedPage)) {
+            when (val result = repository.getCustomers(current.toQuery(), targetPage)) {
                 is CustomerLoadResult.Success -> if (generation == requestGeneration) {
                     page = result.page.currentPage
-                    mutableState.value = mutableState.value.copy(customers = mutableState.value.customers + result.page.customers,
-                        hasMore = result.page.currentPage < result.page.lastPage, isLoadingMore = false)
+                    mutableState.value = mutableState.value.copy(customers = result.page.customers,
+                        currentPage = result.page.currentPage, lastPage = result.page.lastPage, isLoading = false)
                 }
-                else -> if (generation == requestGeneration) applyError(result, append = true)
+                else -> if (generation == requestGeneration) applyError(result)
             }
         }
     }
@@ -72,7 +71,7 @@ class CustomersViewModel(
         generation++
         page = 1
         mutableState.value = mutableState.value.update().copy(customers = emptyList(), isLoading = true,
-            isRefreshing = false, isLoadingMore = false, hasMore = false, error = null)
+            isRefreshing = false, currentPage = 1, lastPage = 1, error = null)
         debounceJob?.cancel()
         loadFirstPage()
     }
@@ -83,7 +82,7 @@ class CustomersViewModel(
         generation++
         page = 1
         mutableState.value = mutableState.value.copy(customers = emptyList(), isLoading = !refresh,
-            isRefreshing = refresh, isLoadingMore = false, hasMore = false, error = null)
+            isRefreshing = refresh, currentPage = 1, lastPage = 1, error = null)
         loadFirstPage()
     }
 
@@ -97,7 +96,7 @@ class CustomersViewModel(
                 is CustomerLoadResult.Success -> {
                     page = result.page.currentPage
                     mutableState.value = mutableState.value.copy(customers = result.page.customers,
-                        hasMore = result.page.currentPage < result.page.lastPage, isLoading = false,
+                        currentPage = result.page.currentPage, lastPage = result.page.lastPage, isLoading = false,
                         isRefreshing = false, error = null)
                 }
                 else -> applyError(result)
@@ -105,7 +104,7 @@ class CustomersViewModel(
         }
     }
 
-    private fun applyError(result: CustomerLoadResult, append: Boolean = false) {
+    private fun applyError(result: CustomerLoadResult) {
         val error = when (result) {
             CustomerLoadResult.SetupRequired -> CustomerError.SetupRequired
             CustomerLoadResult.NetworkError -> CustomerError.Network
@@ -114,8 +113,9 @@ class CustomersViewModel(
             is CustomerLoadResult.Success -> null
         }
         mutableState.value = mutableState.value.copy(isLoading = false, isRefreshing = false,
-            isLoadingMore = false, error = error, customers = if (append) mutableState.value.customers else emptyList())
+            error = error, customers = emptyList())
     }
 
+    fun onPotentialChanged(value: String?) = changeFilter { copy(potential = value) }
     private fun CustomersUiState.toQuery() = CustomerQuery(query.trim(), potential, lastResult)
 }

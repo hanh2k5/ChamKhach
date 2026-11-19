@@ -16,7 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -43,6 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.telesales.assistant.R
+import com.telesales.assistant.ui.components.GlassCard
 import com.telesales.assistant.data.repository.CallLogRepository
 import com.telesales.assistant.domain.model.CustomerProfile
 import java.time.Clock
@@ -50,6 +50,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun CallLogRoute(customerId: Long, repository: CallLogRepository, onBack: () -> Unit, onSaved: () -> Unit, reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator? = null) {
@@ -64,24 +65,19 @@ fun CallLogRoute(customerId: Long, repository: CallLogRepository, onBack: () -> 
 private fun CallLogScreen(state: CallLogUiState, vm: CallLogViewModel, onBack: () -> Unit) {
     val showDate = remember { mutableStateOf(false) }
     val showTime = remember { mutableStateOf(false) }
-    if (state.missingScheduleDialog) AlertDialog(
-        onDismissRequest = vm::dismissScheduleDialog,
-        title = { Text(stringResource(R.string.call_log_choose_schedule_title)) },
-        text = { Text(stringResource(R.string.call_log_choose_schedule_message)) },
-        confirmButton = { TextButton(onClick = { vm.dismissScheduleDialog(); showDate.value = true }) { Text(stringResource(R.string.call_log_choose_schedule)) } },
-        dismissButton = { TextButton(onClick = vm::saveWithoutSchedule) { Text(stringResource(R.string.call_log_save_without_schedule)) } },
-    )
     if (showDate.value) {
-        val picker = rememberDatePickerState(initialSelectedDateMillis = state.date?.atStartOfDay(ZoneId.of("UTC"))?.toInstant()?.toEpochMilli())
+        val pickerDate = state.date ?: vm.currentLocalDate()
+        val picker = rememberDatePickerState(initialSelectedDateMillis = pickerDate.atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli())
         DatePickerDialog(onDismissRequest = { showDate.value = false }, confirmButton = {
             TextButton(onClick = {
-                picker.selectedDateMillis?.let { vm.setDate(Instant.ofEpochMilli(it).atZone(ZoneId.of("UTC")).toLocalDate()) }
+                val selectedDateMillis = picker.selectedDateMillis
+                vm.setDate(selectedDateMillis?.let { Instant.ofEpochMilli(it).atZone(ZoneId.of("UTC")).toLocalDate() } ?: pickerDate)
                 showDate.value = false; showTime.value = true
             }) { Text(stringResource(R.string.call_log_ok)) }
         }, dismissButton = { TextButton(onClick = { showDate.value = false }) { Text(stringResource(R.string.call_log_cancel)) } }) { DatePicker(state = picker) }
     }
     if (showTime.value) {
-        val initial = state.time ?: LocalTime.of(9, 0)
+        val initial = state.time ?: vm.currentLocalTime()
         val picker = rememberTimePickerState(initial.hour, initial.minute, is24Hour = true)
         AlertDialog(onDismissRequest = { showTime.value = false }, confirmButton = {
             TextButton(onClick = { vm.setTime(LocalTime.of(picker.hour, picker.minute)); showTime.value = false }) { Text(stringResource(R.string.call_log_ok)) }
@@ -104,42 +100,41 @@ private fun CallLogScreen(state: CallLogUiState, vm: CallLogViewModel, onBack: (
 
 @Composable
 private fun FormContent(state: CallLogUiState, vm: CallLogViewModel, customer: CustomerProfile, showDate: androidx.compose.runtime.MutableState<Boolean>, showTime: androidx.compose.runtime.MutableState<Boolean>) {
-    Text(customer.companyName ?: customer.contactName ?: customer.phone, style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
-    Text(customer.phone)
-    Text(stringResource(R.string.call_log_result_label), style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
-    listOf("interested" to R.string.result_interested, "no_answer" to R.string.result_no_answer, "callback" to R.string.result_callback, "rejected" to R.string.result_rejected).forEach { (value, label) ->
-        if (state.result == value) Button(onClick = { vm.chooseResult(value) }, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(label), style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
-        } else OutlinedButton(onClick = { vm.chooseResult(value) }, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(label), style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+    GlassCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(stringResource(R.string.label_customer_name_company), style = androidx.compose.material3.MaterialTheme.typography.labelMedium, color = androidx.compose.material3.MaterialTheme.colorScheme.primary)
+            Text(customer.companyName ?: customer.contactName ?: customer.phone, style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.field_phone_value, customer.phone), style = androidx.compose.material3.MaterialTheme.typography.bodyMedium)
         }
     }
-    if (state.formError == "result") Text(stringResource(R.string.call_log_result_required), color = androidx.compose.material3.MaterialTheme.colorScheme.error)
-    Text(stringResource(R.string.call_log_needs_label), style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(listOf("website" to R.string.need_website, "web_app" to R.string.need_web_app, "software" to R.string.need_software, "ads" to R.string.need_ads, "other" to R.string.need_other)) { (value, label) ->
-            FilterChip(selected = value in state.needs, onClick = { vm.toggleNeed(value) }, label = { Text(stringResource(label), maxLines = 1) })
+    GlassCard(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.call_log_note), style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+            OutlinedTextField(value = state.note, onValueChange = vm::setNote, label = { Text(stringResource(R.string.call_log_note)) }, supportingText = { Text(stringResource(R.string.call_log_note_counter, state.note.length)) }, modifier = Modifier.fillMaxWidth(), minLines = 2, maxLines = 4)
         }
     }
-    OutlinedTextField(value = state.note, onValueChange = vm::setNote, label = { Text(stringResource(R.string.call_log_note)) }, supportingText = { Text("${state.note.length}/500") }, modifier = Modifier.fillMaxWidth(), minLines = 1, maxLines = 3)
+    GlassCard(Modifier.fillMaxWidth()) {
+    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
     Text(stringResource(R.string.call_log_schedule_label), style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = { showDate.value = true }, modifier = Modifier.weight(1f)) { Text(state.date?.let { stringResource(R.string.call_log_date_value, it.toString()) } ?: stringResource(R.string.call_log_select_date), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+            OutlinedButton(onClick = { showDate.value = true }, modifier = Modifier.weight(1f)) { Text(state.date?.let { stringResource(R.string.call_log_date_value, it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))) } ?: stringResource(R.string.call_log_select_date), maxLines = 1, overflow = TextOverflow.Ellipsis) }
             OutlinedButton(onClick = { showTime.value = true }, modifier = Modifier.weight(1f)) { Text(state.time?.let { stringResource(R.string.call_log_time_value, it.toString()) } ?: stringResource(R.string.call_log_select_time), maxLines = 1, overflow = TextOverflow.Ellipsis) }
         }
         TextButton(onClick = vm::clearSchedule) { Text(stringResource(R.string.call_log_clear_schedule), maxLines = 1, overflow = TextOverflow.Ellipsis) }
     }
+    }
+    }
     if (state.formError == "past_schedule") Text(stringResource(R.string.call_log_schedule_past), color = androidx.compose.material3.MaterialTheme.colorScheme.error)
     if (state.formError == "incomplete_schedule") Text(stringResource(R.string.call_log_schedule_incomplete), color = androidx.compose.material3.MaterialTheme.colorScheme.error)
-    state.validationErrors.forEach { (field, messages) -> Text("$field: ${messages.joinToString()}", color = androidx.compose.material3.MaterialTheme.colorScheme.error) }
+    state.validationErrors.forEach { (field, messages) -> Text(stringResource(R.string.call_log_validation_error, field, messages.joinToString()), color = androidx.compose.material3.MaterialTheme.colorScheme.error) }
     state.formError?.takeIf { it in setOf("setup", "network", "unauthorized", "server") }?.let { Text(stringResource(when (it) {
         "setup" -> R.string.customers_setup_required
         "network" -> R.string.customers_network_error
         "unauthorized" -> R.string.customers_unauthorized
         else -> R.string.customers_server_error
     }), color = androidx.compose.material3.MaterialTheme.colorScheme.error) }
-    Button(onClick = vm::save, enabled = !state.isSaving, modifier = Modifier.fillMaxWidth()) { Text(stringResource(if (state.isSaving) R.string.call_log_saving else R.string.call_log_save)) }
+    Button(onClick = vm::save, enabled = !state.isSaving, modifier = Modifier.fillMaxWidth()) { Text(stringResource(if (state.isSaving) R.string.call_log_saving else R.string.call_log_save), maxLines = 1) }
 }
 
 private class CallLogFactory(private val id: Long, private val repository: CallLogRepository, private val reminderCoordinator: com.telesales.assistant.reminder.ReminderCoordinator?) : ViewModelProvider.Factory {

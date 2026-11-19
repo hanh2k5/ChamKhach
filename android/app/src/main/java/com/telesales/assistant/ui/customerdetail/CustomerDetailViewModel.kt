@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
@@ -61,7 +62,7 @@ class CustomerDetailViewModel(
     fun retryDelete() = deleteCustomer()
 
     fun formatTime(instant: Instant): String =
-        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+        DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
             .withZone(clock.withZone(zoneId).zone)
             .format(instant)
 
@@ -96,22 +97,30 @@ class CustomerDetailViewModel(
         if (mutableState.value.isDeleting || mutableState.value.isDeleted) return
         mutableState.value = mutableState.value.copy(isDeleting = true, deleteError = null)
         viewModelScope.launch {
-            val result = try { repository.deleteCustomer(customerId) }
-            catch (cancelled: CancellationException) { throw cancelled }
-            when (result) {
-                is DeleteCustomerResult.Success -> {
-                    reminderCoordinator?.apply(ReminderPlanner.delete(result.deletedFollowUpIds))
-                    mutableState.value = mutableState.value.copy(
-                        isDeleting = false,
-                        deleteConfirmationVisible = false,
-                        isDeleted = true,
-                        deletedFollowUpIds = result.deletedFollowUpIds,
+            try {
+                val result = try {
+                    repository.deleteCustomer(customerId)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (error: IOException) {
+                    DeleteCustomerResult.Failure(CustomerDetailFailure.Network)
+                }
+
+                when (result) {
+                    is DeleteCustomerResult.Success -> {
+                        reminderCoordinator?.apply(ReminderPlanner.delete(result.deletedFollowUpIds))
+                        mutableState.value = mutableState.value.copy(
+                            deleteConfirmationVisible = false,
+                            isDeleted = true,
+                            deletedFollowUpIds = result.deletedFollowUpIds,
+                        )
+                    }
+                    is DeleteCustomerResult.Failure -> mutableState.value = mutableState.value.copy(
+                        deleteError = result.reason,
                     )
                 }
-                is DeleteCustomerResult.Failure -> mutableState.value = mutableState.value.copy(
-                    isDeleting = false,
-                    deleteError = result.reason,
-                )
+            } finally {
+                mutableState.value = mutableState.value.copy(isDeleting = false)
             }
         }
     }

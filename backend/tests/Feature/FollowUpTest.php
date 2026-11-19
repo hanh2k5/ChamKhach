@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\CustomerStatus;
 use App\Enums\FollowUpStatus;
-use App\Enums\PotentialLevel;
 use App\Models\Customer;
 use App\Models\FollowUp;
 use App\Models\Interaction;
@@ -29,7 +28,6 @@ class FollowUpTest extends TestCase
             'contact_name'     => 'Nguyễn Văn A',
             'phone'            => '0901234567',
             'phone_normalized' => '0901234567',
-            'potential_level'  => PotentialLevel::Medium,
             'status'           => CustomerStatus::Active,
         ]);
     }

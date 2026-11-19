@@ -1,5 +1,7 @@
 # API Examples & Contract Freeze (Task T6)
 
+> Contract hiện tại vẫn hỗ trợ phân loại khách tiềm năng trong hồ sơ và Dashboard; chỉ giao diện danh sách Android ẩn bộ lọc tiềm năng.
+
 > **Trạng thái:** ĐÓNG BĂNG CONTRACT (Frozen for Android Client Phase 2).  
 > **Ngày phê duyệt:** 30/10/2026.  
 > **Nguồn đặc tả gốc:** `docs/SRS.md` mục 7.  
@@ -20,7 +22,7 @@
 | `/api/v1/customers/{id}/interactions` | POST | Khớp 100% | 201, 422 | Mục 7.2 | DB Transaction: tạo interaction + needs, D6 tự động complete lịch cũ (`completed_follow_up_ids`), tạo lịch mới nếu có `remind_at`, chặn khách archived (422 `CUSTOMER_ARCHIVED`) |
 | `/api/v1/follow-ups` | GET | Khớp 100% | 200 | Mục 7.3 | Lọc theo `group` (overdue, today, upcoming, all) và `status`, sắp xếp `remind_at ASC`, trả kèm `customer` và `note` của interaction tạo lịch |
 | `/api/v1/follow-ups/{id}` | PATCH | Khớp 100% | 200, 409, 422 | Mục 7.3 | Máy trạng thái: `complete` (lưu `completed_at`), `cancel`, `reschedule` (remind_at tương lai), chặn 409 `FOLLOW_UP_NOT_PENDING` khi lịch đã kết thúc |
-| `/api/v1/dashboard` | GET | Khớp 100% | 200 | Mục 7.4 | Trả đúng 3 chỉ số (`overdue_count`, `today_count`, `potential_count`) và tối đa 20 `items` pending |
+| `/api/v1/dashboard` | GET | Khớp 100% | 200 | Mục 7.4 | Trả `overdue_count`, `today_count`, `potential_count` và tối đa 20 `items` pending |
 
 ---
 
@@ -1069,4 +1071,3 @@ curl -X POST "http://localhost:8000/api/v1/customers/7/interactions" \
 ```
 
 ---
-

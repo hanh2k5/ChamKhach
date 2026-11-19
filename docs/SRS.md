@@ -22,8 +22,8 @@ SRS để mở một số câu hỏi. Dưới đây là quyết định mặc đ
 | D6 | Mỗi khách có tối đa 1 follow-up `pending` | Khi lưu cuộc gọi mới: (a) follow-up `pending` cũ của khách đó tự chuyển `completed` (vì vừa gọi xong); (b) nếu cuộc gọi có lịch mới thì tạo follow-up `pending` mới. Backend đảm bảo bằng transaction + khóa hàng (`lockForUpdate`) ở service. |
 | D7 | "Đã xử lý" = `completed`; "Dời lịch" = cập nhật `remind_at` trên cùng một dòng, trạng thái vẫn `pending`; "Hủy" = `cancelled`. |
 | D8 | Nhóm lịch | `overdue` = pending và `remind_at < now`. `today` = pending và `now ≤ remind_at ≤ cuối ngày theo Asia/Ho_Chi_Minh`. `upcoming` = pending và sau cuối ngày hôm nay. |
-| D9 | "Khách tiềm năng" (dashboard) | Số khách `status=active` có `potential_level` là `high` hoặc `medium`. Nhãn do người dùng chọn thủ công. |
-| D10 | "Trạng thái chăm sóc" để lọc | Lọc theo kết quả cuộc gọi gần nhất (`last_result`), theo `potential_level`, và theo `status` (active/archived). Mặc định danh sách ẩn khách đã lưu trữ. |
+| D9 | "Khách tiềm năng" (dashboard) | Số khách `status=active` có `potential_level` là `high` hoặc `medium`. |
+| D10 | "Trạng thái chăm sóc" để lọc | Lọc theo kết quả cuộc gọi gần nhất (`last_result`) và theo `status` (active/archived). Bộ lọc tiềm năng không hiển thị trên danh sách. |
 | D11 | Ngày giờ gọi (`contacted_at`) | Do server gán bằng thời điểm nhận request (đúng SRS). Không cho client gửi. |
 | D12 | Kết quả "Hẹn gọi lại" mà không chọn giờ | App hiện hộp thoại: "Chọn lịch" hoặc "Lưu không có lịch". Backend vẫn chấp nhận (không bắt buộc có lịch). |
 | D13 | Thời gian | DB và API dùng UTC. Giao diện hiển thị và "hôm nay" tính theo `Asia/Ho_Chi_Minh`. |

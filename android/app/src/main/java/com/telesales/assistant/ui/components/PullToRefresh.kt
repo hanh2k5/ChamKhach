@@ -2,6 +2,7 @@ package com.telesales.assistant.ui.components
 
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +23,9 @@ fun rememberPullToRefreshGesture(
     onRefresh: () -> Unit,
 ): PullToRefreshGesture {
     var pullDistance by remember { mutableFloatStateOf(0f) }
+    val isPulling by remember {
+        derivedStateOf { pullDistance > 0f }
+    }
     val connection = remember(listState, isRefreshing, onRefresh) {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
@@ -40,5 +44,5 @@ fun rememberPullToRefreshGesture(
             }
         }
     }
-    return PullToRefreshGesture(Modifier.nestedScroll(connection), pullDistance > 0f)
+    return PullToRefreshGesture(Modifier.nestedScroll(connection), isPulling)
 }

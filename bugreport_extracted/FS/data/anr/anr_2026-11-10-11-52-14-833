@@ -1,0 +1,122 @@
+Subject: Broadcast of Intent { act=android.intent.action.BOOT_COMPLETED flg=0x9000030 pkg=com.telesales.assistant cmp=com.telesales.assistant/.reminder.BootReceiver (has extras) }
+Timeout: 60004
+TimeoutStart: 58329955
+RssHwmKb: 207564
+RssKb: 200768
+RssAnonKb: 91592
+RssShmemKb: 13292
+VmSwapKb: 0
+BaseFsVerity: false
+
+
+--- CriticalEventLog ---
+capacity: 20
+events <
+  timestamp_ms: 58153325
+  java_crash <
+    exception_class: "java.util.concurrent.TimeoutException"
+    pid: 21107
+    process: "com.google.android.bluetooth"
+    process_class: 2
+    uid: 1002
+  >
+>
+events <
+  timestamp_ms: 58319050
+  native_crash <
+    pid: 21319
+    process: "com.google.android.bluetooth"
+    process_class: 2
+    uid: 1002
+  >
+>
+events <
+  timestamp_ms: 58329011
+  anr <
+    pid: 1106
+    process: "com.android.systemui"
+    process_class: 2
+    subject: "Input dispatching timed out ([Gesture Monitor] edge-swipe is not responding. Waited 5002ms for MotionEvent)."
+    uid: 10199
+  >
+>
+events <
+  timestamp_ms: 58345704
+  native_crash <
+    pid: 3590
+    process: "com.google.android.dialer"
+    process_class: 2
+    uid: 10151
+  >
+>
+timestamp_ms: 58389967
+window_ms: 300000
+
+----- dumping pid: 21292 at 58389965
+libdebuggerd_client: tombstoned reported failure: 
+
+----- Waiting Channels: pid 21292 at 2026-11-10 11:52:14.909966900+0700 -----
+Cmd line: com.telesales.assistant
+
+sysTid=21292     futex_wait
+sysTid=21293     do_sigtimedwait
+sysTid=21294     pipe_read
+sysTid=21295     do_sys_poll
+sysTid=21296     futex_wait
+sysTid=21297     futex_wait
+sysTid=21298     futex_wait
+sysTid=21299     futex_wait
+sysTid=21300     futex_wait
+sysTid=21301     binder_ioctl_write_read
+sysTid=21302     binder_ioctl_write_read
+sysTid=21303     binder_ioctl_write_read
+sysTid=21304     futex_wait
+sysTid=21305     futex_wait
+sysTid=21306     futex_wait
+sysTid=21307     futex_wait
+sysTid=21308     __wait_rcu_gp
+sysTid=21309     do_sys_poll
+sysTid=21311     futex_wait
+sysTid=21312     futex_wait
+sysTid=21313     futex_wait
+sysTid=21315     futex_wait
+sysTid=21316     futex_wait
+sysTid=21317     do_epoll_wait
+
+----- end 21292 -----
+
+libdebuggerd_client: failed to read status response from tombstoned: Try again
+
+----- Waiting Channels: pid 21292 at 2026-11-10 11:52:24.985305900+0700 -----
+Cmd line: com.telesales.assistant
+
+sysTid=21292     futex_wait
+sysTid=21293     futex_wait
+sysTid=21294     pipe_read
+sysTid=21295     do_sys_poll
+sysTid=21296     futex_wait
+sysTid=21297     futex_wait
+sysTid=21298     futex_wait
+sysTid=21299     futex_wait
+sysTid=21300     futex_wait
+sysTid=21301     binder_ioctl_write_read
+sysTid=21302     binder_ioctl_write_read
+sysTid=21303     binder_ioctl_write_read
+sysTid=21304     futex_wait
+sysTid=21305     futex_wait
+sysTid=21306     futex_wait
+sysTid=21307     futex_wait
+sysTid=21308     __wait_rcu_gp
+sysTid=21309     do_sys_poll
+sysTid=21311     futex_wait
+sysTid=21312     futex_wait
+sysTid=21313     futex_wait
+sysTid=21315     futex_wait
+sysTid=21316     futex_wait
+sysTid=21317     do_epoll_wait
+
+----- end 21292 -----
+
+DurationsV5: 58389963,0,1,2,7,32,3,0,1,0,0,0,0,0,0,1,12525,2,1,12518,4,1,0,0,0
+
+----- dumping ended at 58402492

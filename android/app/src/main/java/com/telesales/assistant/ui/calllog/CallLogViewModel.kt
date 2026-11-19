@@ -27,15 +27,12 @@ data class CallLogUiState(
     val customer: CustomerProfile? = null,
     val isLoading: Boolean = true,
     val loadError: CustomerDetailFailure? = null,
-    val result: String? = null,
-    val needs: Set<String> = setOf("other"),
     val note: String = "",
     val date: LocalDate? = null,
     val time: LocalTime? = null,
     val validationErrors: Map<String, List<String>> = emptyMap(),
     val formError: String? = null,
     val isSaving: Boolean = false,
-    val missingScheduleDialog: Boolean = false,
     val saved: Boolean = false,
 )
 
@@ -49,30 +46,16 @@ class CallLogViewModel(
     val state = mutableState.asStateFlow()
 
     init { loadCustomer() }
-    fun chooseResult(value: String) { mutableState.value = mutableState.value.copy(result = value, validationErrors = emptyMap()) }
-    fun toggleNeed(value: String) {
-        val needs = mutableState.value.needs
-        mutableState.value = mutableState.value.copy(needs = if (value in needs) {
-            if (needs.size > 1) needs - value else needs
-        } else needs + value)
-    }
+    fun currentLocalDate(): LocalDate = clock.instant().atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalDate()
+    fun currentLocalTime(): LocalTime = clock.instant().atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toLocalTime().withSecond(0).withNano(0)
     fun setNote(value: String) { mutableState.value = mutableState.value.copy(note = value.take(500)) }
     fun setDate(value: LocalDate?) { mutableState.value = mutableState.value.copy(date = value, formError = null) }
     fun setTime(value: LocalTime?) { mutableState.value = mutableState.value.copy(time = value, formError = null) }
     fun clearSchedule() { mutableState.value = mutableState.value.copy(date = null, time = null, formError = null) }
-    fun dismissScheduleDialog() { mutableState.value = mutableState.value.copy(missingScheduleDialog = false) }
 
     fun save() {
         val current = mutableState.value
         if (current.isSaving || current.saved) return
-        if (current.result == null) {
-            mutableState.value = current.copy(formError = "result")
-            return
-        }
-        if (current.result == "callback" && (current.date == null || current.time == null)) {
-            mutableState.value = current.copy(missingScheduleDialog = true, formError = null)
-            return
-        }
         if ((current.date == null) != (current.time == null)) {
             mutableState.value = current.copy(formError = "incomplete_schedule")
             return
@@ -80,26 +63,18 @@ class CallLogViewModel(
         submit(current)
     }
 
-    fun saveWithoutSchedule() {
-        val current = mutableState.value
-        if (!current.isSaving && !current.saved && current.result == "callback") {
-            mutableState.value = current.copy(missingScheduleDialog = false)
-            submit(current.copy(date = null, time = null))
-        }
-    }
-
     private fun submit(current: CallLogUiState) {
         val remindAt = current.date?.let { date -> current.time?.let { time ->
             date.atTime(time).atZone(ZoneId.of("Asia/Ho_Chi_Minh")).toInstant()
         } }
         if (remindAt != null && !remindAt.isAfter(clock.instant())) {
-            mutableState.value = current.copy(formError = "past_schedule", missingScheduleDialog = false)
+            mutableState.value = current.copy(formError = "past_schedule")
             return
         }
         mutableState.value = current.copy(isSaving = true, formError = null, validationErrors = emptyMap())
         viewModelScope.launch {
             val request = InteractionCreateDto(
-                result = requireNotNull(current.result), needs = current.needs.toList(),
+                result = "contacted", needs = emptyList(),
                 note = current.note.takeIf(String::isNotBlank),
                 follow_up = remindAt?.let { FollowUpCreateDto(utcIso(it)) },
             )
@@ -114,6 +89,7 @@ class CallLogViewModel(
                             customerName = current.customer?.contactName?.takeIf(String::isNotBlank)
                                 ?: current.customer?.companyName?.takeIf(String::isNotBlank)
                                 ?: current.customer?.phone.orEmpty(),
+                            customerPhone = current.customer?.phone.orEmpty(),
                             remindAt = Instant.parse(at),
                             note = current.note.takeIf(String::isNotBlank),
                         )

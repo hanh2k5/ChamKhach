@@ -120,6 +120,7 @@
     <string name="customer_form_server_error">Máy chủ gặp lỗi. Vui lòng thử lại.</string>
     <string name="detail_title">Chi tiết khách</string>
     <string name="call_log_title">Ghi nhận cuộc gọi</string>
+    <string name="call_log_button">Ghi cuộc gọi</string>
     <string name="call_log_note_counter">%1$d/500</string>
     <string name="call_log_validation_error">%1$s: %2$s</string>
     <string name="call_log_loading">Đang tải khách hàng…</string>

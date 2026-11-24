@@ -13,3 +13,4 @@ services:
         value: "false"
       - key: DB_CONNECTION
         value: sqlite
+

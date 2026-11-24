@@ -1,7 +1,82 @@
-<?php
+﻿<?php
 
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    $dbStatus = 'Chưa kết nối';
+    $customerCount = 0;
+    $errorDetails = null;
+
+    try {
+        \Illuminate\Support\Facades\DB::connection()->getPdo();
+        $dbStatus = 'Đã kết nối (' . config('database.default') . ')';
+        $customerCount = \Illuminate\Support\Facades\DB::table('customers')->count();
+    } catch (\Throwable $e) {
+        $dbStatus = 'Lỗi DB';
+        $errorDetails = $e->getMessage();
+    }
+
+    $errorHtml = $errorDetails ? '<div style="margin-top: 15px; padding: 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; border-radius: 8px; color: #fca5a5; font-size: 13px; font-family: monospace; word-break: break-all;"><b>Chi tiết lỗi:</b> ' . htmlspecialchars($errorDetails) . '</div>' : '';
+
+    return response('<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telesales Assistant API Server</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 32px; max-width: 650px; width: 100%; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); }
+        .badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 6px 14px; border-radius: 9999px; font-size: 13px; font-weight: 600; margin-bottom: 20px; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .badge-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; }
+        h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; color: #fff; }
+        p.subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 24px; line-height: 1.5; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .stat { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 14px; }
+        .stat-label { font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+        .stat-value { font-size: 15px; font-weight: 600; color: #e2e8f0; }
+        .api-box { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+        .api-label { font-size: 12px; color: #94a3b8; font-weight: 600; margin-bottom: 8px; }
+        .code { background: #1e293b; padding: 10px 14px; border-radius: 8px; font-family: monospace; font-size: 13px; color: #38bdf8; word-break: break-all; border: 1px solid #334155; }
+        .token-box { margin-top: 10px; font-size: 13px; color: #cbd5e1; }
+        .footer { margin-top: 24px; text-align: center; font-size: 12px; color: #64748b; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="badge">
+            <span class="badge-dot"></span>
+            SERVER ĐANG HOẠT ĐỘNG (LIVE)
+        </div>
+        <h1>Telesales Assistant API</h1>
+        <p class="subtitle">Máy chủ Backend phục vụ ứng dụng Android Telesales. Dữ liệu được đồng bộ trực tiếp lên Cloud Database.</p>
+        
+        <div class="grid">
+            <div class="stat">
+                <div class="stat-label">Cơ sở dữ liệu</div>
+                <div class="stat-value" style="color: ' . ($errorDetails ? '#f87171' : '#4ade80') . ';">' . htmlspecialchars($dbStatus) . '</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Khách hàng trong DB</div>
+                <div class="stat-value">' . $customerCount . ' hồ sơ</div>
+            </div>
+        </div>
+
+        ' . $errorHtml . '
+
+        <div class="api-box" style="margin-top: 20px;">
+            <div class="api-label">Base URL dùng cho App Android:</div>
+            <div class="code">' . url("/api/v1/") . '/</div>
+            <div class="token-box" style="margin-top: 12px;">
+                <span style="color: #94a3b8;">Token truy cập:</span> <code style="background: #1e293b; padding: 2px 6px; border-radius: 4px; color: #f59e0b;">2005</code>
+            </div>
+        </div>
+
+        <div class="footer">
+            Telesales Assistant &copy; 2026 &bull; Laravel 13 &bull; Supabase Postgres &bull; Render Cloud
+        </div>
+    </div>
+</body>
+</html>', 200)->header('Content-Type', 'text/html; charset=UTF-8');
 });

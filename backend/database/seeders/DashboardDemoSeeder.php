@@ -27,26 +27,27 @@ class DashboardDemoSeeder extends Seeder
             FollowUp::whereIn('customer_id', $demoCustomerIds)->delete();
             Customer::whereIn('id', $demoCustomerIds)->delete();
 
-            // 1. 1000 khách Quá hạn (1..1000): remind_at < $now, potential: Unrated
-            // 2. 1000 khách Hôm nay (1001..2000): remind_at trong khoảng [todayStart, todayEnd), potential: Unrated
-            // 3. 1000 khách Tiềm năng (2001..3000): potential: High / Medium, remind_at > $todayEnd
-            $phones = collect(range(1, 3000))
+            // 1. 20 khách Quá hạn (1..20): remind_at < $now, potential: Unrated
+            // 2. 20 khách Hôm nay (21..40): remind_at trong khoảng [todayStart, todayEnd), potential: Unrated
+            // 3. 20 khách Tiềm năng (41..60): potential: High / Medium, remind_at > $todayEnd
+            $totalCount = 60;
+            $phones = collect(range(1, $totalCount))
                 ->map(fn (int $number): string => '0988' . str_pad((string) $number, 6, '0', STR_PAD_LEFT));
 
             foreach ($phones as $index => $phone) {
                 $number = $index + 1;
 
-                if ($number <= 1000) {
+                if ($number <= 20) {
                     $potentialLevel = PotentialLevel::Unrated;
-                    $remindAt = $now->subMinutes(1001 - $number);
-                } elseif ($number <= 2000) {
-                    $offset = $number - 1000;
+                    $remindAt = $now->subMinutes(21 - $number);
+                } elseif ($number <= 40) {
+                    $offset = $number - 20;
                     $potentialLevel = PotentialLevel::Unrated;
                     $remindAt = $todayStart->addSeconds(
-                        (int) ($todayWindowSeconds * $offset / 1001)
+                        (int) ($todayWindowSeconds * $offset / 21)
                     );
                 } else {
-                    $offset = $number - 2000;
+                    $offset = $number - 40;
                     $potentialLevel = ($offset % 2 === 0)
                         ? PotentialLevel::High
                         : PotentialLevel::Medium;

@@ -80,8 +80,8 @@ class CustomerService
             });
         }
 
-        // Sắp xếp: last_contacted_at giảm dần (null cuối), rồi id giảm dần
-        $query->orderByRaw('last_contacted_at IS NULL, last_contacted_at DESC')
+        // Sắp xếp: last_contacted_at giảm dần (null cuối), rồi id giảm dần (tương thích cả MySQL, SQLite và PostgreSQL)
+        $query->orderByRaw('"last_contacted_at" DESC NULLS LAST')
             ->orderBy('customers.id', 'desc');
 
         $perPage = (int) ($filters['per_page'] ?? 20);

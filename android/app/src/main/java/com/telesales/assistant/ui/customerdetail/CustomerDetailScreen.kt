@@ -200,11 +200,11 @@ private fun DetailContent(
                     }
                     androidx.compose.material3.HorizontalDivider()
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = { onCall(customer.phone) }, modifier = Modifier.weight(1f)) {
+                        Button(onClick = { onCall(customer.phone) }, modifier = Modifier.weight(0.4f)) {
                             Text(stringResource(R.string.detail_call), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
-                        androidx.compose.material3.OutlinedButton(onClick = { onCallLog(customer.id) }, modifier = Modifier.weight(1f)) {
-                            Text(stringResource(R.string.call_log_title), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        androidx.compose.material3.OutlinedButton(onClick = { onCallLog(customer.id) }, modifier = Modifier.weight(0.6f), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 8.dp)) {
+                            Text(stringResource(R.string.call_log_button), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {

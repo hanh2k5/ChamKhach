@@ -52,9 +52,11 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (\Throwable $e, Request $request) {
-            if (($request->is('api/*') || $request->expectsJson()) && !config('app.debug')) {
+            if ($request->is('api/*') || $request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Server error.',
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
                 ], 500);
             }
         });

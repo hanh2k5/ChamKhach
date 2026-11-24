@@ -210,85 +210,26 @@ internal fun FollowUpRow(item: FollowUp, busy: Boolean, vm: FollowUpsViewModel, 
         shape = RoundedCornerShape(14.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, groupColor.copy(alpha = 0.9f)),
     ) {
-        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Surface(color = groupColor, shape = RoundedCornerShape(10.dp)) {
-                    Column(Modifier.width(68.dp).padding(horizontal = 5.dp, vertical = 7.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(timeParts.firstOrNull().orEmpty(), style = MaterialTheme.typography.labelSmall, color = groupTextColor, maxLines = 1)
-                        Text(timeParts.getOrElse(1) { "" }.substringBeforeLast(":"), style = MaterialTheme.typography.titleSmall, color = groupTextColor, maxLines = 1)
-                    }
-                }
-                Column(
-                    Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(3.dp),
-                ) {
-                    Text(item.customer.contactName?.takeIf(String::isNotBlank) ?: item.customer.companyName?.takeIf(String::isNotBlank) ?: item.customer.phone, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(item.customer.phone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(
+            Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Surface(color = groupColor, shape = RoundedCornerShape(10.dp)) {
+                Column(Modifier.width(68.dp).padding(horizontal = 5.dp, vertical = 7.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(timeParts.firstOrNull().orEmpty(), style = MaterialTheme.typography.labelSmall, color = groupTextColor, maxLines = 1)
+                    Text(timeParts.getOrElse(1) { "" }.substringBeforeLast(":"), style = MaterialTheme.typography.titleSmall, color = groupTextColor, maxLines = 1)
                 }
             }
-            item.note?.takeIf(String::isNotBlank)?.let { Text(stringResource(R.string.followups_note, it), style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis) }
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            Column(
+                Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
             ) {
-                // Gọi (Apple/FB sleek secondary style)
-                Surface(
-                    onClick = { onCall(item.customer.phone) },
-                    enabled = !busy,
-                    shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
-                    modifier = Modifier.weight(1f).height(34.dp),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = stringResource(R.string.detail_call_short),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                }
-
-                // Xong (Apple/FB filled primary style)
-                Surface(
-                    onClick = { onCallLog(item.customer.id) },
-                    enabled = !busy,
-                    shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.weight(1.15f).height(34.dp),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = stringResource(R.string.followups_complete_short),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                        )
-                    }
-                }
-
-                // Dời (Apple/FB sleek secondary style)
-                Surface(
-                    onClick = { vm.beginReschedule(item) },
-                    enabled = !busy,
-                    shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
-                    modifier = Modifier.weight(1f).height(34.dp),
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = stringResource(R.string.followups_reschedule_short),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+                Text(item.customer.contactName?.takeIf(String::isNotBlank) ?: item.customer.companyName?.takeIf(String::isNotBlank) ?: item.customer.phone, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(item.customer.companyName?.takeIf(String::isNotBlank)?.let { "$it • ${item.customer.phone}" } ?: item.customer.phone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                item.note?.takeIf(String::isNotBlank)?.let { Text(stringResource(R.string.followups_note, it), style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.primary) }
             }
+            Text("›", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
         }
     }
 }
